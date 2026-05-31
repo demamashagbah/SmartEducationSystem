@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartEducation.Application\SmartEducation.Application.csproj" />
+    <ProjectReference Include="..\SmartEducation.Domain\SmartEducation.Domain.csproj" />
+    <ProjectReference Include="..\SmartEducation.Shared\SmartEducation.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Ai\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,54 @@
+﻿@model LoginViewModel
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-4">
+
+            <div class="card shadow">
+
+                <div class="card-body">
+
+                    <h3 class="text-center mb-4">
+                        Login
+                    </h3>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <form asp-action="Login" method="post">
+
+                        <div class="mb-3">
+                            <label>Email</label>
+
+                            <input asp-for="Email" class="form-control" />
+
+                            <span asp-validation-for="Email"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Password</label>
+
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="form-control" />
+
+                            <span asp-validation-for="Password"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+                            Login
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

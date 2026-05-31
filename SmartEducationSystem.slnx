@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="SmartEducation.Application/SmartEducation.Application.csproj" />
+  <Project Path="SmartEducation.Domain/SmartEducation.Domain.csproj" />
+  <Project Path="SmartEducation.Infrastructure/SmartEducation.Infrastructure.csproj" />
+  <Project Path="SmartEducation.Persistence/SmartEducation.Persistence.csproj" />
+  <Project Path="SmartEducation.Shared/SmartEducation.Shared.csproj" />
+  <Project Path="SmartEducation.Web/SmartEducation.Web.csproj" />
+</Solution>
