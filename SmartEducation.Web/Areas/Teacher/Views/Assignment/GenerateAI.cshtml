@@ -1,0 +1,101 @@
+@model SmartEducation.Application.DTOs.AssignmentDto
+@{
+    ViewData["Title"] = "AI Assignment Generator";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bx bx-brain me-2" style="color:#696cff"></i>AI Assignment Generator</h4>
+            <p class="text-muted mb-0">Select a topic and AI will generate the assignment content automatically.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-cog me-2 text-primary"></i>Assignment Configuration</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="GenerateAI" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Topic <span class="text-danger">*</span></label>
+                        <select name="topicId" class="form-select" required>
+                            <option value="">— Select Topic (AI will generate content) —</option>
+                            @foreach (var item in ViewBag.Topics)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                        <div class="form-text">The AI uses this topic's learning outcomes to generate assignment questions.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Assignment Title (optional — AI will generate if empty)</label>
+                        <input asp-for="Title" class="form-control" placeholder="Leave blank to auto-generate from topic name" />
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select">
+                                <option value="">— Select Subject —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ClassRoomId" class="form-label fw-semibold">Class <span class="text-danger">*</span></label>
+                            <select asp-for="ClassRoomId" asp-items="ViewBag.ClassRooms" class="form-select">
+                                <option value="">— Select Class —</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label asp-for="DueDate" class="form-label fw-semibold">Due Date</label>
+                            <input asp-for="DueDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MaxScore" class="form-label fw-semibold">Total Marks</label>
+                            <input asp-for="MaxScore" type="number" class="form-control" value="100" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bx bx-brain me-2"></i>Generate AI Assignment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4" style="background:linear-gradient(135deg,#696cff22,#71dd3722)">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bx bx-brain me-2" style="color:#696cff"></i>What AI Generates</h6>
+                <ul class="list-unstyled small text-muted mb-0">
+                    <li class="mb-2"><i class="bx bx-check text-success me-1"></i><strong>Instructions</strong> — Clear step-by-step task instructions</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-1"></i><strong>Questions</strong> — Based on learning outcomes</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-1"></i><strong>Mark allocation</strong> — Distributed across questions</li>
+                    <li><i class="bx bx-check text-success me-1"></i><strong>Outcomes alignment</strong> — Mapped to curriculum goals</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-2">Or create manually:</h6>
+                <a asp-action="Create" class="btn btn-outline-primary w-100">
+                    <i class="bx bx-pencil me-1"></i> Manual Assignment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

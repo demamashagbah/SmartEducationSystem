@@ -1,0 +1,88 @@
+@model SmartEducation.Application.DTOs.ExamDto
+@{
+    ViewData["Title"] = "Create Exam";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Create Exam</h4>
+            <p class="text-muted mb-0">Schedule a new exam for your students.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-info-circle me-2 text-primary"></i>Exam Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Exam Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="e.g., Chapter 5 Mid-term Exam" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description / Instructions</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Exam instructions and coverage..."></textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select">
+                                <option value="">— Select Subject —</option>
+                            </select>
+                            <span asp-validation-for="SubjectId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ClassRoomId" class="form-label fw-semibold">Class</label>
+                            <select asp-for="ClassRoomId" asp-items="ViewBag.ClassRooms" class="form-select">
+                                <option value="">— Optional —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label asp-for="ExamType" class="form-label fw-semibold">Exam Type <span class="text-danger">*</span></label>
+                            <select asp-for="ExamType" asp-items="ViewBag.ExamTypes" class="form-select"></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ExamDate" class="form-label fw-semibold">Exam Date <span class="text-danger">*</span></label>
+                            <input asp-for="ExamDate" type="date" class="form-control" />
+                            <span asp-validation-for="ExamDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DurationMinutes" class="form-label fw-semibold">Duration (min)</label>
+                            <input asp-for="DurationMinutes" type="number" class="form-control" min="15" max="300" />
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label asp-for="TotalMarks" class="form-label fw-semibold">Total Marks</label>
+                        <input asp-for="TotalMarks" type="number" class="form-control" min="1" max="1000" style="max-width:200px" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Actions</h6>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bx bx-save me-1"></i>Create Exam</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

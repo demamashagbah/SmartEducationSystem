@@ -1,0 +1,64 @@
+@model IEnumerable<SmartEducation.Application.DTOs.MessageDto>
+@{
+    ViewData["Title"] = "Sent Messages";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Sent Messages</h4>
+            <p class="text-muted mb-0">Messages you have sent.</p>
+        </div>
+        <a asp-action="Compose" class="btn btn-primary"><i class="bx bx-send me-1"></i>Compose</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-inbox me-1"></i>Inbox</a>
+        <a asp-action="Sent" class="btn btn-primary btn-sm"><i class="bx bx-send me-1"></i>Sent</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center py-5">
+            <i class="bx bx-send fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No sent messages</h5>
+        </div>
+    }
+    else
+    {
+        <div class="list-group list-group-flush">
+            @foreach (var msg in Model)
+            {
+                <div class="list-group-item px-4 py-3">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:40px;height:40px">
+                            <i class="bx bx-send"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold text-dark">To: @msg.ReceiverName</span>
+                                <small class="text-muted">@msg.SentAt.ToString("MMM dd, HH:mm")</small>
+                            </div>
+                            <div class="mb-1 fw-semibold">@msg.Subject</div>
+                            <small class="text-muted">@(msg.Body.Length > 80 ? msg.Body.Substring(0, 80) + "..." : msg.Body)</small>
+                        </div>
+                        <div class="d-flex flex-column gap-1">
+                            <a asp-action="Read" asp-route-id="@msg.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bx bx-show"></i>
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@msg.Id" method="post"
+                                  onsubmit="return confirm('Delete this message?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

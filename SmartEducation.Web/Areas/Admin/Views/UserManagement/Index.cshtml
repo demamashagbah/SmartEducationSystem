@@ -1,0 +1,127 @@
+@model IEnumerable<SmartEducation.Web.Areas.Admin.Models.UserViewModel>
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+    string? currentRole = ViewBag.CurrentRole;
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">User Management</h4>
+            <p class="text-muted mb-0">Manage all users across the system.</p>
+        </div>
+        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create" class="btn btn-primary">
+            <i class="bx bx-user-plus me-1"></i> Add User
+        </a>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="mb-3">
+    <div class="nav nav-pills gap-2">
+        <a class="nav-link @(currentRole == null ? "active" : "")"
+           asp-action="Index">All</a>
+        <a class="nav-link @(currentRole == "Admin" ? "active" : "")"
+           asp-action="Index" asp-route-role="Admin">Admins</a>
+        <a class="nav-link @(currentRole == "Teacher" ? "active" : "")"
+           asp-action="Index" asp-route-role="Teacher">Teachers</a>
+        <a class="nav-link @(currentRole == "Student" ? "active" : "")"
+           asp-action="Index" asp-route-role="Student">Students</a>
+        <a class="nav-link @(currentRole == "Parent" ? "active" : "")"
+           asp-action="Index" asp-route-role="Parent">Parents</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bx bx-user fs-1 d-block mb-2"></i>
+                            No users found.
+                        </td>
+                    </tr>
+                }
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-2 bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px">
+                                    <span class="text-primary fw-bold">@user.FullName.Substring(0, 1)</span>
+                                </div>
+                                <span class="fw-semibold">@user.FullName</span>
+                            </div>
+                        </td>
+                        <td>@user.Email</td>
+                        <td>
+                            @{
+                                var badgeClass = user.Role switch
+                                {
+                                    "Admin" => "bg-label-danger",
+                                    "Teacher" => "bg-label-primary",
+                                    "Student" => "bg-label-success",
+                                    "Parent" => "bg-label-warning",
+                                    _ => "bg-label-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@user.Role</span>
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-label-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-danger">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="ToggleActive" asp-route-id="@user.Id"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                @if (user.IsActive)
+                                {
+                                    <button type="submit" class="btn btn-sm btn-warning me-1"
+                                            title="Deactivate User"
+                                            onclick="return confirm('Deactivate this user?')">
+                                        <i class="bx bx-power-off me-1"></i> Deactivate
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-sm btn-success me-1"
+                                            title="Activate User">
+                                        <i class="bx bx-check me-1"></i> Activate
+                                    </button>
+                                }
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

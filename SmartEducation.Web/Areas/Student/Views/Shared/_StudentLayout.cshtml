@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-menu-fixed">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Student Portal</title>
+    <link rel="icon" type="image/x-icon" href="~/assets/img/favicon/favicon.ico" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" />
+    <link rel="stylesheet" href="~/assets/css/demo.css" />
+</head>
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a asp-area="Student" asp-controller="Dashboard" asp-action="Index" class="app-brand-link">
+                        <span class="app-brand-logo demo">
+                            <i class="bx bx-graduation text-warning fs-2"></i>
+                        </span>
+                        <span class="app-brand-text demo menu-text fw-bolder ms-2">Student Portal</span>
+                    </a>
+                </div>
+                <div class="menu-inner-shadow"></div>
+                <ul class="menu-inner py-1">
+
+                    <li class="menu-item">
+                        <a asp-area="Student" asp-controller="Dashboard" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                            <div>Dashboard</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Learning</span>
+                    </li>
+
+                    <li class="menu-item">
+                        <a asp-area="Student" asp-controller="Assignment" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-task"></i>
+                            <div>Assignments</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a asp-area="Student" asp-controller="Exam" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-file"></i>
+                            <div>Exams</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Communication</span>
+                    </li>
+
+                    <li class="menu-item">
+                        <a asp-area="Student" asp-controller="Message" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-envelope"></i>
+                            <div>Messages</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Account</span>
+                    </li>
+
+                    <li class="menu-item">
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="menu-link btn btn-link w-100 text-start border-0 p-0" style="background:none;">
+                                <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
+                                <div class="text-danger">Logout</div>
+                            </button>
+                        </form>
+                    </li>
+
+                </ul>
+            </aside>
+
+            <div class="layout-page">
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme">
+                    <div class="navbar-nav-right d-flex align-items-center ms-auto">
+                        <span class="fw-semibold text-muted">Student Portal</span>
+                    </div>
+                </nav>
+
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="~/assets/vendor/js/bootstrap.js"></script>
+    <script src="~/assets/vendor/js/menu.js"></script>
+    <script src="~/assets/js/main.js"></script>
+    @await RenderSectionAsync("Scripts", false)
+</body>
+</html>

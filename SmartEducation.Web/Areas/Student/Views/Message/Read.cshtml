@@ -1,0 +1,44 @@
+@model SmartEducation.Application.DTOs.MessageDto
+@{
+    ViewData["Title"] = "Message";
+    Layout = "~/Areas/Student/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <h4 class="fw-bold mb-0">@Model.Subject</h4>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center"
+                         style="width:48px;height:48px;background:#696cff">
+                        @Model.SenderName.Substring(0,1)
+                    </div>
+                    <div>
+                        <div class="fw-bold">@Model.SenderName
+                            @if (!string.IsNullOrEmpty(Model.SenderRole))
+                            {
+                                <span class="badge bg-label-secondary ms-1">@Model.SenderRole</span>
+                            }
+                        </div>
+                        <small class="text-muted">@Model.SentAt.ToString("dddd, MMM dd yyyy, HH:mm")</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="white-space:pre-wrap; line-height:1.7">@Model.Body</div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a asp-action="Compose" asp-route-replyTo="@Model.Id" class="btn btn-primary btn-sm">
+                    <i class="bx bx-reply me-1"></i> Reply
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+@model SmartEducation.Application.DTOs.SendMessageDto
+@{
+    ViewData["Title"] = "Compose Message";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">
+                @if (Model.ParentMessageId.HasValue) { <span>Reply</span> } else { <span>New Message</span> }
+            </h4>
+            @if (ViewBag.ReplyToName != null)
+            {
+                <p class="text-muted mb-0">Replying to: <strong>@ViewBag.ReplyToName</strong></p>
+            }
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form asp-action="Compose" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ParentMessageId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">To <span class="text-danger">*</span></label>
+                        <select asp-for="ReceiverId" asp-items="ViewBag.Recipients" class="form-select">
+                            <option value="">— Select Recipient —</option>
+                        </select>
+                        <span asp-validation-for="ReceiverId" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+                        <input asp-for="Subject" class="form-control" placeholder="Message subject..." />
+                        <span asp-validation-for="Subject" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label asp-for="Body" class="form-label fw-semibold">Message <span class="text-danger">*</span></label>
+                        <textarea asp-for="Body" class="form-control" rows="8" placeholder="Write your message here..."></textarea>
+                        <span asp-validation-for="Body" class="text-danger small"></span>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-send me-1"></i> Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

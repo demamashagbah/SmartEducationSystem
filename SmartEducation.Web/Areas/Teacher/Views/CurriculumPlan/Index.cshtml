@@ -1,0 +1,92 @@
+@model IEnumerable<SmartEducation.Application.DTOs.CurriculumPlanDto>
+@{
+    ViewData["Title"] = "Curriculum Plans";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Curriculum Plans</h4>
+            <p class="text-muted mb-0">AI-generated lesson plans aligned with your curriculum.</p>
+        </div>
+        <a asp-action="Generate" class="btn btn-primary">
+            <i class="bx bx-brain me-1"></i> Generate AI Plan
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-calendar-alt fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No curriculum plans yet</h5>
+            <p class="text-muted">Generate an AI-powered curriculum plan for your class to get started.</p>
+            <a asp-action="Generate" class="btn btn-primary">
+                <i class="bx bx-brain me-1"></i> Generate My First Plan
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var plan in Model)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">@plan.Title</h6>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <span class="badge bg-label-primary">@plan.SubjectName</span>
+                                    <span class="badge bg-label-info">@plan.ClassRoomName</span>
+                                    @if (plan.IsAiGenerated)
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bx bx-brain me-1"></i>AI</span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="badge @(plan.PlanType == "Semester" ? "bg-primary" : plan.PlanType == "Monthly" ? "bg-success" : "bg-secondary")">
+                                @plan.PlanType
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span class="text-muted">Progress</span>
+                                <span class="fw-bold">@plan.CompletedItems / @plan.TotalItems lessons</span>
+                            </div>
+                            <div class="progress" style="height:8px">
+                                <div class="progress-bar @(plan.ProgressPercent >= 80 ? "bg-success" : plan.ProgressPercent >= 50 ? "bg-warning" : "bg-primary")"
+                                     style="width:@plan.ProgressPercent%"></div>
+                            </div>
+                            <small class="text-muted">@plan.ProgressPercent.ToString("F0")% complete</small>
+                        </div>
+
+                        <div class="d-flex gap-2 small text-muted">
+                            <span><i class="bx bx-calendar me-1"></i>@plan.StartDate.ToString("MMM dd") – @plan.EndDate.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                        <a asp-action="View" asp-route-id="@plan.Id" class="btn btn-sm btn-primary flex-grow-1">
+                            <i class="bx bx-show me-1"></i>View Plan
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@plan.Id" method="post"
+                              onsubmit="return confirm('Delete this curriculum plan?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

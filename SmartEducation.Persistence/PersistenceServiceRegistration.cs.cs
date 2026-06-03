@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SmartEducation.Application.Interfaces;
 using SmartEducation.Persistence.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SmartEducation.Persistence
 {
@@ -16,6 +13,9 @@ namespace SmartEducation.Persistence
 
             // 2. Register the Specific Subject Repository
             services.AddScoped<ISubjectRepository, SubjectRepository>();
+
+            // 3. Register Unit of Work
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }

@@ -1,0 +1,123 @@
+@{
+    ViewData["Title"] = "Exam Results";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+    var exam = (SmartEducation.Application.DTOs.ExamDto)ViewBag.Exam;
+    var results = ViewBag.Results as IEnumerable<dynamic> ?? new List<dynamic>();
+    var submitted = results.Where(r => r.IsSubmitted).ToList();
+    var avgScore = submitted.Any() ? submitted.Average(r => (double)r.Score) : 0;
+    var passCount = submitted.Count(r => r.Score >= exam.TotalMarks * 0.6);
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">Exam Results: @exam.Title</h4>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-label-primary">@exam.SubjectName</span>
+                <span class="badge bg-label-secondary">@exam.ExamDate.ToString("MMM dd, yyyy")</span>
+                <span class="badge bg-label-info">@exam.TotalMarks pts</span>
+            </div>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back to Exams</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-primary mb-0">@submitted.Count</h3>
+            <small class="text-muted">Submitted</small>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-success mb-0">@avgScore.ToString("F1")%</h3>
+            <small class="text-muted">Average Score</small>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-success mb-0">@passCount</h3>
+            <small class="text-muted">Passed (≥60%)</small>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-danger mb-0">@(submitted.Count - passCount)</h3>
+            <small class="text-muted">Need Improvement</small>
+        </div></div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    @if (!results.Any())
+    {
+        <div class="card-body text-center py-5">
+            <i class="bx bx-chart fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No results yet</h5>
+            <p class="text-muted">Students have not taken this exam yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{int rank = 1;}
+                        @foreach (var r in submitted)
+                        {
+                            var pct = exam.TotalMarks > 0 ? (r.Score / (double)exam.TotalMarks * 100) : 0;
+                            var passed = pct >= 60;
+                            <tr>
+                                <td>
+                                    @if (rank == 1) { <span class="badge bg-warning text-dark">🥇 1st</span> }
+                                    else if (rank == 2) { <span class="badge bg-secondary">🥈 2nd</span> }
+                                    else if (rank == 3) { <span class="badge bg-danger text-white">🥉 3rd</span> }
+                                    else { <span class="text-muted">#@rank</span> }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:34px;height:34px">
+                                            <span class="text-primary fw-bold small">@r.StudentName.Substring(0,1)</span>
+                                        </div>
+                                        <span class="fw-semibold">@r.StudentName</span>
+                                    </div>
+                                </td>
+                                <td class="fw-bold">@r.Score / @exam.TotalMarks</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress" style="height:6px;min-width:60px;flex:1">
+                                            <div class="progress-bar @(pct >= 80 ? "bg-success" : pct >= 60 ? "bg-warning" : "bg-danger")"
+                                                 style="width:@pct%"></div>
+                                        </div>
+                                        <span class="@(pct >= 80 ? "text-success" : pct >= 60 ? "text-warning" : "text-danger") fw-bold">
+                                            @pct.ToString("F1")%
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge @(passed ? "bg-success" : "bg-danger")">
+                                        @(passed ? "Passed" : "Failed")
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">@(r.SubmittedAt.HasValue ? r.SubmittedAt.Value.ToString("MMM dd, HH:mm") : "—")</small></td>
+                            </tr>
+                            rank++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

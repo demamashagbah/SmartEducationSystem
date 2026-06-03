@@ -1,0 +1,50 @@
+@model SmartEducation.Web.Areas.Admin.Models.SubjectViewModel
+@{
+    ViewData["Title"] = "Create Subject";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold py-3 mb-0">
+            <span class="text-muted fw-light">Subjects /</span> Add Subject
+        </h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label fw-semibold">Subject Name</label>
+                        <input asp-for="Name" class="form-control form-control-lg" placeholder="e.g., Mathematics" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="4"
+                                  placeholder="Brief description of the subject..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bx bx-save me-1"></i> Save Subject
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

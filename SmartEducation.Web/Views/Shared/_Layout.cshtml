@@ -3,45 +3,75 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SmartEducation.Web</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Smart Education System</title>
+    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SmartEducation.Web.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SmartEducation.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
+    <!-- Public Navbar -->
+    <nav class="navbar navbar-expand-lg py-3" style="background:rgba(26,26,46,.95);backdrop-filter:blur(10px);position:fixed;width:100%;top:0;z-index:1000;">
         <div class="container">
-            &copy; 2026 - SmartEducation.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <a class="navbar-brand fw-bold fs-4" style="color:#fff;" asp-controller="Home" asp-action="Index">
+                <i class="bx bx-graduation me-2" style="color:#696cff;"></i>Smart Education
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link" style="color:rgba(255,255,255,.7);" asp-controller="Home" asp-action="Index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color:rgba(255,255,255,.7);" href="#features">Features</a>
+                    </li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="btn btn-primary btn-sm" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bx bx-home me-1"></i>My Dashboard
+                                </a>
+                            }
+                            else if (User.IsInRole("Teacher"))
+                            {
+                                <a class="btn btn-success btn-sm" asp-area="Teacher" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bx bx-home me-1"></i>My Dashboard
+                                </a>
+                            }
+                            else if (User.IsInRole("Student"))
+                            {
+                                <a class="btn btn-warning btn-sm" asp-area="Student" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bx bx-home me-1"></i>My Dashboard
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-info btn-sm" asp-area="Parent" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bx bx-home me-1"></i>My Dashboard
+                                </a>
+                            }
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-sm px-4" asp-controller="Account" asp-action="Login">
+                                <i class="bx bx-log-in me-1"></i>Sign In
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
         </div>
-    </footer>
+    </nav>
+
+    <main style="padding-top:76px;">
+        @RenderBody()
+    </main>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

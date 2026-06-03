@@ -1,0 +1,129 @@
+@model IEnumerable<SmartEducation.Application.DTOs.ExamDto>
+@{
+    ViewData["Title"] = "Exams";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Exams</h4>
+            <p class="text-muted mb-0">Create and manage exams for your subjects.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="GenerateAI" class="btn btn-outline-primary">
+                <i class="bx bx-brain me-1"></i> AI Generate
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Manual Create
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-file fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No exams yet</h5>
+            <p class="text-muted">Create your first exam to assess your students.</p>
+            <a asp-action="Create" class="btn btn-primary"><i class="bx bx-plus me-1"></i>Create Exam</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var exam in Model)
+        {
+            var isPast = exam.ExamDate < DateTime.Now;
+            var isUpcoming = !isPast;
+            var daysLeft = (exam.ExamDate - DateTime.Now).Days;
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">@exam.Title</h6>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <span class="badge bg-label-primary">@exam.SubjectName</span>
+                                    @if (!string.IsNullOrEmpty(exam.ClassRoomName))
+                                    {
+                                        <span class="badge bg-label-info">@exam.ClassRoomName</span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="badge @(isPast ? "bg-label-secondary" : "bg-label-success")">
+                                @exam.ExamType
+                            </span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(exam.Description))
+                        {
+                            <p class="small text-muted mb-3">@(exam.Description.Length > 80 ? exam.Description.Substring(0, 80) + "..." : exam.Description)</p>
+                        }
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#f0f0ff">
+                                    <small class="text-muted d-block">Date</small>
+                                    <span class="fw-semibold small">@exam.ExamDate.ToString("MMM dd, yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#f0fff0">
+                                    <small class="text-muted d-block">Duration</small>
+                                    <span class="fw-semibold small">@exam.DurationMinutes min</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#fff8f0">
+                                    <small class="text-muted d-block">Total Marks</small>
+                                    <span class="fw-semibold small">@exam.TotalMarks pts</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#f5f0ff">
+                                    <small class="text-muted d-block">Status</small>
+                                    @if (isPast)
+                                    {
+                                        <span class="fw-semibold small text-secondary">Completed</span>
+                                    }
+                                    else if (daysLeft <= 3)
+                                    {
+                                        <span class="fw-semibold small text-danger">@daysLeft day(s) left</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-semibold small text-success">Upcoming</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <div class="d-flex gap-2">
+                            <a asp-action="Results" asp-route-id="@exam.Id" class="btn btn-sm btn-outline-info flex-grow-1">
+                                <i class="bx bx-bar-chart-alt-2 me-1"></i>Results
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@exam.Id" class="btn btn-sm btn-primary">
+                                <i class="bx bx-edit-alt"></i>
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@exam.Id" method="post"
+                                  onsubmit="return confirm('Delete this exam?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger"><i class="bx bx-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

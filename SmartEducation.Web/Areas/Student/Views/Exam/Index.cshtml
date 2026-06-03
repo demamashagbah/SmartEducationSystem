@@ -1,0 +1,100 @@
+@model IEnumerable<SmartEducation.Application.DTOs.ExamDto>
+@{
+    ViewData["Title"] = "My Exams";
+    Layout = "~/Areas/Student/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold mb-1">My Exams</h4>
+        <p class="text-muted mb-0">View upcoming and past exams.</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-file fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No upcoming exams</h5>
+            <p class="text-muted">You have no exams scheduled. Keep studying!</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var exam in Model)
+        {
+            var daysLeft = (exam.ExamDate - DateTime.Now).Days;
+            var isToday = exam.ExamDate.Date == DateTime.Today;
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100 @(isToday ? "border-start border-danger border-4" : daysLeft <= 3 ? "border-start border-warning border-4" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">@exam.Title</h6>
+                                <span class="badge bg-label-primary">@exam.SubjectName</span>
+                            </div>
+                            <span class="badge bg-label-secondary">@exam.ExamType</span>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#f0f0ff">
+                                    <small class="text-muted d-block">Date</small>
+                                    <span class="fw-semibold small">@exam.ExamDate.ToString("MMM dd, yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#f0fff0">
+                                    <small class="text-muted d-block">Duration</small>
+                                    <span class="fw-semibold small">@exam.DurationMinutes min</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded-3" style="background:#fff8f0">
+                                    <small class="text-muted d-block">Total Marks</small>
+                                    <span class="fw-semibold small">@exam.TotalMarks pts</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                @if (isToday)
+                                {
+                                    <div class="p-2 rounded-3 bg-danger bg-opacity-10">
+                                        <small class="text-danger d-block fw-bold">TODAY!</small>
+                                        <span class="fw-semibold small text-danger">Be prepared</span>
+                                    </div>
+                                }
+                                else if (daysLeft <= 3)
+                                {
+                                    <div class="p-2 rounded-3 bg-warning bg-opacity-10">
+                                        <small class="text-warning d-block">Countdown</small>
+                                        <span class="fw-semibold small text-warning">@daysLeft day(s) left</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="p-2 rounded-3" style="background:#e8f5e9">
+                                        <small class="text-muted d-block">Countdown</small>
+                                        <span class="fw-semibold small text-success">@daysLeft day(s) left</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        @{
+                            var alertClass = isToday ? "alert-danger" : daysLeft <= 3 ? "alert-warning" : "alert-info";
+                            var alertMsg = isToday ? "Exam today! Be fully prepared." :
+                                           daysLeft <= 3 ? "Coming soon! Review your notes and exercises." :
+                                           "Tip: Start studying early and review all learning outcomes.";
+                        }
+                        <div class="alert @alertClass py-2 small mb-0">
+                            <i class="bx bx-bulb me-1"></i> @alertMsg
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

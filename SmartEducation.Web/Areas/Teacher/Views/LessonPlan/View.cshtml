@@ -1,0 +1,168 @@
+@model SmartEducation.Application.DTOs.LessonPlanDto
+@{
+    ViewData["Title"] = "Lesson Plan Details";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">@Model.Title</h4>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-label-primary">@Model.SubjectName</span>
+                <span class="badge bg-label-info">@Model.ClassRoomName</span>
+                @if (Model.IsAiGenerated)
+                {
+                    <span class="badge bg-warning text-dark"><i class="bx bx-brain me-1"></i>AI Generated</span>
+                }
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
+                <i class="bx bx-edit-alt me-1"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bx bx-arrow-back me-1"></i> Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="fw-bold mb-0"><i class="bx bx-target-lock me-2"></i>Learning Objectives</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space: pre-wrap;">@Model.Objectives</p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Introduction))
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-play me-2"></i>Introduction / Warm-Up</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.Introduction</p>
+                </div>
+            </div>
+        }
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="fw-bold mb-0"><i class="bx bx-list-ul me-2"></i>Activities</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space: pre-wrap;">@Model.Activities</p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.TeachingStrategies))
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-brain me-2"></i>Teaching Strategies</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.TeachingStrategies</p>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.AssessmentMethods))
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header" style="background:#9b59b6;color:white;">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-check-double me-2"></i>Assessment Methods</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.AssessmentMethods</p>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Homework))
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-home me-2"></i>Homework / Follow-up</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.Homework</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0">Lesson Details</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <i class="bx bx-book-open text-primary fs-5"></i>
+                        <div>
+                            <small class="text-muted d-block">Subject</small>
+                            <span class="fw-semibold">@Model.SubjectName</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <i class="bx bx-buildings text-info fs-5"></i>
+                        <div>
+                            <small class="text-muted d-block">Class</small>
+                            <span class="fw-semibold">@Model.ClassRoomName</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <i class="bx bx-calendar text-success fs-5"></i>
+                        <div>
+                            <small class="text-muted d-block">Date</small>
+                            <span class="fw-semibold">@Model.LessonDate.ToString("dddd, MMMM dd, yyyy")</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <i class="bx bx-time text-warning fs-5"></i>
+                        <div>
+                            <small class="text-muted d-block">Duration</small>
+                            <span class="fw-semibold">@Model.DurationMinutes minutes</span>
+                        </div>
+                    </li>
+                    @if (!string.IsNullOrEmpty(Model.LessonName))
+                    {
+                        <li class="mb-3 d-flex align-items-center gap-2">
+                            <i class="bx bx-book-reader text-secondary fs-5"></i>
+                            <div>
+                                <small class="text-muted d-block">Linked Lesson</small>
+                                <span class="fw-semibold">@Model.LessonName</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Actions</h6>
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="bx bx-edit-alt me-1"></i> Edit Plan
+                    </a>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Delete this lesson plan?')">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bx bx-trash me-1"></i> Delete
+                        </button>
+                    </form>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

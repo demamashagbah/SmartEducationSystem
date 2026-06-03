@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Upload Teacher Guide";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Upload Teacher Guide</h4>
+            <p class="text-muted mb-0">Subject: <strong>@ViewBag.SubjectName</strong></p>
+        </div>
+        <a asp-action="Details" asp-route-id="@ViewBag.SubjectId" class="btn btn-outline-secondary btn-sm">
+            <i class="bx bx-arrow-back me-1"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-file-pdf me-2 text-danger"></i>PDF Upload</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="UploadGuide" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="subjectId" value="@ViewBag.SubjectId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Teacher Guide File (PDF) <span class="text-danger">*</span></label>
+                        <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx" required />
+                        <div class="form-text">Accepted formats: PDF, DOC, DOCX. Max size: 50MB.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Description (optional)</label>
+                        <textarea name="description" class="form-control" rows="3"
+                                  placeholder="e.g., Grade 7 Mathematics Teacher Guide — Semester 1"></textarea>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="bx bx-info-circle me-1"></i>
+                        <strong>After upload:</strong> The curriculum content (Units, Lessons, Topics, Learning Outcomes) should be added manually via the curriculum management tools, or extracted from the guide by the admin team.
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-upload me-1"></i> Upload Teacher Guide
+                        </button>
+                        <a asp-action="Details" asp-route-id="@ViewBag.SubjectId" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

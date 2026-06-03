@@ -42,40 +42,74 @@
                 <div class="menu-inner-shadow"></div>
 
                 <ul class="menu-inner py-1">
-                    <!-- My Classes -->
-                    <li class="menu-item active">
-                        <a href="@Url.Action("Index", "Teacher")" class="menu-link">
+                    <li class="menu-item">
+                        <a asp-area="Teacher" asp-controller="Dashboard" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                            <div>My Classes</div>
+                            <div>Dashboard</div>
                         </a>
                     </li>
-                    <!-- Lesson Planning -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Teaching</span>
+                    </li>
                     <li class="menu-item">
-                        <a href="#" class="menu-link">
+                        <a asp-area="Teacher" asp-controller="LessonPlan" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-calendar-edit"></i>
-                            <div>Lesson Planning</div>
+                            <div>Lesson Plans</div>
                         </a>
                     </li>
-                    <!-- Attendance -->
                     <li class="menu-item">
-                        <a href="#" class="menu-link">
+                        <a asp-area="Teacher" asp-controller="Attendance" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-user-check"></i>
                             <div>Attendance</div>
                         </a>
                     </li>
-                    <!-- Assignments -->
                     <li class="menu-item">
-                        <a href="#" class="menu-link">
+                        <a asp-area="Teacher" asp-controller="Assignment" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-task"></i>
                             <div>Assignments</div>
                         </a>
                     </li>
-                    <!-- Exams & Quizzes -->
                     <li class="menu-item">
-                        <a href="#" class="menu-link">
+                        <a asp-area="Teacher" asp-controller="Exam" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-file"></i>
-                            <div>Exams & Quizzes</div>
+                            <div>Exams</div>
                         </a>
+                    </li>
+                    <li class="menu-item">
+                        <a asp-area="Teacher" asp-controller="CurriculumPlan" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
+                            <div>Curriculum Plans</div>
+                        </a>
+                    </li>
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Analytics</span>
+                    </li>
+                    <li class="menu-item">
+                        <a asp-area="Teacher" asp-controller="Students" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-group"></i>
+                            <div>My Students</div>
+                        </a>
+                    </li>
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Communication</span>
+                    </li>
+                    <li class="menu-item">
+                        <a asp-area="Teacher" asp-controller="Message" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-envelope"></i>
+                            <div>Messages</div>
+                        </a>
+                    </li>
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Account</span>
+                    </li>
+                    <li class="menu-item">
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="menu-link btn btn-link w-100 text-start border-0 p-0" style="background:none;">
+                                <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
+                                <div class="text-danger">Logout</div>
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </aside>

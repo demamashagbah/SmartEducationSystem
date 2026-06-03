@@ -1,0 +1,78 @@
+@model SmartEducation.Application.DTOs.AssignmentDto
+@{
+    ViewData["Title"] = "Create Assignment";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Create Assignment</h4>
+            <p class="text-muted mb-0">Assign work for your students to complete.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Assignment Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="e.g., Chapter 3 Review Questions" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description / Instructions</label>
+                        <textarea asp-for="Description" class="form-control" rows="5" placeholder="Detailed instructions for students..."></textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select">
+                                <option value="">— Select Subject —</option>
+                            </select>
+                            <span asp-validation-for="SubjectId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ClassRoomId" class="form-label fw-semibold">Class <span class="text-danger">*</span></label>
+                            <select asp-for="ClassRoomId" asp-items="ViewBag.ClassRooms" class="form-select">
+                                <option value="">— Select Class —</option>
+                            </select>
+                            <span asp-validation-for="ClassRoomId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label asp-for="DueDate" class="form-label fw-semibold">Due Date <span class="text-danger">*</span></label>
+                            <input asp-for="DueDate" type="date" class="form-control" />
+                            <span asp-validation-for="DueDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MaxScore" class="form-label fw-semibold">Maximum Score</label>
+                            <input asp-for="MaxScore" type="number" class="form-control" min="1" max="1000" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Actions</h6>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bx bx-save me-1"></i>Create Assignment</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

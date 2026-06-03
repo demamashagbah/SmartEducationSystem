@@ -1,47 +1,175 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+@model SmartEducation.Application.DTOs.Dashboard.DashboardStatisticsDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
 }
 
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold py-3 mb-0">
+            <span class="text-muted fw-light">Smart Education /</span> Dashboard
+        </h4>
+    </div>
+</div>
+
+<!-- Statistics Cards Row 1 -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-primary bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-user-circle text-primary fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Total Students</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalStudents</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-success bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-chalkboard text-success fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Total Teachers</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalTeachers</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-warning bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-book-open text-warning fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Total Subjects</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalSubjects</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-info bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-buildings text-info fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Classrooms</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalClassRooms</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards Row 2 -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-danger bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-file text-danger fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Exams</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalExams</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-secondary bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-task text-secondary fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Assignments</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalAssignments</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-primary bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-check-circle text-primary fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Attendance Rate</small>
+                    <h3 class="mb-0 fw-bold">@Model.AttendanceRate.ToString("F1")%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-success bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-trending-up text-success fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Success Rate</small>
+                    <h3 class="mb-0 fw-bold">@Model.SuccessRate.ToString("F1")%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
 <div class="row">
-
-    <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-
-        <div class="card">
-
-            <div class="card-body">
-
-                <span class="fw-semibold d-block mb-1">
-                    Students
-                </span>
-
-                <h3 class="card-title mb-2">
-                    1,250
-                </h3>
-
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Quick Actions</h5>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Analytics"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bx bx-bar-chart-alt-2 me-1"></i> View Full Analytics
+                </a>
             </div>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-
-        <div class="card">
-
             <div class="card-body">
-
-                <span class="fw-semibold d-block mb-1">
-                    Teachers
-                </span>
-
-                <h3 class="card-title mb-2">
-                    85
-                </h3>
-
+                <div class="row g-3">
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create"
+                           class="btn btn-primary">
+                            <i class="bx bx-user-plus me-1"></i> Add New User
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="Subject" asp-action="Create"
+                           class="btn btn-success">
+                            <i class="bx bx-book-add me-1"></i> Add New Subject
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="ClassRoom" asp-action="Create"
+                           class="btn btn-warning">
+                            <i class="bx bx-plus me-1"></i> Add New Classroom
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="Exam" asp-action="Create"
+                           class="btn btn-danger">
+                            <i class="bx bx-file me-1"></i> Create New Exam
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
+                           asp-route-role="Teacher"
+                           class="btn btn-outline-info">
+                            <i class="bx bx-chalkboard me-1"></i> View All Teachers
+                        </a>
+                    </div>
+                </div>
             </div>
-
         </div>
-
     </div>
-
 </div>

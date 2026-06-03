@@ -1,54 +1,114 @@
 ﻿@model LoginViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" class="light-style">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In - Smart Education System</title>
+    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" />
+    <link rel="stylesheet" href="~/assets/css/demo.css" />
+    <style>
+        body { background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%); min-height: 100vh; }
+        .login-card { max-width: 440px; width: 100%; }
+        .brand-logo i { font-size: 2.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-4">
+        <div class="login-card">
+            <!-- Brand -->
+            <div class="text-center mb-4">
+                <div class="brand-logo mb-3">
+                    <i class="bx bx-graduation text-primary"></i>
+                </div>
+                <h2 class="fw-bold text-primary mb-1">Smart Education</h2>
+                <p class="text-muted">Welcome back! Please sign in to continue.</p>
+            </div>
 
-<div class="container mt-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <h4 class="fw-bold mb-4">Sign In</h4>
 
-    <div class="row justify-content-center">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
 
-        <div class="col-md-4">
-
-            <div class="card shadow">
-
-                <div class="card-body">
-
-                    <h3 class="text-center mb-4">
-                        Login
-                    </h3>
-                    <div asp-validation-summary="All" class="text-danger"></div>
                     <form asp-action="Login" method="post">
 
                         <div class="mb-3">
-                            <label>Email</label>
-
-                            <input asp-for="Email" class="form-control" />
-
-                            <span asp-validation-for="Email"
-                                  class="text-danger"></span>
+                            <label asp-for="Email" class="form-label fw-semibold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-transparent">
+                                    <i class="bx bx-envelope text-muted"></i>
+                                </span>
+                                <input asp-for="Email" class="form-control border-start-0 ps-0"
+                                       type="email" placeholder="admin@smarteducation.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label>Password</label>
-
-                            <input asp-for="Password"
-                                   type="password"
-                                   class="form-control" />
-
-                            <span asp-validation-for="Password"
-                                  class="text-danger"></span>
+                        <div class="mb-4">
+                            <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-transparent">
+                                    <i class="bx bx-lock text-muted"></i>
+                                </span>
+                                <input asp-for="Password" type="password"
+                                       class="form-control border-start-0 ps-0"
+                                       placeholder="••••••••" id="passwordInput" />
+                                <button type="button" class="input-group-text bg-transparent border-start-0"
+                                        onclick="togglePassword()">
+                                    <i class="bx bx-show text-muted" id="eyeIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        <button type="submit"
-                                class="btn btn-primary w-100">
-                            Login
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="bx bx-log-in me-2"></i>Sign In
                         </button>
 
                     </form>
 
+                    <div class="text-center mt-4">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted small">
+                            <i class="bx bx-arrow-back me-1"></i>Back to Home
+                        </a>
+                    </div>
                 </div>
-
             </div>
 
+            <!-- Demo Credentials -->
+            <div class="card border-0 bg-light mt-3">
+                <div class="card-body py-3 px-4">
+                    <p class="text-muted small mb-1 fw-semibold">Demo Credentials:</p>
+                    <p class="text-muted small mb-0">
+                        <i class="bx bx-user me-1"></i>admin@smarteducation.com
+                        <span class="mx-2">|</span>
+                        <i class="bx bx-lock me-1"></i>Admin@123
+                    </p>
+                </div>
+            </div>
         </div>
-
     </div>
 
-</div>
+    <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="~/assets/vendor/js/bootstrap.js"></script>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bx-show', 'bx-hide');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bx-hide', 'bx-show');
+            }
+        }
+    </script>
+</body>
+</html>

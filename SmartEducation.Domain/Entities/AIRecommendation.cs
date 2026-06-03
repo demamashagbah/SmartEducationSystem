@@ -1,14 +1,18 @@
 ﻿using SmartEducation.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SmartEducation.Domain.Entities
 {
     public class AIRecommendation : BaseEntity
     {
-        public string Recommendation { get; set; }
+        public Guid StudentId { get; set; }
+        public StudentProfile Student { get; set; } = default!;
 
-        public string Category { get; set; }
+        public string Recommendation { get; set; } = default!;
+
+        public string Category { get; set; } = default!;
+
+        public string? Priority { get; set; }
+
+        public bool IsActedOn { get; set; } = false;
     }
 }

@@ -1,0 +1,46 @@
+@model SmartEducation.Web.Areas.Admin.Models.ClassRoomViewModel
+@{
+    ViewData["Title"] = "Edit Classroom";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold py-3 mb-0">
+            <span class="text-muted fw-light">Classrooms /</span> Edit Classroom
+        </h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label fw-semibold">Classroom Name</label>
+                        <input asp-for="Name" class="form-control form-control-lg" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label asp-for="GradeId" class="form-label fw-semibold">Grade</label>
+                        <select asp-for="GradeId" asp-items="Model.GradeOptions" class="form-select form-select-lg">
+                            <option value="">-- Select Grade --</option>
+                        </select>
+                        <span asp-validation-for="GradeId" class="text-danger small"></span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bx bx-save me-1"></i> Update
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { @await Html.PartialAsync("_ValidationScriptsPartial") }

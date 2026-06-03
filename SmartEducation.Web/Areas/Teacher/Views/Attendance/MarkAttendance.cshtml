@@ -1,0 +1,170 @@
+@{
+    ViewData["Title"] = "Mark Attendance";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+    var session = ViewBag.Session;
+    var students = ViewBag.Students as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<style>
+    .status-btn { min-width: 85px; }
+    .status-btn.active-Present { background: #d4edda; border-color: #28a745; color: #155724; font-weight:600; }
+    .status-btn.active-Absent { background: #fde8e8; border-color: #dc3545; color: #c0392b; font-weight:600; }
+    .status-btn.active-Late { background: #fff3cd; border-color: #fd7e14; color: #856404; font-weight:600; }
+    .status-btn.active-Excused { background: #d1ecf1; border-color: #17a2b8; color: #0c5460; font-weight:600; }
+    .student-row:hover { background: #f8f9ff; }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">Mark Attendance</h4>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-label-primary">@ViewBag.SubjectName</span>
+                <span class="badge bg-label-info">@ViewBag.ClassName</span>
+                <span class="badge bg-label-secondary">@session.SessionDate.ToString("dddd, MMM dd, yyyy")</span>
+            </div>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<!-- Legend -->
+<div class="d-flex gap-2 flex-wrap mb-3 align-items-center">
+    <small class="text-muted fw-semibold me-1">Quick Select:</small>
+    <button type="button" onclick="markAll('Present')" class="btn btn-sm btn-outline-success">
+        <i class="bx bx-check-all me-1"></i>All Present
+    </button>
+    <button type="button" onclick="markAll('Absent')" class="btn btn-sm btn-outline-danger">
+        <i class="bx bx-x me-1"></i>All Absent
+    </button>
+    <div class="ms-auto d-flex gap-2 align-items-center small">
+        <span class="px-2 py-1 rounded-2" style="background:#d4edda;color:#155724">✓ Present</span>
+        <span class="px-2 py-1 rounded-2" style="background:#fde8e8;color:#c0392b">✕ Absent</span>
+        <span class="px-2 py-1 rounded-2" style="background:#fff3cd;color:#856404">⏰ Late</span>
+        <span class="px-2 py-1 rounded-2" style="background:#d1ecf1;color:#0c5460">📋 Excused</span>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <form asp-action="SaveAttendance" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="sessionId" value="@session.Id" />
+
+        <div class="card-body p-0">
+            @if (!students.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bx bx-user-x fs-1 d-block mb-2"></i>
+                    <p>No students found in this class.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Student Name</th>
+                                <th class="text-center">Attendance Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{int i = 1;}
+                            @foreach (var student in students)
+                            {
+                                var currentStatus = (string)(student.IsPresent ? "Present" : "Absent");
+                                var sid = student.StudentProfileId.ToString();
+                                <tr class="student-row" id="row-@sid">
+                                    <td class="text-muted">@i</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center"
+                                                 style="width:36px;height:36px;background:#696cff">
+                                                @student.StudentName.Substring(0, 1)
+                                            </div>
+                                            <span class="fw-semibold">@student.StudentName</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="hidden" name="status_@sid" id="hid-@sid" value="@currentStatus" />
+                                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                            @foreach (var status in new[] { "Present", "Absent", "Late", "Excused" })
+                                            {
+                                                var iconMap = status switch {
+                                                    "Present" => "bx-check-circle",
+                                                    "Absent" => "bx-x-circle",
+                                                    "Late" => "bx-time-five",
+                                                    _ => "bx-clipboard"
+                                                };
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-secondary status-btn @(currentStatus == status ? "active-" + status : "")"
+                                                        id="btn-@sid-@status"
+                                                        onclick="setStatus('@sid', '@status')">
+                                                    <i class="bx @iconMap me-1"></i>@status
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer bg-transparent">
+            <div class="d-flex gap-2 justify-content-between align-items-center">
+                <div id="summary" class="small text-muted"></div>
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bx bx-save me-1"></i> Save Attendance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+function setStatus(studentId, status) {
+    document.getElementById('hid-' + studentId).value = status;
+    ['Present','Absent','Late','Excused'].forEach(function(s) {
+        var btn = document.getElementById('btn-' + studentId + '-' + s);
+        btn.className = btn.className.replace(/active-\S+/g, '').trim();
+        btn.classList.remove('active-' + s);
+    });
+    var activeBtn = document.getElementById('btn-' + studentId + '-' + status);
+    activeBtn.classList.add('active-' + status);
+    updateSummary();
+}
+
+function markAll(status) {
+    document.querySelectorAll('[id^="hid-"]').forEach(function(hid) {
+        var sid = hid.id.replace('hid-', '');
+        setStatus(sid, status);
+    });
+}
+
+function updateSummary() {
+    var counts = {Present: 0, Absent: 0, Late: 0, Excused: 0};
+    document.querySelectorAll('[id^="hid-"]').forEach(function(h) {
+        counts[h.value] = (counts[h.value] || 0) + 1;
+    });
+    document.getElementById('summary').textContent =
+        'Present: ' + counts.Present + '  |  Absent: ' + counts.Absent +
+        '  |  Late: ' + counts.Late + '  |  Excused: ' + counts.Excused;
+}
+
+updateSummary();
+</script>
+}

@@ -1,0 +1,137 @@
+@model SmartEducation.Application.DTOs.LessonPlanDto
+@{
+    ViewData["Title"] = "Edit Lesson Plan";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">Edit Lesson Plan</h4>
+            <p class="text-muted mb-0">@Model.Title</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="View" asp-route-id="@Model.Id" class="btn btn-outline-info btn-sm">
+                <i class="bx bx-show me-1"></i> View
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bx bx-arrow-back me-1"></i> Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-info-circle me-2 text-primary"></i>Basic Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Plan Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="TeacherAssignmentId" class="form-label fw-semibold">Subject & Class</label>
+                            <select asp-for="TeacherAssignmentId" asp-items="ViewBag.TeacherAssignments" class="form-select">
+                                <option value="">— Select —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LessonId" class="form-label fw-semibold">Linked Lesson</label>
+                            <select asp-for="LessonId" asp-items="ViewBag.Lessons" class="form-select">
+                                <option value="">— Optional —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label asp-for="LessonDate" class="form-label fw-semibold">Lesson Date <span class="text-danger">*</span></label>
+                            <input asp-for="LessonDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DurationMinutes" class="form-label fw-semibold">Duration (minutes)</label>
+                            <input asp-for="DurationMinutes" type="number" class="form-control" min="15" max="240" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-target-lock me-2 text-success"></i>Learning Objectives & Content</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Objectives" class="form-label fw-semibold">Learning Objectives <span class="text-danger">*</span></label>
+                        <textarea asp-for="Objectives" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Objectives" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Introduction" class="form-label fw-semibold">Introduction / Warm-Up</label>
+                        <textarea asp-for="Introduction" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Activities" class="form-label fw-semibold">Activities <span class="text-danger">*</span></label>
+                        <textarea asp-for="Activities" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="Activities" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-cog me-2 text-warning"></i>Teaching Methods & Assessment</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="TeachingStrategies" class="form-label fw-semibold">Teaching Strategies</label>
+                        <textarea asp-for="TeachingStrategies" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="AssessmentMethods" class="form-label fw-semibold">Assessment Methods</label>
+                        <textarea asp-for="AssessmentMethods" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Homework" class="form-label fw-semibold">Homework / Follow-up</label>
+                        <textarea asp-for="Homework" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Actions</h6>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save me-1"></i> Save Changes
+                        </button>
+                        <a asp-action="View" asp-route-id="@Model.Id" class="btn btn-outline-info">Preview</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+            @if (Model.IsAiGenerated)
+            {
+                <div class="card border-0 shadow-sm border-start border-warning border-3">
+                    <div class="card-body">
+                        <span class="badge bg-warning text-dark mb-2"><i class="bx bx-brain me-1"></i>AI Generated</span>
+                        <p class="small text-muted mb-0">This plan was originally generated by AI. You can edit it freely.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

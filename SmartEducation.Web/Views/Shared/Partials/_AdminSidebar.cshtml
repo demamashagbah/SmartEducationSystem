@@ -1,68 +1,152 @@
-﻿<aside id="layout-menu"
-       class="layout-menu menu-vertical menu bg-menu-theme">
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
     <div class="app-brand demo">
-
-        <a asp-area="Admin"
-           asp-controller="Dashboard"
-           asp-action="Index"
-           class="app-brand-link">
-
-            <span class="app-brand-text demo menu-text fw-bolder ms-2">
-                Smart Education
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="app-brand-link">
+            <span class="app-brand-logo demo">
+                <i class="bx bx-graduation text-primary fs-2"></i>
             </span>
-
+            <span class="app-brand-text demo menu-text fw-bolder ms-2">
+                SmartEdu
+            </span>
         </a>
-
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+        </a>
     </div>
+
+    <div class="menu-inner-shadow"></div>
 
     <ul class="menu-inner py-1">
 
-        <li class="menu-item active">
-
-            <a asp-area="Admin"
-               asp-controller="Dashboard"
-               asp-action="Index"
-               class="menu-link">
-
+        <!-- Dashboard -->
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
-
-                <div>
-                    Dashboard
-                </div>
-
+                <div>Dashboard</div>
             </a>
-
         </li>
 
         <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Analytics" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
+                <div>School Analytics</div>
+            </a>
+        </li>
 
-            <a href="#"
-               class="menu-link">
+        <!-- Users -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">User Management</span>
+        </li>
 
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-group"></i>
+                <div>All Users</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
+               asp-route-role="Teacher" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                <div>Teachers</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
+               asp-route-role="Student" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                <div>Students</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
+               asp-route-role="Parent" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-user"></i>
-
-                <div>
-                    Users
-                </div>
-
+                <div>Parents</div>
             </a>
+        </li>
 
+        <!-- Academic Structure -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Academic Structure</span>
         </li>
 
         <li class="menu-item">
-
-            <a href="#"
-               class="menu-link">
-
-                <i class="menu-icon tf-icons bx bx-book"></i>
-
-                <div>
-                    Subjects
-                </div>
-
+            <a asp-area="Admin" asp-controller="Grade" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-category"></i>
+                <div>Grades</div>
             </a>
+        </li>
 
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="ClassRoom" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-buildings"></i>
+                <div>Classrooms</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="AcademicYear" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-calendar"></i>
+                <div>Academic Years</div>
+            </a>
+        </li>
+
+        <!-- Curriculum -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Curriculum</span>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Subject" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-book-open"></i>
+                <div>Subjects</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Unit" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-collection"></i>
+                <div>Units</div>
+            </a>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Lesson" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-book-reader"></i>
+                <div>Lessons</div>
+            </a>
+        </li>
+
+        <!-- Assessment -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Assessment</span>
+        </li>
+
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Exam" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-file"></i>
+                <div>Exams</div>
+            </a>
+        </li>
+
+        <!-- Account -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Account</span>
+        </li>
+
+        <li class="menu-item">
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="menu-link btn btn-link w-100 text-start border-0 p-0"
+                        style="background:none;">
+                    <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
+                    <div class="text-danger">Logout</div>
+                </button>
+            </form>
         </li>
 
     </ul>

@@ -1,0 +1,204 @@
+@model IEnumerable<SmartEducation.Application.DTOs.AssignmentDto>
+@{
+    ViewData["Title"] = "My Assignments";
+    Layout = "~/Areas/Student/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold mb-1">My Assignments</h4>
+        <p class="text-muted mb-0">Track and submit your assignments.</p>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+@{
+    var pending = Model.Where(a => a.SubmissionCount == 0 && a.DueDate >= DateTime.Now).ToList();
+    var submitted = Model.Where(a => a.SubmissionCount > 0).ToList();
+    var overdue = Model.Where(a => a.SubmissionCount == 0 && a.DueDate < DateTime.Now).ToList();
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-warning mb-0">@pending.Count</h3>
+            <small class="text-muted">Pending</small>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-success mb-0">@submitted.Count</h3>
+            <small class="text-muted">Submitted</small>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-danger mb-0">@overdue.Count</h3>
+            <small class="text-muted">Overdue</small>
+        </div></div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-task fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No assignments yet</h5>
+            <p class="text-muted">Your teacher hasn't assigned any work yet. Check back later!</p>
+        </div>
+    </div>
+}
+else
+{
+    @if (pending.Any())
+    {
+        <h6 class="fw-bold text-warning mb-3"><i class="bx bx-time me-1"></i>Pending Assignments</h6>
+        <div class="row g-3 mb-4">
+            @foreach (var a in pending)
+            {
+                var daysLeft = (a.DueDate - DateTime.Now).Days;
+                <div class="col-md-6 col-xl-4">
+                    <div class="card border-0 shadow-sm h-100 border-start border-warning border-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0">@a.Title</h6>
+                                <span class="badge @(daysLeft <= 2 ? "bg-danger" : "bg-warning text-dark")">
+                                    @(daysLeft <= 0 ? "Due Today!" : daysLeft + " day(s) left")
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge bg-label-primary me-1">@a.SubjectName</span>
+                                <span class="badge bg-label-secondary">@a.MaxScore pts</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(a.Description))
+                            {
+                                <p class="small text-muted mb-3">@(a.Description.Length > 100 ? a.Description.Substring(0, 100) + "..." : a.Description)</p>
+                            }
+                            <small class="text-muted d-block mb-3">Due: @a.DueDate.ToString("MMM dd, yyyy")</small>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <button type="button" class="btn btn-primary w-100 btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#submitModal-@a.Id">
+                                <i class="bx bx-upload me-1"></i>Submit Assignment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="submitModal-@a.Id" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form asp-action="Submit" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="assignmentId" value="@a.Id" />
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Submit: @a.Title</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted small">Subject: <strong>@a.SubjectName</strong> &bull; Due: <strong>@a.DueDate.ToString("MMM dd, yyyy")</strong></p>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Notes / Comments (optional)</label>
+                                        <textarea name="notes" class="form-control" rows="3"
+                                                  placeholder="Add any notes for your teacher..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary"><i class="bx bx-check me-1"></i>Confirm Submission</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (submitted.Any())
+    {
+        <h6 class="fw-bold text-success mb-3"><i class="bx bx-check-circle me-1"></i>Submitted</h6>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Title</th><th>Subject</th><th>Due Date</th><th>Max Score</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in submitted)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@a.Title</td>
+                                    <td><span class="badge bg-label-primary">@a.SubjectName</span></td>
+                                    <td>@a.DueDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@a.MaxScore pts</td>
+                                    <td><span class="badge bg-success"><i class="bx bx-check me-1"></i>Submitted</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (overdue.Any())
+    {
+        <h6 class="fw-bold text-danger mb-3"><i class="bx bx-error me-1"></i>Overdue (Not Submitted)</h6>
+        <div class="card border-0 shadow-sm border-start border-danger border-3">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Title</th><th>Subject</th><th>Due Date</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in overdue)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@a.Title</td>
+                                    <td><span class="badge bg-label-danger">@a.SubjectName</span></td>
+                                    <td class="text-danger">@a.DueDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal" data-bs-target="#submitModal-@a.Id">
+                                            <i class="bx bx-upload me-1"></i>Late Submit
+                                        </button>
+                                        <div class="modal fade" id="submitModal-@a.Id" tabindex="-1">
+                                            <div class="modal-dialog"><div class="modal-content">
+                                                <form asp-action="Submit" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="assignmentId" value="@a.Id" />
+                                                    <div class="modal-header"><h5 class="modal-title">Late Submit: @a.Title</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                                    <div class="modal-body">
+                                                        <div class="alert alert-warning small">This assignment is overdue. Late submission may affect your grade.</div>
+                                                        <label class="form-label fw-semibold">Notes</label>
+                                                        <textarea name="notes" class="form-control" rows="3" placeholder="Explain the late submission..."></textarea>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-danger">Submit Late</button>
+                                                    </div>
+                                                </form>
+                                            </div></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,295 @@
+@model SmartEducation.Application.DTOs.StudentDashboardDto
+@{
+    ViewData["Title"] = "Student Dashboard";
+    Layout = "~/Areas/Student/Views/Shared/_StudentLayout.cshtml";
+}
+
+<style>
+    .kpi-card { border-radius: 16px; border: none; transition: transform .2s; }
+    .kpi-card:hover { transform: translateY(-4px); }
+    .kpi-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+    .rec-card { border-left: 4px solid; border-radius: 12px; }
+    .urgent-badge { background: #fde8e8; color: #c0392b; border-radius: 50px; padding: .2rem .7rem; font-size: .75rem; font-weight: 600; }
+    .normal-badge { background: #fef3cd; color: #856404; border-radius: 50px; padding: .2rem .7rem; font-size: .75rem; font-weight: 600; }
+    .upcoming-badge { background: #d4edda; color: #155724; border-radius: 50px; padding: .2rem .7rem; font-size: .75rem; font-weight: 600; }
+</style>
+
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">My Learning Dashboard</h4>
+            <p class="text-muted mb-0">
+                Welcome, <strong>@Model.StudentName</strong> &bull;
+                <span class="badge bg-label-primary">@Model.ClassName</span>
+                <span class="badge bg-label-secondary ms-1">@Model.GradeName</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-area="Student" asp-controller="Assignment" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                <i class="bx bx-task me-1"></i> Assignments
+            </a>
+            <a asp-area="Student" asp-controller="Message" asp-action="Index" class="btn btn-outline-secondary btn-sm position-relative">
+                <i class="bx bx-envelope me-1"></i> Messages
+                @if (Model.UnreadMessages > 0)
+                {
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">@Model.UnreadMessages</span>
+                }
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="kpi-icon" style="background:#696cff22"><i class="bx bx-book-open" style="color:#696cff;font-size:1.3rem"></i></div>
+                <small class="text-muted fw-semibold">Subjects</small>
+            </div>
+            <h3 class="fw-bold mb-0" style="color:#696cff">@Model.TotalSubjects</h3>
+        </div></div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="kpi-icon" style="background:#fd7e1422"><i class="bx bx-task" style="color:#fd7e14;font-size:1.3rem"></i></div>
+                <small class="text-muted fw-semibold">Assignments</small>
+            </div>
+            <h3 class="fw-bold mb-0" style="color:#fd7e14">@Model.PendingAssignments</h3>
+            <small class="text-muted">pending</small>
+        </div></div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="kpi-icon" style="background:#e74c3c22"><i class="bx bx-file" style="color:#e74c3c;font-size:1.3rem"></i></div>
+                <small class="text-muted fw-semibold">Exams</small>
+            </div>
+            <h3 class="fw-bold mb-0" style="color:#e74c3c">@Model.UpcomingExams</h3>
+            <small class="text-muted">upcoming</small>
+        </div></div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="kpi-icon" style="background:#71dd3722"><i class="bx bx-user-check" style="color:#71dd37;font-size:1.3rem"></i></div>
+                <small class="text-muted fw-semibold">Attendance</small>
+            </div>
+            <h3 class="fw-bold mb-0" style="color:#71dd37">@Model.AttendanceRate.ToString("F0")%</h3>
+        </div></div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="kpi-icon" style="background:#9b59b622"><i class="bx bx-star" style="color:#9b59b6;font-size:1.3rem"></i></div>
+                <small class="text-muted fw-semibold">GPA</small>
+            </div>
+            <h3 class="fw-bold mb-0" style="color:#9b59b6">@Model.GPA.ToString("F2")</h3>
+        </div></div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="kpi-icon" style="background:#20c99722"><i class="bx bx-check-circle" style="color:#20c997;font-size:1.3rem"></i></div>
+                <small class="text-muted fw-semibold">Completed</small>
+            </div>
+            <h3 class="fw-bold mb-0" style="color:#20c997">@Model.CompletedTasks</h3>
+            <small class="text-muted">tasks done</small>
+        </div></div>
+    </div>
+</div>
+
+<!-- Progress + Upcoming -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+            <h6 class="fw-bold mb-3"><i class="bx bx-trending-up me-2 text-primary"></i>Learning Progress</h6>
+            <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Overall Progress</small>
+                <small class="fw-bold">@Model.LearningProgress.ToString("F0")%</small>
+            </div>
+            <div class="progress mb-3" style="height:10px">
+                <div class="progress-bar bg-primary" style="width:@Math.Min(100,Model.LearningProgress)%"></div>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Attendance Rate</small>
+                <small class="fw-bold @(Model.AttendanceRate >= 90 ? "text-success" : "text-warning")">@Model.AttendanceRate.ToString("F1")%</small>
+            </div>
+            <div class="progress" style="height:10px">
+                <div class="progress-bar @(Model.AttendanceRate >= 90 ? "bg-success" : "bg-warning")" style="width:@Model.AttendanceRate%"></div>
+            </div>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0"><h6 class="fw-bold mb-0"><i class="bx bx-check text-success me-2"></i>Strong Subjects</h6></div>
+            <div class="card-body pt-0">
+                @if (Model.StrongTopics.Any())
+                {
+                    @foreach (var t in Model.StrongTopics.Take(5))
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bx bx-trophy text-warning"></i>
+                            <span class="fw-semibold">@t</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Keep working to build strong areas!</p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0"><h6 class="fw-bold mb-0"><i class="bx bx-target-lock text-danger me-2"></i>Needs Improvement</h6></div>
+            <div class="card-body pt-0">
+                @if (Model.WeakTopics.Any())
+                {
+                    @foreach (var t in Model.WeakTopics.Take(5))
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bx bx-x-circle text-danger"></i>
+                            <span class="fw-semibold">@t</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Great job! No weak areas identified yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subjects Performance -->
+@if (Model.Subjects.Any())
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0">
+            <h6 class="fw-bold mb-0"><i class="bx bx-book-open me-2 text-info"></i>My Subjects Performance</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>Subject</th><th>Teacher</th><th>Lessons</th><th>My Average</th><th>Performance</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Subjects)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@s.SubjectName</td>
+                                <td class="text-muted">@s.TeacherName</td>
+                                <td>@s.TotalLessons</td>
+                                <td>
+                                    @if (s.AverageScore > 0)
+                                    {
+                                        <span class="fw-bold @(s.AverageScore >= 80 ? "text-success" : s.AverageScore >= 60 ? "text-warning" : "text-danger")">
+                                            @s.AverageScore.ToString("F1")%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not assessed</span>
+                                    }
+                                </td>
+                                <td style="min-width:120px">
+                                    <div class="progress" style="height:6px">
+                                        <div class="progress-bar @(s.AverageScore >= 80 ? "bg-success" : s.AverageScore >= 60 ? "bg-warning" : s.AverageScore > 0 ? "bg-danger" : "bg-light")"
+                                             style="width:@Math.Min(100, s.AverageScore)%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <!-- AI Recommendations -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-brain me-2" style="color:#696cff"></i>AI Learning Recommendations</h6>
+            </div>
+            <div class="card-body">
+                @if (!Model.AIRecommendations.Any())
+                {
+                    <div class="text-center py-3 text-muted">
+                        <i class="bx bx-brain fs-1 d-block mb-2"></i>
+                        <p>No recommendations yet. Complete some assignments and exams!</p>
+                    </div>
+                }
+                @foreach (var rec in Model.AIRecommendations)
+                {
+                    <div class="rec-card p-3 mb-3 border bg-white" style="border-left-color:@rec.Color !important">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:40px;height:40px;background:@rec.Color + '22'">
+                                <i class="bx @rec.Icon" style="color:@rec.Color;font-size:1.2rem"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="fw-bold small">@rec.Topic</span>
+                                    <span class="badge" style="background:@rec.Color;font-size:.65rem">@rec.Priority Priority</span>
+                                    <span class="badge bg-label-secondary small">@rec.Category</span>
+                                </div>
+                                <p class="mb-0 small text-muted">@rec.Recommendation</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Items -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bx bx-calendar-event me-2 text-warning"></i>Upcoming</h6>
+            </div>
+            <div class="card-body">
+                @if (!Model.UpcomingItems.Any())
+                {
+                    <div class="text-center py-3 text-muted">
+                        <i class="bx bx-calendar-check fs-1 d-block mb-2"></i>
+                        <p>No upcoming items. You're all caught up!</p>
+                    </div>
+                }
+                @foreach (var item in Model.UpcomingItems)
+                {
+                    <div class="d-flex align-items-start gap-3 mb-3 pb-3 border-bottom">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:42px;height:42px;background:@(item.Type == "Exam" ? "#fde8e8" : "#fef3cd")">
+                            <i class="bx @(item.Type == "Exam" ? "bx-file text-danger" : "bx-task text-warning") fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold small">@item.Title</div>
+                            <small class="text-muted">@item.SubjectName &bull; @item.DueDate.ToString("MMM dd, yyyy")</small>
+                        </div>
+                        <span class="@(item.UrgencyLevel == "Urgent" ? "urgent-badge" : item.UrgencyLevel == "Normal" ? "normal-badge" : "upcoming-badge")">
+                            @item.UrgencyLevel
+                        </span>
+                    </div>
+                }
+                <div class="d-grid gap-2 mt-2">
+                    <a asp-area="Student" asp-controller="Assignment" asp-action="Index" class="btn btn-outline-warning btn-sm">
+                        <i class="bx bx-task me-1"></i> View All Assignments
+                    </a>
+                    <a asp-area="Student" asp-controller="Exam" asp-action="Index" class="btn btn-outline-danger btn-sm">
+                        <i class="bx bx-file me-1"></i> View All Exams
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

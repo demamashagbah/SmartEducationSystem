@@ -1,8 +1,528 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Smart Education System - AI-Powered Learning Platform";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<style>
+    :root { --brand: #696cff; --brand-dark: #5f61e6; }
+
+    /* Hero */
+    .hero-section {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+        min-height: 92vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23696cff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-badge { background: rgba(105,108,255,.2); border: 1px solid rgba(105,108,255,.4); color: #a8aaff; }
+    .hero-title { font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; line-height: 1.1; color: #fff; }
+    .hero-title span { background: linear-gradient(135deg, #696cff, #9b59b6, #e74c3c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-subtitle { color: rgba(255,255,255,.75); font-size: 1.15rem; line-height: 1.7; }
+    .btn-hero-primary { background: linear-gradient(135deg, var(--brand), var(--brand-dark)); border: none; color: #fff; padding: .8rem 2.2rem; font-weight: 600; border-radius: 50px; font-size: 1rem; transition: all .25s; box-shadow: 0 8px 24px rgba(105,108,255,.4); }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(105,108,255,.6); color: #fff; }
+    .btn-hero-outline { background: transparent; border: 2px solid rgba(255,255,255,.3); color: #fff; padding: .8rem 2.2rem; font-weight: 600; border-radius: 50px; font-size: 1rem; transition: all .25s; }
+    .btn-hero-outline:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); color: #fff; transform: translateY(-2px); }
+
+    /* Hero illustration */
+    .hero-illustration { position: relative; }
+    .hero-illustration .main-card {
+        background: rgba(255,255,255,.07);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 24px;
+        padding: 2rem;
+    }
+    .float-card {
+        background: rgba(255,255,255,.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 16px;
+        padding: .8rem 1.2rem;
+        position: absolute;
+    }
+
+    /* Sections */
+    .section-badge { background: rgba(105,108,255,.1); color: var(--brand); border-radius: 50px; padding: .3rem 1rem; font-size: .85rem; font-weight: 600; display: inline-block; margin-bottom: 1rem; }
+    .section-title { font-size: 2.2rem; font-weight: 800; color: #2b2d42; }
+    .section-subtitle { color: #6c757d; font-size: 1.05rem; max-width: 600px; margin: 0 auto; }
+
+    /* Feature Cards */
+    .feature-card { border: none; border-radius: 20px; padding: 2rem; transition: all .3s; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+    .feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,.12); }
+    .feature-icon { width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; font-size: 1.8rem; }
+
+    /* Role Cards */
+    .role-card { border-radius: 24px; padding: 2.5rem 2rem; color: #fff; position: relative; overflow: hidden; min-height: 340px; }
+    .role-card::before { content: ''; position: absolute; top: -50%; right: -30%; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.08); }
+    .role-card::after { content: ''; position: absolute; bottom: -40%; left: -20%; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,.06); }
+    .role-admin { background: linear-gradient(135deg, #696cff, #5f61e6); }
+    .role-teacher { background: linear-gradient(135deg, #71dd37, #28a745); }
+    .role-student { background: linear-gradient(135deg, #fd7e14, #e67e22); }
+    .role-parent { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+    /* Stats */
+    .stat-card { border-radius: 20px; padding: 2rem; text-align: center; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+    .stat-number { font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, var(--brand), #9b59b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* AI Section */
+    .ai-section { background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%); }
+    .ai-feature-item { display: flex; align-items: flex-start; gap: 1.2rem; padding: 1.2rem; border-radius: 16px; transition: background .2s; }
+    .ai-feature-item:hover { background: rgba(105,108,255,.06); }
+    .ai-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* Testimonials */
+    .testimonial-card { border: none; border-radius: 20px; padding: 2rem; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+    .testimonial-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: #fff; }
+
+    /* Footer */
+    .site-footer { background: #1a1a2e; color: rgba(255,255,255,.7); }
+    .site-footer h5 { color: #fff; }
+    .site-footer a { color: rgba(255,255,255,.6); text-decoration: none; transition: color .2s; }
+    .site-footer a:hover { color: #fff; }
+    .footer-brand { background: linear-gradient(135deg, var(--brand), #9b59b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+
+<!-- ======================== HERO ======================== -->
+<section class="hero-section">
+    <div class="container position-relative py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="hero-badge px-3 py-1 rounded-pill mb-4 d-inline-block">
+                    <i class="bx bx-brain me-2"></i>AI-Powered Educational Platform
+                </span>
+                <h1 class="hero-title mb-4">
+                    Smart Adaptive<br>
+                    <span>Educational Ecosystem</span>
+                </h1>
+                <p class="hero-subtitle mb-5">
+                    Transforming Schools Through Artificial Intelligence, Adaptive Learning,
+                    and Educational Analytics — connecting every stakeholder in one unified platform.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-5">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-hero-primary">
+                        <i class="bx bx-rocket me-2"></i>Get Started
+                    </a>
+                    <a href="#features" class="btn btn-hero-outline">
+                        <i class="bx bx-play-circle me-2"></i>Explore Features
+                    </a>
+                </div>
+                <!-- Trust Indicators -->
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-check-circle text-success fs-5"></i>
+                        <small class="text-white-50">AI-Powered Analytics</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-check-circle text-success fs-5"></i>
+                        <small class="text-white-50">Role-Based Access</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-check-circle text-success fs-5"></i>
+                        <small class="text-white-50">Real-Time Insights</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Illustration -->
+            <div class="col-lg-6 hero-illustration">
+                <div class="main-card">
+                    <!-- Mini Dashboard Preview -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <div class="text-white fw-bold mb-1">School Dashboard</div>
+                            <small style="color:rgba(255,255,255,.5)">Academic Year 2025-2026</small>
+                        </div>
+                        <span style="background:rgba(113,221,55,.2);color:#71dd37;padding:.3rem .8rem;border-radius:50px;font-size:.8rem;font-weight:600;">
+                            ● Live
+                        </span>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div class="row g-2 mb-4">
+                        @foreach (var stat in new[] {
+                            new { label = "Students", value = "1,250", icon = "bx-user-circle", color = "#696cff" },
+                            new { label = "Teachers", value = "85", icon = "bx-chalkboard", color = "#71dd37" },
+                            new { label = "Subjects", value = "12", icon = "bx-book-open", color = "#fd7e14" },
+                            new { label = "Success", value = "87%", icon = "bx-trending-up", color = "#e74c3c" }
+                        })
+                        {
+                            <div class="col-6">
+                                <div style="background:rgba(255,255,255,.07);border-radius:14px;padding:.9rem 1rem;">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="bx @stat.icon" style="color:@stat.color;font-size:1.1rem;"></i>
+                                        <small style="color:rgba(255,255,255,.5);font-size:.75rem;">@stat.label</small>
+                                    </div>
+                                    <div class="fw-bold text-white fs-5">@stat.value</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Progress Bars -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small style="color:rgba(255,255,255,.6)">Curriculum Coverage</small>
+                            <small style="color:#71dd37;font-weight:600;">82%</small>
+                        </div>
+                        <div style="height:6px;background:rgba(255,255,255,.1);border-radius:3px;">
+                            <div style="height:100%;width:82%;background:linear-gradient(90deg,#696cff,#71dd37);border-radius:3px;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small style="color:rgba(255,255,255,.6)">Attendance Rate</small>
+                            <small style="color:#696cff;font-weight:600;">92%</small>
+                        </div>
+                        <div style="height:6px;background:rgba(255,255,255,.1);border-radius:3px;">
+                            <div style="height:100%;width:92%;background:linear-gradient(90deg,#696cff,#9b59b6);border-radius:3px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Cards -->
+                <div class="float-card d-none d-xl-block" style="top:-20px;right:-30px;animation:float 3s ease-in-out infinite;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-brain text-primary fs-4"></i>
+                        <div>
+                            <small class="fw-bold d-block text-white">AI Insight</small>
+                            <small style="color:rgba(255,255,255,.6);font-size:.75rem;">3 at-risk students detected</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="float-card d-none d-xl-block" style="bottom:-15px;left:-25px;animation:float 3.5s ease-in-out infinite .5s;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-check-circle text-success fs-4"></i>
+                        <div>
+                            <small class="fw-bold d-block text-white">Lesson Plan</small>
+                            <small style="color:rgba(255,255,255,.6);font-size:.75rem;">AI generated successfully</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+@@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+</style>
+
+<!-- ======================== STATS ======================== -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            @foreach (var stat in new[] {
+                new { number = "10,000+", label = "Students Enrolled", icon = "bx-user-circle", color = "#696cff" },
+                new { number = "500+", label = "Teachers Using Platform", icon = "bx-chalkboard", color = "#71dd37" },
+                new { number = "95%", label = "Parent Satisfaction", icon = "bx-heart", color = "#e74c3c" },
+                new { number = "87%", label = "Average Success Rate", icon = "bx-trending-up", color = "#fd7e14" }
+            })
+            {
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="rounded-3 mb-3 mx-auto d-flex align-items-center justify-content-center"
+                             style="width:60px;height:60px;background:@(stat.color)22;">
+                            <i class="bx @stat.icon fs-3" style="color:@stat.color;"></i>
+                        </div>
+                        <div class="stat-number">@stat.number</div>
+                        <p class="text-muted mb-0 small fw-semibold">@stat.label</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ======================== FEATURES ======================== -->
+<section class="py-6 py-md-7" id="features" style="padding-top:5rem;padding-bottom:5rem;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">Platform Features</span>
+            <h2 class="section-title">Everything You Need in One Platform</h2>
+            <p class="section-subtitle mt-2">
+                Built for modern schools with comprehensive tools for every stakeholder
+            </p>
+        </div>
+        <div class="row g-4">
+            @foreach (var feature in new[] {
+                new { icon = "bx-brain", color = "#696cff", bg = "#696cff22", title = "AI-Powered Insights", desc = "Advanced machine learning analyzes student performance, detects learning gaps, and generates personalized recommendations automatically." },
+                new { icon = "bx-bar-chart-alt-2", color = "#71dd37", bg = "#71dd3722", title = "Educational Analytics", desc = "Deep analytics dashboards showing teacher performance, class progress, subject mastery, and predictive risk scoring." },
+                new { icon = "bx-book-open", color = "#fd7e14", bg = "#fd7e1422", title = "Curriculum Management", desc = "Complete curriculum hierarchy from Subject → Unit → Lesson → Topic → Learning Outcomes with coverage tracking." },
+                new { icon = "bx-calendar-edit", color = "#e74c3c", bg = "#e74c3c22", title = "Smart Lesson Planning", desc = "AI generates comprehensive lesson plans with objectives, activities, teaching strategies, and assessment methods." },
+                new { icon = "bx-check-square", color = "#9b59b6", bg = "#9b59b622", title = "Attendance Tracking", desc = "Digital attendance with per-lesson and daily tracking, excuse management, and real-time analytics for parents." },
+                new { icon = "bx-file", color = "#20c997", bg = "#20c99722", title = "Exam & Assignment Engine", desc = "Create exams manually or with AI. Question banks, multiple question types, automatic grading, and detailed reporting." }
+            })
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card h-100">
+                        <div class="feature-icon" style="background:@feature.bg;">
+                            <i class="bx @feature.icon" style="color:@feature.color;"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">@feature.title</h5>
+                        <p class="text-muted mb-0">@feature.desc</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ======================== AI SECTION ======================== -->
+<section class="ai-section" style="padding:5rem 0;">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="section-badge">Artificial Intelligence</span>
+                <h2 class="section-title mb-4">AI That Works For Education</h2>
+                <p class="text-muted mb-4">Our AI engine continuously learns from school data to provide actionable insights, early warnings, and personalized recommendations.</p>
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var item in new[] {
+                        new { icon = "bx-brain", color = "#696cff", bg = "#696cff22", title = "Adaptive Learning Engine", desc = "Personalizes content delivery based on student performance and learning patterns." },
+                        new { icon = "bx-error-circle", color = "#e74c3c", bg = "#e74c3c22", title = "At-Risk Student Detection", desc = "Early warning system identifies students needing intervention before they fall behind." },
+                        new { icon = "bx-notepad", color = "#71dd37", bg = "#71dd3722", title = "AI Lesson Plan Generator", desc = "Creates comprehensive lesson plans aligned with curriculum standards in seconds." },
+                        new { icon = "bx-file", color = "#fd7e14", bg = "#fd7e1422", title = "Exam Question Generator", desc = "Generates MCQ, essay, true/false, and fill-in-the-blank questions from lesson content." }
+                    })
+                    {
+                        <div class="ai-feature-item">
+                            <div class="ai-icon" style="background:@item.bg;">
+                                <i class="bx @item.icon" style="color:@item.color;font-size:1.3rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">@item.title</h6>
+                                <p class="text-muted small mb-0">@item.desc</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <!-- AI Visual -->
+                <div class="card border-0 shadow-lg" style="border-radius:24px;overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:2rem;">
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <div style="width:12px;height:12px;border-radius:50%;background:#e74c3c;"></div>
+                            <div style="width:12px;height:12px;border-radius:50%;background:#fd7e14;"></div>
+                            <div style="width:12px;height:12px;border-radius:50%;background:#71dd37;"></div>
+                            <span style="color:rgba(255,255,255,.5);font-size:.8rem;margin-left:.5rem;">AI Analytics Dashboard</span>
+                        </div>
+                        <!-- Fake chart bars -->
+                        <div class="d-flex align-items-end gap-2 mb-4" style="height:120px;">
+                            @foreach (var h in new[] { 60, 80, 45, 95, 70, 85, 55, 90, 65, 75 })
+                            {
+                                <div style="flex:1;height:@h%;background:linear-gradient(0deg,#696cff,#9b59b6);border-radius:6px 6px 0 0;opacity:.8;"></div>
+                            }
+                        </div>
+                        <!-- AI cards -->
+                        <div class="d-flex gap-3">
+                            <div style="flex:1;background:rgba(113,221,55,.15);border:1px solid rgba(113,221,55,.3);border-radius:12px;padding:1rem;">
+                                <div style="color:#71dd37;font-weight:700;font-size:1.5rem;">87%</div>
+                                <small style="color:rgba(255,255,255,.6);">Success Rate</small>
+                            </div>
+                            <div style="flex:1;background:rgba(105,108,255,.15);border:1px solid rgba(105,108,255,.3);border-radius:12px;padding:1rem;">
+                                <div style="color:#696cff;font-weight:700;font-size:1.5rem;">92%</div>
+                                <small style="color:rgba(255,255,255,.6);">Attendance</small>
+                            </div>
+                            <div style="flex:1;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1rem;">
+                                <div style="color:#e74c3c;font-weight:700;font-size:1.5rem;">3</div>
+                                <small style="color:rgba(255,255,255,.6);">At-Risk</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================== ROLE CARDS ======================== -->
+<section style="padding:5rem 0;background:#f8f9ff;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">User Roles</span>
+            <h2 class="section-title">Built for Every Stakeholder</h2>
+            <p class="section-subtitle mt-2">Four dedicated portals — each tailored to its users' exact needs</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card role-admin h-100">
+                    <div style="position:relative;z-index:1;">
+                        <div style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+                            <i class="bx bx-cog fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Administrator</h4>
+                        <ul class="list-unstyled mb-4" style="color:rgba(255,255,255,.85);">
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Full school management</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Analytics & reporting</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>User management</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Curriculum control</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-sm fw-semibold">
+                            Admin Login →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card role-teacher h-100">
+                    <div style="position:relative;z-index:1;">
+                        <div style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+                            <i class="bx bx-chalkboard fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Teacher</h4>
+                        <ul class="list-unstyled mb-4" style="color:rgba(255,255,255,.85);">
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>AI lesson planning</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Attendance tracking</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Exam creation</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Student analytics</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-sm fw-semibold">
+                            Teacher Login →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card role-student h-100">
+                    <div style="position:relative;z-index:1;">
+                        <div style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+                            <i class="bx bx-user-circle fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Student</h4>
+                        <ul class="list-unstyled mb-4" style="color:rgba(255,255,255,.85);">
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Adaptive learning</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Online exams</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Grade tracking</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>AI recommendations</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-sm fw-semibold">
+                            Student Login →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card role-parent h-100">
+                    <div style="position:relative;z-index:1;">
+                        <div style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+                            <i class="bx bx-heart fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Parent</h4>
+                        <ul class="list-unstyled mb-4" style="color:rgba(255,255,255,.85);">
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Child performance</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Attendance updates</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Exam results</li>
+                            <li class="mb-2"><i class="bx bx-check me-2"></i>Teacher communication</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-sm fw-semibold">
+                            Parent Login →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================== TESTIMONIALS ======================== -->
+<section style="padding:5rem 0;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">Testimonials</span>
+            <h2 class="section-title">Trusted by Educators</h2>
+        </div>
+        <div class="row g-4">
+            @foreach (var t in new[] {
+                new { name = "Dr. Sarah Al-Mansouri", role = "School Principal", avatar = "S", color = "#696cff", text = "Smart Education has transformed how we manage our school. The analytics dashboard gives me a complete picture of every classroom's performance in real-time. The AI-powered risk detection has helped us intervene early with struggling students." },
+                new { name = "Mr. Ahmed Hassan", role = "Senior Mathematics Teacher", avatar = "A", color = "#71dd37", text = "The AI lesson plan generator saves me hours every week. I just select the topic and learning outcomes, and it generates a complete plan with activities and assessment methods. The exam generator is equally impressive." },
+                new { name = "Mrs. Fatima Al-Zahra", role = "Parent", avatar = "F", color = "#e74c3c", text = "As a parent, I love being able to see my daughter's attendance and grades in real-time through the parent portal. I get notified immediately if there are any concerns, and I can communicate directly with her teachers." }
+            })
+            {
+                <div class="col-md-4">
+                    <div class="testimonial-card h-100">
+                        <div class="mb-3" style="color:#fd7e14;">
+                            @for (int s = 0; s < 5; s++) { <i class="bx bxs-star"></i> }
+                        </div>
+                        <p class="text-muted mb-4 lh-lg">@t.text</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="testimonial-avatar" style="background:@t.color;">@t.avatar</div>
+                            <div>
+                                <div class="fw-bold">@t.name</div>
+                                <small class="text-muted">@t.role</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- ======================== CTA ======================== -->
+<section style="background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:5rem 0;">
+    <div class="container text-center">
+        <h2 class="fw-bold text-white mb-3">Ready to Transform Your School?</h2>
+        <p style="color:rgba(255,255,255,.7);font-size:1.1rem;max-width:500px;margin:0 auto 2rem;">
+            Join the future of education. Sign in now and experience the power of AI-driven school management.
+        </p>
+        <a asp-controller="Account" asp-action="Login" class="btn btn-hero-primary btn-lg">
+            <i class="bx bx-log-in me-2"></i>Sign In to Platform
+        </a>
+    </div>
+</section>
+
+<!-- ======================== FOOTER ======================== -->
+<footer class="site-footer py-5">
+    <div class="container">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <h4 class="footer-brand fw-black mb-3">
+                    <i class="bx bx-graduation me-2"></i>Smart Education
+                </h4>
+                <p style="color:rgba(255,255,255,.5);line-height:1.7;">
+                    An AI-powered Smart Education System — transforming schools through adaptive learning, real-time analytics, and intelligent insights.
+                </p>
+            </div>
+            <div class="col-lg-2 col-6">
+                <h5 class="fw-semibold mb-3">Platform</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#features">Features</a></li>
+                    <li class="mb-2"><a href="#features">AI Capabilities</a></li>
+                    <li class="mb-2"><a asp-controller="Account" asp-action="Login">Sign In</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-6">
+                <h5 class="fw-semibold mb-3">Portals</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a asp-controller="Account" asp-action="Login">Admin</a></li>
+                    <li class="mb-2"><a asp-controller="Account" asp-action="Login">Teacher</a></li>
+                    <li class="mb-2"><a asp-controller="Account" asp-action="Login">Student</a></li>
+                    <li class="mb-2"><a asp-controller="Account" asp-action="Login">Parent</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <h5 class="fw-semibold mb-3">Technology</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var tech in new[] { "ASP.NET Core", "Entity Framework", "SQL Server", "AI / ML", "Bootstrap 5", "Chart.js" })
+                    {
+                        <span style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:.3rem .8rem;border-radius:50px;font-size:.8rem;">@tech</span>
+                    }
+                </div>
+            </div>
+        </div>
+        <hr style="border-color:rgba(255,255,255,.1);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <small style="color:rgba(255,255,255,.4);">&copy; 2026 Smart Education System. All rights reserved.</small>
+            <small style="color:rgba(255,255,255,.4);">Built with ASP.NET Core 10 &bull; Onion Architecture</small>
+        </div>
+    </div>
+</footer>

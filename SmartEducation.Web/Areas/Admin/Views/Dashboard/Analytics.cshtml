@@ -1,0 +1,836 @@
+@model SmartEducation.Application.DTOs.Dashboard.AdminAnalyticsDto
+@{
+    ViewData["Title"] = "School Analytics";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<style>
+    .kpi-card { border-left: 4px solid; transition: transform .15s; }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-card.blue { border-color: #696cff; }
+    .kpi-card.green { border-color: #71dd37; }
+    .kpi-card.orange { border-color: #fd7e14; }
+    .kpi-card.red { border-color: #ff3e1d; }
+    .kpi-card.purple { border-color: #9b59b6; }
+    .kpi-card.teal { border-color: #20c997; }
+    .progress { height: 8px; border-radius: 4px; }
+    .risk-high { color: #ff3e1d; }
+    .risk-medium { color: #fd7e14; }
+    .risk-low { color: #71dd37; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #566a7f; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1.5rem; }
+    .analytics-tab .nav-link { color: #566a7f; font-weight: 500; padding: .6rem 1.2rem; border-radius: .5rem; }
+    .analytics-tab .nav-link.active { background: #696cff; color: #fff; }
+    .mastery-badge-high { background: #d4edda; color: #155724; }
+    .mastery-badge-medium { background: #fff3cd; color: #856404; }
+    .mastery-badge-low { background: #f8d7da; color: #721c24; }
+</style>
+
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <span class="text-muted fw-light">Admin /</span> School Analytics
+            </h4>
+            <p class="text-muted mb-0">Comprehensive educational intelligence and performance data</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bx bx-home me-1"></i> Dashboard
+            </a>
+            <a href="javascript:window.print()" class="btn btn-outline-primary btn-sm">
+                <i class="bx bx-printer me-1"></i> Print Report
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== KPI CARDS ===== -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 shadow-sm kpi-card blue h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-2 p-2 me-2" style="background:#696cff22">
+                        <i class="bx bx-user-circle text-primary fs-5"></i>
+                    </div>
+                    <small class="fw-semibold text-muted">Students</small>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.KPIs.TotalStudents</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 shadow-sm kpi-card green h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-2 p-2 me-2" style="background:#71dd3722">
+                        <i class="bx bx-chalkboard text-success fs-5"></i>
+                    </div>
+                    <small class="fw-semibold text-muted">Teachers</small>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.KPIs.TotalTeachers</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 shadow-sm kpi-card orange h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-2 p-2 me-2" style="background:#fd7e1422">
+                        <i class="bx bx-book-open text-warning fs-5"></i>
+                    </div>
+                    <small class="fw-semibold text-muted">Subjects</small>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.KPIs.TotalSubjects</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 shadow-sm kpi-card purple h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-2 p-2 me-2" style="background:#9b59b622">
+                        <i class="bx bx-buildings fs-5" style="color:#9b59b6"></i>
+                    </div>
+                    <small class="fw-semibold text-muted">Classrooms</small>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.KPIs.TotalClassRooms</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 shadow-sm kpi-card teal h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-2 p-2 me-2" style="background:#20c99722">
+                        <i class="bx bx-check-circle fs-5" style="color:#20c997"></i>
+                    </div>
+                    <small class="fw-semibold text-muted">Attendance</small>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.OverallAttendanceRate.ToString("F1")%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card border-0 shadow-sm kpi-card green h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-2 p-2 me-2" style="background:#71dd3722">
+                        <i class="bx bx-trending-up text-success fs-5"></i>
+                    </div>
+                    <small class="fw-semibold text-muted">Success Rate</small>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.OverallSuccessRate.ToString("F1")%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- School Overview KPI Row -->
+<div class="row g-3 mb-5">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1">Overall School Performance</h6>
+                        <p class="text-muted small mb-0">Average across all subjects & classes</p>
+                    </div>
+                    <span class="badge bg-success fs-6">@Model.OverallSuccessRate.ToString("F1")%</span>
+                </div>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-success" style="width:@Model.OverallSuccessRate%"></div>
+                </div>
+                <small class="text-muted">Target: 85%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1">Curriculum Coverage</h6>
+                        <p class="text-muted small mb-0">Lesson plans vs. total lessons</p>
+                    </div>
+                    <span class="badge bg-primary fs-6">@Model.CurriculumCoverage.ToString("F1")%</span>
+                </div>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-primary" style="width:@(Math.Min(100, Model.CurriculumCoverage))%"></div>
+                </div>
+                <small class="text-muted">Target: 90%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1">Overall Attendance</h6>
+                        <p class="text-muted small mb-0">School-wide daily attendance</p>
+                    </div>
+                    <span class="badge @(Model.OverallAttendanceRate >= 90 ? "bg-success" : Model.OverallAttendanceRate >= 75 ? "bg-warning" : "bg-danger") fs-6">@Model.OverallAttendanceRate.ToString("F1")%</span>
+                </div>
+                <div class="progress mb-2">
+                    <div class="progress-bar @(Model.OverallAttendanceRate >= 90 ? "bg-success" : "bg-warning")"
+                         style="width:@Model.OverallAttendanceRate%"></div>
+                </div>
+                <small class="text-muted">Target: 90%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Tabs -->
+<ul class="nav analytics-tab gap-2 mb-4" id="analyticsTabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#teachers-tab">
+        <i class="bx bx-chalkboard me-1"></i> Teacher Analytics
+    </a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#classes-tab">
+        <i class="bx bx-buildings me-1"></i> Class Analytics
+    </a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#subjects-tab">
+        <i class="bx bx-book-open me-1"></i> Subject Analytics
+    </a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#outcomes-tab">
+        <i class="bx bx-target-lock me-1"></i> Learning Outcomes
+    </a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#risk-tab">
+        <i class="bx bx-error-circle me-1"></i> At-Risk Students
+        @if (Model.AtRiskStudents.Any())
+        {
+            <span class="badge bg-danger ms-1">@Model.AtRiskStudents.Count</span>
+        }
+    </a></li>
+</ul>
+
+<div class="tab-content">
+
+    <!-- ===== TEACHER ANALYTICS TAB ===== -->
+    <div class="tab-pane fade show active" id="teachers-tab">
+        @if (!Model.TeacherAnalytics.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5 text-muted">
+                    <i class="bx bx-chalkboard fs-1 d-block mb-2"></i>
+                    No teacher assignments found. Assign teachers to subjects and classrooms to see analytics.
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Charts Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Student Success Rate by Teacher</h6>
+                            <canvas id="teacherSuccessChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Lesson Plan Completion Rate</h6>
+                            <canvas id="lessonPlanChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0">Teacher Performance Details</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Teacher</th>
+                                <th>Subjects</th>
+                                <th>Classes</th>
+                                <th>Students</th>
+                                <th>Curriculum</th>
+                                <th>Lesson Plans</th>
+                                <th>Avg Score</th>
+                                <th>Success</th>
+                                <th>Failure</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model.TeacherAnalytics)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
+                                                 style="width:36px;height:36px;">
+                                                <span class="text-primary fw-bold small">@t.TeacherName.Substring(0, 1)</span>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold d-block">@t.TeacherName</span>
+                                                <small class="text-muted">@t.EmployeeNumber</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @foreach (var s in t.SubjectNames.Take(2))
+                                        {
+                                            <span class="badge bg-label-primary me-1 mb-1">@s</span>
+                                        }
+                                        @if (t.SubjectNames.Count > 2)
+                                        {
+                                            <span class="badge bg-label-secondary">+@(t.SubjectNames.Count - 2)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @foreach (var c in t.ClassNames.Take(2))
+                                        {
+                                            <span class="badge bg-label-info me-1">@c</span>
+                                        }
+                                    </td>
+                                    <td><span class="fw-semibold">@t.TotalStudents</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height:6px;">
+                                                <div class="progress-bar bg-primary" style="width:@t.CurriculumCoverage%"></div>
+                                            </div>
+                                            <small class="fw-semibold">@t.CurriculumCoverage.ToString("F0")%</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height:6px;">
+                                                <div class="progress-bar bg-info" style="width:@t.LessonPlanCompletionRate%"></div>
+                                            </div>
+                                            <small class="fw-semibold">@t.LessonPlanCompletionRate.ToString("F0")%</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var scoreColor = t.AverageStudentPerformance >= 70 ? "text-success" :
+                                                            t.AverageStudentPerformance >= 50 ? "text-warning" : "text-danger";
+                                        }
+                                        <span class="fw-bold @scoreColor">@t.AverageStudentPerformance.ToString("F1")%</span>
+                                    </td>
+                                    <td><span class="badge bg-label-success">@t.StudentSuccessRate.ToString("F0")%</span></td>
+                                    <td>
+                                        @if (t.StudentFailureRate > 20)
+                                        {
+                                            <span class="badge bg-label-danger">@t.StudentFailureRate.ToString("F0")%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-label-secondary">@t.StudentFailureRate.ToString("F0")%</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ===== CLASS ANALYTICS TAB ===== -->
+    <div class="tab-pane fade" id="classes-tab">
+        @if (!Model.ClassAnalytics.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5 text-muted">
+                    <i class="bx bx-buildings fs-1 d-block mb-2"></i>
+                    No classrooms found. Add classrooms to see class analytics.
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Charts Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Class Average Grades</h6>
+                            <canvas id="classGradeChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Attendance Rate by Class</h6>
+                            <canvas id="classAttendanceChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                @foreach (var cls in Model.ClassAnalytics)
+                {
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h6 class="fw-bold mb-0">@cls.ClassName</h6>
+                                        <small class="text-muted">@cls.GradeName &bull; @cls.TotalStudents students</small>
+                                    </div>
+                                    <div class="rounded-2 p-2 bg-primary bg-opacity-10">
+                                        <i class="bx bx-buildings text-primary"></i>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="p-2 rounded-2 bg-light text-center">
+                                            <div class="fw-bold @(cls.AverageGrade >= 70 ? "text-success" : cls.AverageGrade >= 50 ? "text-warning" : "text-danger")">
+                                                @cls.AverageGrade.ToString("F1")%
+                                            </div>
+                                            <small class="text-muted">Avg Grade</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded-2 bg-light text-center">
+                                            <div class="fw-bold text-primary">@cls.AttendanceRate.ToString("F1")%</div>
+                                            <small class="text-muted">Attendance</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded-2 bg-light text-center">
+                                            <div class="fw-bold text-info">@cls.AssignmentCompletionRate.ToString("F0")%</div>
+                                            <small class="text-muted">Assignments</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded-2 bg-light text-center">
+                                            <div class="fw-bold text-success">@cls.ExamSuccessRate.ToString("F0")%</div>
+                                            <small class="text-muted">Exam Success</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Learning Outcome Mastery</small>
+                                        <small class="fw-semibold">@cls.LearningOutcomeMastery.ToString("F0")%</small>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width:@cls.LearningOutcomeMastery%"></div>
+                                    </div>
+                                </div>
+                                @if (cls.SubjectNames.Any())
+                                {
+                                    <div class="mt-2">
+                                        @foreach (var s in cls.SubjectNames.Take(3))
+                                        {
+                                            <span class="badge bg-label-primary me-1 mb-1">@s</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ===== SUBJECT ANALYTICS TAB ===== -->
+    <div class="tab-pane fade" id="subjects-tab">
+        @if (!Model.SubjectAnalytics.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5 text-muted">
+                    <i class="bx bx-book-open fs-1 d-block mb-2"></i>
+                    No subjects found.
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Subject Mastery Comparison</h6>
+                            <canvas id="subjectMasteryChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Curriculum Structure</h6>
+                            <canvas id="subjectStructureChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Subject</th>
+                                <th>Units</th>
+                                <th>Lessons</th>
+                                <th>Topics</th>
+                                <th>Outcomes</th>
+                                <th>Avg Performance</th>
+                                <th>Mastery</th>
+                                <th>Coverage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sub in Model.SubjectAnalytics)
+                            {
+                                <tr>
+                                    <td><span class="fw-semibold">@sub.SubjectName</span></td>
+                                    <td><span class="badge bg-label-secondary">@sub.TotalUnits</span></td>
+                                    <td>@sub.TotalLessons</td>
+                                    <td>@sub.TotalTopics</td>
+                                    <td>@sub.TotalLearningOutcomes</td>
+                                    <td>
+                                        @{
+                                            var perfColor = sub.AveragePerformance >= 70 ? "text-success" :
+                                                           sub.AveragePerformance >= 50 ? "text-warning" : "text-danger";
+                                        }
+                                        <span class="fw-bold @perfColor">@sub.AveragePerformance.ToString("F1")%</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height:6px;min-width:60px;">
+                                                <div class="progress-bar @(sub.MasteryPercentage >= 80 ? "bg-success" : sub.MasteryPercentage >= 60 ? "bg-warning" : "bg-danger")"
+                                                     style="width:@sub.MasteryPercentage%"></div>
+                                            </div>
+                                            <small class="fw-semibold">@sub.MasteryPercentage.ToString("F0")%</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height:6px;min-width:60px;">
+                                                <div class="progress-bar bg-primary" style="width:@sub.LearningOutcomeCoverage%"></div>
+                                            </div>
+                                            <small class="fw-semibold">@sub.LearningOutcomeCoverage.ToString("F0")%</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ===== LEARNING OUTCOMES TAB ===== -->
+    <div class="tab-pane fade" id="outcomes-tab">
+        @if (!Model.LearningOutcomeAnalytics.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5 text-muted">
+                    <i class="bx bx-target-lock fs-1 d-block mb-2"></i>
+                    No learning outcomes found. Add topics and outcomes to see analytics.
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Legend -->
+            <div class="d-flex gap-3 mb-3">
+                <span><span class="badge mastery-badge-high px-3">High ≥80%</span></span>
+                <span><span class="badge mastery-badge-medium px-3">Medium 60–79%</span></span>
+                <span><span class="badge mastery-badge-low px-3">Low &lt;60%</span></span>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Learning Outcome</th>
+                                <th>Topic</th>
+                                <th>Subject</th>
+                                <th>Mastered</th>
+                                <th>Not Mastered</th>
+                                <th>Mastery %</th>
+                                <th>Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lo in Model.LearningOutcomeAnalytics.OrderBy(l => l.MasteryPercentage))
+                            {
+                                <tr class="@(lo.MasteryPercentage < 60 ? "table-danger" : lo.MasteryPercentage < 80 ? "table-warning" : "")">
+                                    <td>
+                                        <span class="fw-semibold" style="max-width:300px;display:block;white-space:normal;">
+                                            @lo.OutcomeDescription
+                                        </span>
+                                    </td>
+                                    <td><small>@lo.TopicName</small></td>
+                                    <td><small class="text-muted">@lo.SubjectName</small></td>
+                                    <td>
+                                        <span class="text-success fw-semibold">@lo.StudentsMastered</span>
+                                        <small class="text-muted"> / @lo.StudentsTotal</small>
+                                    </td>
+                                    <td>
+                                        <span class="text-danger fw-semibold">@lo.StudentsNotMastered</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height:8px;min-width:70px;">
+                                                <div class="progress-bar @(lo.MasteryLevel == "High" ? "bg-success" : lo.MasteryLevel == "Medium" ? "bg-warning" : "bg-danger")"
+                                                     style="width:@lo.MasteryPercentage%"></div>
+                                            </div>
+                                            <small class="fw-bold">@lo.MasteryPercentage.ToString("F0")%</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var badgeClass = lo.MasteryLevel switch {
+                                                "High" => "mastery-badge-high",
+                                                "Medium" => "mastery-badge-medium",
+                                                _ => "mastery-badge-low"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass">@lo.MasteryLevel</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ===== AT-RISK STUDENTS TAB ===== -->
+    <div class="tab-pane fade" id="risk-tab">
+        @if (!Model.AtRiskStudents.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bx bx-check-shield fs-1 d-block mb-2 text-success"></i>
+                    <h5 class="text-success fw-bold">No At-Risk Students</h5>
+                    <p class="text-muted">All students appear to be on track. Keep monitoring for early detection.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning border-0 mb-4">
+                <i class="bx bx-error-circle me-2"></i>
+                <strong>@Model.AtRiskStudents.Count student(s) identified as at risk.</strong>
+                Early intervention can significantly improve outcomes.
+            </div>
+
+            <div class="row g-3">
+                @foreach (var student in Model.AtRiskStudents)
+                {
+                    <div class="col-xl-6">
+                        <div class="card border-0 shadow-sm h-100 border-start border-3 @(student.RiskScore >= 70 ? "border-danger" : student.RiskScore >= 40 ? "border-warning" : "border-info")">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle me-2 d-flex align-items-center justify-content-center
+                                             @(student.RiskScore >= 70 ? "bg-danger" : student.RiskScore >= 40 ? "bg-warning" : "bg-info") bg-opacity-20"
+                                             style="width:42px;height:42px;">
+                                            <span class="fw-bold @(student.RiskScore >= 70 ? "text-danger" : student.RiskScore >= 40 ? "text-warning" : "text-info")">
+                                                @student.StudentName.Substring(0, 1)
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold d-block">@student.StudentName</span>
+                                            <small class="text-muted">Class: @student.ClassName</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold fs-5 @(student.RiskScore >= 70 ? "risk-high" : student.RiskScore >= 40 ? "risk-medium" : "risk-low")">
+                                            @student.RiskScore.ToString("F0")
+                                        </div>
+                                        <small class="text-muted">Risk Score</small>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="p-2 rounded bg-light">
+                                            <small class="text-muted d-block">Attendance</small>
+                                            <span class="fw-bold @(student.AttendanceRate < 80 ? "text-danger" : "text-success")">
+                                                @student.AttendanceRate.ToString("F1")%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded bg-light">
+                                            <small class="text-muted d-block">Avg Score</small>
+                                            <span class="fw-bold @(student.AverageScore < 50 ? "text-danger" : "text-warning")">
+                                                @(student.AverageScore > 0 ? student.AverageScore.ToString("F1") + "%" : "No data")
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <small class="text-muted fw-semibold d-block mb-1">Risk Factors:</small>
+                                    @foreach (var factor in student.RiskFactors)
+                                    {
+                                        <span class="badge bg-label-danger me-1 mb-1">@factor</span>
+                                    }
+                                </div>
+
+                                <div class="p-2 rounded bg-light">
+                                    <small class="text-muted fw-semibold d-block mb-1">
+                                        <i class="bx bx-bulb me-1"></i>Suggested Intervention:
+                                    </small>
+                                    <small>@student.SuggestedIntervention</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const chartDefaults = {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+    };
+
+    // Teacher Success Chart
+    @if (Model.TeacherAnalytics.Any())
+    {
+        <text>
+        new Chart(document.getElementById('teacherSuccessChart'), {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.TeacherAnalytics.Select(t => $"'{t.TeacherName.Split(' ')[0]}'")))],
+                datasets: [{
+                    label: 'Success Rate %',
+                    data: [@string.Join(",", Model.TeacherAnalytics.Select(t => t.StudentSuccessRate.ToString("F1")))],
+                    backgroundColor: '#696cff88',
+                    borderColor: '#696cff',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }, {
+                    label: 'Failure Rate %',
+                    data: [@string.Join(",", Model.TeacherAnalytics.Select(t => t.StudentFailureRate.ToString("F1")))],
+                    backgroundColor: '#ff3e1d55',
+                    borderColor: '#ff3e1d',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: { ...chartDefaults, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+
+        new Chart(document.getElementById('lessonPlanChart'), {
+            type: 'doughnut',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.TeacherAnalytics.Select(t => $"'{t.TeacherName.Split(' ')[0]}'")))],
+                datasets: [{
+                    data: [@string.Join(",", Model.TeacherAnalytics.Select(t => t.LessonPlanCompletionRate.ToString("F1")))],
+                    backgroundColor: ['#696cff','#71dd37','#fd7e14','#ff3e1d','#9b59b6','#20c997'],
+                    borderWidth: 0
+                }]
+            },
+            options: chartDefaults
+        });
+        </text>
+    }
+
+    // Class Charts
+    @if (Model.ClassAnalytics.Any())
+    {
+        <text>
+        new Chart(document.getElementById('classGradeChart'), {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.ClassAnalytics.Select(c => $"'{c.ClassName}'")))],
+                datasets: [{
+                    label: 'Average Grade %',
+                    data: [@string.Join(",", Model.ClassAnalytics.Select(c => c.AverageGrade.ToString("F1")))],
+                    backgroundColor: '#71dd3788',
+                    borderColor: '#71dd37',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: { ...chartDefaults, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+
+        new Chart(document.getElementById('classAttendanceChart'), {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.ClassAnalytics.Select(c => $"'{c.ClassName}'")))],
+                datasets: [{
+                    label: 'Attendance Rate %',
+                    data: [@string.Join(",", Model.ClassAnalytics.Select(c => c.AttendanceRate.ToString("F1")))],
+                    backgroundColor: '#696cff22',
+                    borderColor: '#696cff',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { ...chartDefaults, scales: { y: { beginAtZero: false, min: 0, max: 100 } } }
+        });
+        </text>
+    }
+
+    // Subject Charts
+    @if (Model.SubjectAnalytics.Any())
+    {
+        <text>
+        new Chart(document.getElementById('subjectMasteryChart'), {
+            type: 'radar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.SubjectAnalytics.Select(s => $"'{s.SubjectName}'")))],
+                datasets: [{
+                    label: 'Mastery %',
+                    data: [@string.Join(",", Model.SubjectAnalytics.Select(s => s.MasteryPercentage.ToString("F1")))],
+                    backgroundColor: '#696cff33',
+                    borderColor: '#696cff',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#696cff'
+                }]
+            },
+            options: { ...chartDefaults, scales: { r: { beginAtZero: true, max: 100 } } }
+        });
+
+        new Chart(document.getElementById('subjectStructureChart'), {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.SubjectAnalytics.Select(s => $"'{s.SubjectName}'")))],
+                datasets: [{
+                    label: 'Units',
+                    data: [@string.Join(",", Model.SubjectAnalytics.Select(s => s.TotalUnits))],
+                    backgroundColor: '#696cff88',
+                    borderRadius: 4
+                }, {
+                    label: 'Lessons',
+                    data: [@string.Join(",", Model.SubjectAnalytics.Select(s => s.TotalLessons))],
+                    backgroundColor: '#71dd3788',
+                    borderRadius: 4
+                }, {
+                    label: 'Outcomes',
+                    data: [@string.Join(",", Model.SubjectAnalytics.Select(s => s.TotalLearningOutcomes))],
+                    backgroundColor: '#fd7e1488',
+                    borderRadius: 4
+                }]
+            },
+            options: { ...chartDefaults, scales: { x: { stacked: false }, y: { beginAtZero: true } } }
+        });
+        </text>
+    }
+</script>
+}

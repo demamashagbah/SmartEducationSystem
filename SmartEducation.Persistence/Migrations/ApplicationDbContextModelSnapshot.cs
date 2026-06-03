@@ -110,6 +110,77 @@ namespace SmartEducation.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AIInsight", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AIInsights");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AIRecommendation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActedOn")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Priority")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Recommendation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("AIRecommendations");
+                });
+
             modelBuilder.Entity("SmartEducation.Domain.Entities.AcademicYear", b =>
                 {
                     b.Property<Guid>("Id")
@@ -137,7 +208,47 @@ namespace SmartEducation.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AcademicYear");
+                    b.ToTable("AcademicYears");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Announcement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TargetRole")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Announcements");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.ApplicationRole", b =>
@@ -260,6 +371,176 @@ namespace SmartEducation.Persistence.Migrations
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Assignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClassRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxScore")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassRoomId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("Assignments");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AssignmentSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Feedback")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Grade")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignmentId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("AssignmentSubmissions");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AttendanceSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPresent")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendanceSessionId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("AttendanceRecords");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AttendanceSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClassRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("SessionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassRoomId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("AttendanceSessions");
+                });
+
             modelBuilder.Entity("SmartEducation.Domain.Entities.ClassRoom", b =>
                 {
                     b.Property<Guid>("Id")
@@ -286,7 +567,172 @@ namespace SmartEducation.Persistence.Migrations
 
                     b.HasIndex("GradeId");
 
-                    b.ToTable("ClassRoom");
+                    b.ToTable("ClassRooms");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.CurriculumPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsAiGenerated")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlanType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TeacherAssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeacherAssignmentId");
+
+                    b.ToTable("CurriculumPlans");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.CurriculumPlanItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Activities")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CurriculumPlanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ExamDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Homework")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LearningOutcomes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PlannedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("QuizDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TeachingStrategy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("TopicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WeekNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurriculumPlanId");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("TopicId");
+
+                    b.ToTable("CurriculumPlanItems");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Exam", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ClassRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExamDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TotalMarks")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassRoomId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.Grade", b =>
@@ -310,7 +756,7 @@ namespace SmartEducation.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Grade");
+                    b.ToTable("Grades");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.LearningOutcome", b =>
@@ -368,7 +814,119 @@ namespace SmartEducation.Persistence.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Lesson");
+                    b.ToTable("Lessons");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.LessonPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Activities")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AssessmentMethods")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Homework")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Introduction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAiGenerated")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LessonDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Objectives")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TeacherAssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TeachingStrategies")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("TeacherAssignmentId");
+
+                    b.ToTable("LessonPlans");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ParentMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentMessageId");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.Notification", b =>
@@ -466,8 +1024,17 @@ namespace SmartEducation.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CorrectAnswer")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DifficultyLevel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ExamId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -475,9 +1042,24 @@ namespace SmartEducation.Persistence.Migrations
                     b.Property<int>("Marks")
                         .HasColumnType("int");
 
+                    b.Property<string>("OptionA")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionB")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionC")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionD")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("QuestionText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uniqueidentifier");
@@ -486,6 +1068,10 @@ namespace SmartEducation.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("SubjectId");
 
                     b.ToTable("QuestionBanks");
                 });
@@ -546,11 +1132,20 @@ namespace SmartEducation.Persistence.Migrations
                     b.Property<Guid>("ExamId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSubmitted")
                         .HasColumnType("bit");
 
                     b.Property<double>("Score")
                         .HasColumnType("float");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
@@ -559,6 +1154,10 @@ namespace SmartEducation.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("StudentExams");
                 });
@@ -697,11 +1296,16 @@ namespace SmartEducation.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("EvaluationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("EvaluatorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Notes")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("Score")
@@ -715,7 +1319,54 @@ namespace SmartEducation.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TeacherId");
+
                     b.ToTable("TeacherEvaluations");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.TeacherGuide", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnalysisNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAnalyzed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("TeacherGuides");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.TeacherProfile", b =>
@@ -841,6 +1492,17 @@ namespace SmartEducation.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AIRecommendation", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.StudentProfile", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("SmartEducation.Domain.Entities.ApplicationUserRole", b =>
                 {
                     b.HasOne("SmartEducation.Domain.Entities.ApplicationRole", "Role")
@@ -860,15 +1522,161 @@ namespace SmartEducation.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Assignment", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
+                        .WithMany()
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.TeacherProfile", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClassRoom");
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AssignmentSubmission", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.Assignment", "Assignment")
+                        .WithMany("Submissions")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.StudentProfile", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.AttendanceSession", "AttendanceSession")
+                        .WithMany("Records")
+                        .HasForeignKey("AttendanceSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.StudentProfile", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AttendanceSession");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AttendanceSession", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
+                        .WithMany()
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.TeacherProfile", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClassRoom");
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("Teacher");
+                });
+
             modelBuilder.Entity("SmartEducation.Domain.Entities.ClassRoom", b =>
                 {
                     b.HasOne("SmartEducation.Domain.Entities.Grade", "Grade")
                         .WithMany("ClassRooms")
                         .HasForeignKey("GradeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Grade");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.CurriculumPlan", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.TeacherAssignment", "TeacherAssignment")
+                        .WithMany()
+                        .HasForeignKey("TeacherAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TeacherAssignment");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.CurriculumPlanItem", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.CurriculumPlan", "CurriculumPlan")
+                        .WithMany("Items")
+                        .HasForeignKey("CurriculumPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.Lesson", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmartEducation.Domain.Entities.Topic", "Topic")
+                        .WithMany()
+                        .HasForeignKey("TopicId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CurriculumPlan");
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Exam", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
+                        .WithMany()
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClassRoom");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.LearningOutcome", b =>
@@ -876,7 +1684,7 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.Topic", "Topic")
                         .WithMany("LearningOutcomes")
                         .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Topic");
@@ -887,10 +1695,54 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.Unit", "Unit")
                         .WithMany("Lessons")
                         .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.LessonPlan", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.Lesson", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmartEducation.Domain.Entities.TeacherAssignment", "TeacherAssignment")
+                        .WithMany()
+                        .HasForeignKey("TeacherAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("TeacherAssignment");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Message", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.Message", "ParentMessage")
+                        .WithMany()
+                        .HasForeignKey("ParentMessageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SmartEducation.Domain.Entities.ApplicationUser", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.ApplicationUser", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentMessage");
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.ParentProfile", b =>
@@ -923,6 +1775,24 @@ namespace SmartEducation.Persistence.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("SmartEducation.Domain.Entities.QuestionBank", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.Exam", "Exam")
+                        .WithMany("Questions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Subject");
+                });
+
             modelBuilder.Entity("SmartEducation.Domain.Entities.RolePermission", b =>
                 {
                     b.HasOne("SmartEducation.Domain.Entities.Permission", "Permission")
@@ -947,10 +1817,29 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.AcademicYear", "AcademicYear")
                         .WithMany()
                         .HasForeignKey("AcademicYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("AcademicYear");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.StudentExam", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.Exam", "Exam")
+                        .WithMany("StudentExams")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartEducation.Domain.Entities.StudentProfile", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.StudentProfile", b =>
@@ -958,7 +1847,7 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
                         .WithMany()
                         .HasForeignKey("ClassRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SmartEducation.Domain.Entities.ApplicationUser", "User")
@@ -977,19 +1866,19 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
                         .WithMany()
                         .HasForeignKey("ClassRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SmartEducation.Domain.Entities.TeacherProfile", "Teacher")
                         .WithMany()
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ClassRoom");
@@ -997,6 +1886,28 @@ namespace SmartEducation.Persistence.Migrations
                     b.Navigation("Subject");
 
                     b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.TeacherEvaluation", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.TeacherProfile", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.TeacherGuide", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.TeacherProfile", b =>
@@ -1015,7 +1926,7 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.Lesson", "Lesson")
                         .WithMany("Topics")
                         .HasForeignKey("LessonId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Lesson");
@@ -1026,7 +1937,7 @@ namespace SmartEducation.Persistence.Migrations
                     b.HasOne("SmartEducation.Domain.Entities.Subject", "Subject")
                         .WithMany("Units")
                         .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Subject");
@@ -1040,6 +1951,28 @@ namespace SmartEducation.Persistence.Migrations
             modelBuilder.Entity("SmartEducation.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Assignment", b =>
+                {
+                    b.Navigation("Submissions");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.AttendanceSession", b =>
+                {
+                    b.Navigation("Records");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.CurriculumPlan", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Exam", b =>
+                {
+                    b.Navigation("Questions");
+
+                    b.Navigation("StudentExams");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.Grade", b =>

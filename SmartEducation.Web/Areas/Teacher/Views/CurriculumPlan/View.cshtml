@@ -1,0 +1,169 @@
+@model SmartEducation.Application.DTOs.CurriculumPlanDto
+@{
+    ViewData["Title"] = "Curriculum Plan";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<style>
+    .plan-item-completed { opacity: .65; }
+    .week-header { background: #f0f0ff; border-radius: 8px; }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">@Model.Title</h4>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-label-primary">@Model.SubjectName</span>
+                <span class="badge bg-label-info">@Model.ClassRoomName</span>
+                <span class="badge bg-label-secondary">@Model.PlanType</span>
+                @if (Model.IsAiGenerated)
+                {
+                    <span class="badge bg-warning text-dark"><i class="bx bx-brain me-1"></i>AI Generated</span>
+                }
+            </div>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<!-- Progress Overview -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">Curriculum Coverage Progress</h6>
+                <span class="fw-bold @(Model.ProgressPercent >= 80 ? "text-success" : "text-primary")">
+                    @Model.ProgressPercent.ToString("F0")%
+                </span>
+            </div>
+            <div class="progress mb-2" style="height:12px">
+                <div class="progress-bar @(Model.ProgressPercent >= 80 ? "bg-success" : "bg-primary")"
+                     style="width:@Model.ProgressPercent%"></div>
+            </div>
+            <small class="text-muted">@Model.CompletedItems of @Model.TotalItems lessons completed &bull;
+                @(Model.TotalItems - Model.CompletedItems) remaining</small>
+        </div></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100 text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-success mb-0">@Model.CompletedItems</h3>
+            <small class="text-muted">Completed</small>
+        </div></div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm h-100 text-center"><div class="card-body py-3">
+            <h3 class="fw-bold text-warning mb-0">@(Model.TotalItems - Model.CompletedItems)</h3>
+            <small class="text-muted">Remaining</small>
+        </div></div>
+    </div>
+</div>
+
+<!-- Plan Items -->
+@if (!Model.Items.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-4 text-muted">
+            <p>No lessons in this plan. The selected subject may not have lessons yet.</p>
+        </div>
+    </div>
+}
+else
+{
+    var groupedByWeek = Model.Items.GroupBy(i => i.WeekNumber).OrderBy(g => g.Key);
+    foreach (var weekGroup in groupedByWeek)
+    {
+        <div class="mb-4">
+            <div class="week-header p-2 px-3 mb-3 d-flex align-items-center gap-2">
+                <i class="bx bx-calendar-week text-primary"></i>
+                <span class="fw-bold text-primary">Week @weekGroup.Key</span>
+                <span class="text-muted small">(@weekGroup.Count() lessons)</span>
+                @{
+                    var weekCompleted = weekGroup.Count(i => i.IsCompleted);
+                    var weekTotal = weekGroup.Count();
+                }
+                <span class="badge @(weekCompleted == weekTotal ? "bg-success" : weekCompleted > 0 ? "bg-warning" : "bg-secondary") ms-auto">
+                    @weekCompleted/@weekTotal done
+                </span>
+            </div>
+
+            @foreach (var item in weekGroup.OrderBy(i => i.PlannedDate))
+            {
+                <div class="card border-0 shadow-sm mb-3 @(item.IsCompleted ? "plan-item-completed" : "")">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-1 text-center">
+                                <form asp-action="ToggleComplete" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="itemId" value="@item.Id" />
+                                    <input type="hidden" name="planId" value="@Model.Id" />
+                                    <input type="hidden" name="completed" value="@(!item.IsCompleted)" />
+                                    <button type="submit" class="btn btn-sm @(item.IsCompleted ? "btn-success" : "btn-outline-secondary") p-2"
+                                            title="@(item.IsCompleted ? "Mark as incomplete" : "Mark as completed")" style="width:42px;height:42px">
+                                        <i class="bx @(item.IsCompleted ? "bx-check-circle" : "bx-circle") fs-5"></i>
+                                    </button>
+                                </form>
+                                <small class="text-muted d-block mt-1" style="font-size:.7rem">
+                                    @item.PlannedDate.ToString("MMM dd")
+                                </small>
+                            </div>
+                            <div class="col-md-11">
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                            @if (!string.IsNullOrEmpty(item.LessonName))
+                                            {
+                                                <span class="fw-bold"><i class="bx bx-book text-success me-1"></i>@item.LessonName</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.TopicName))
+                                            {
+                                                <span class="badge bg-label-warning">@item.TopicName</span>
+                                            }
+                                            <span class="badge bg-label-secondary">@item.PlannedDate.ToString("dddd")</span>
+                                            @if (item.IsCompleted && item.CompletedDate.HasValue)
+                                            {
+                                                <span class="badge bg-success"><i class="bx bx-check me-1"></i>Completed @item.CompletedDate.Value.ToString("MMM dd")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.LearningOutcomes))
+                                    {
+                                        <div class="col-md-12">
+                                            <small class="fw-semibold text-muted d-block">Learning Outcomes:</small>
+                                            <small class="text-muted">@item.LearningOutcomes</small>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.TeachingStrategy))
+                                    {
+                                        <div class="col-md-6">
+                                            <small class="fw-semibold text-muted d-block">Teaching Strategy:</small>
+                                            <small class="text-primary">@item.TeachingStrategy</small>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Homework))
+                                    {
+                                        <div class="col-md-6">
+                                            <small class="fw-semibold text-muted d-block">Homework:</small>
+                                            <small class="text-muted">@item.Homework</small>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Activities))
+                                    {
+                                        <div class="col-12">
+                                            <details>
+                                                <summary class="small fw-semibold text-muted" style="cursor:pointer">
+                                                    <i class="bx bx-list-ul me-1"></i>View Activities
+                                                </summary>
+                                                <pre class="small text-muted mt-1 mb-0" style="white-space:pre-wrap;font-family:inherit">@item.Activities</pre>
+                                            </details>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}

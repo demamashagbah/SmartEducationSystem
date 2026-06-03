@@ -1,0 +1,159 @@
+@model SmartEducation.Application.DTOs.ExamDto
+@{
+    ViewData["Title"] = "AI Exam Generator";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+    var topicsList = ViewBag.TopicsList as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bx bx-brain me-2" style="color:#696cff"></i>AI Exam Generator</h4>
+            <p class="text-muted mb-0">Select topics and AI will generate exam questions automatically.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<form asp-action="GenerateAI" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Exam Details -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-info-circle me-2 text-primary"></i>Exam Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Exam Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="e.g., Chapter 3 Assessment" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select" required>
+                                <option value="">— Select Subject —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ClassRoomId" class="form-label fw-semibold">Class</label>
+                            <select asp-for="ClassRoomId" asp-items="ViewBag.ClassRooms" class="form-select">
+                                <option value="">— Optional —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-3">
+                            <label asp-for="ExamType" class="form-label fw-semibold">Type</label>
+                            <select asp-for="ExamType" asp-items="ViewBag.ExamTypes" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="ExamDate" class="form-label fw-semibold">Exam Date</label>
+                            <input asp-for="ExamDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="TotalMarks" class="form-label fw-semibold">Total Marks</label>
+                            <input asp-for="TotalMarks" type="number" class="form-control" value="100" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="DurationMinutes" class="form-label fw-semibold">Duration (min)</label>
+                            <input asp-for="DurationMinutes" type="number" class="form-control" value="60" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Configuration -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-brain me-2" style="color:#696cff"></i>AI Generation Settings</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Number of Questions <span class="text-danger">*</span></label>
+                            <select name="questionCount" class="form-select" required>
+                                <option value="5">5 questions</option>
+                                <option value="10" selected>10 questions</option>
+                                <option value="15">15 questions</option>
+                                <option value="20">20 questions</option>
+                                <option value="25">25 questions</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Difficulty Level</label>
+                            <select name="difficulty" asp-items="ViewBag.Difficulties" class="form-select"></select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold">Select Topics <span class="text-danger">*</span></label>
+                        <div class="form-text mb-2">Select one or more topics — AI will generate questions covering these topics.</div>
+                        @if (!topicsList.Any())
+                        {
+                            <div class="alert alert-warning small">
+                                <i class="bx bx-info-circle me-1"></i>
+                                No topics found for your subjects. Ask your administrator to add Topics and Learning Outcomes to the curriculum.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="border rounded-3 p-3" style="max-height:250px;overflow-y:auto">
+                                @foreach (var topic in topicsList)
+                                {
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="topicIds" value="@topic.Value"
+                                               id="topic_@topic.Value" />
+                                        <label class="form-check-label small" for="topic_@topic.Value">
+                                            @topic.Text
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                            <div class="mt-2 d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllTopics(true)">Select All</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllTopics(false)">Clear All</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4" style="background:linear-gradient(135deg,#696cff22,#71dd3722)">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3"><i class="bx bx-bulb me-2 text-warning"></i>Question Types Generated</h6>
+                    <ul class="list-unstyled small text-muted mb-0">
+                        <li class="mb-2"><i class="bx bx-check-circle text-success me-1"></i><strong>MCQ</strong> — Multiple choice with 4 options</li>
+                        <li class="mb-2"><i class="bx bx-check-circle text-success me-1"></i><strong>True/False</strong> — Based on learning outcomes</li>
+                        <li class="mb-2"><i class="bx bx-check-circle text-success me-1"></i><strong>Essay</strong> — Open-ended explanation questions</li>
+                        <li><i class="bx bx-check-circle text-success me-1"></i><strong>Fill in Blank</strong> — Recall-based questions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bx bx-brain me-2"></i>Generate Exam
+                        </button>
+                        <a asp-action="Create" class="btn btn-outline-secondary">Manual Exam</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+function selectAllTopics(select) {
+    document.querySelectorAll('input[name="topicIds"]').forEach(function(cb) { cb.checked = select; });
+}
+</script>
+}

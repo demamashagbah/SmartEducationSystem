@@ -21,12 +21,8 @@ namespace SmartEducation.Persistence.Repositories
         public async Task<T?> GetByIdAsync(Guid id)
         {
             var entity = await _context.Set<T>().FindAsync(id);
-
-            // Using dynamic reflection to check your BaseEntity property 'IsDeleted' safely
-            if (entity != null && EF.Property<bool>(entity, "IsDeleted") == true)
-            {
+            if (entity is SmartEducation.Domain.Common.BaseEntity baseEntity && baseEntity.IsDeleted)
                 return null;
-            }
             return entity;
         }
 

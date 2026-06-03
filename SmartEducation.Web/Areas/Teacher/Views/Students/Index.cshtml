@@ -1,0 +1,176 @@
+@model IEnumerable<SmartEducation.Application.DTOs.StudentSummaryDto>
+@{
+    ViewData["Title"] = "My Students";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<style>
+    .risk-high { background:#fde8e8; color:#c0392b; border-radius:50px; padding:.3rem .8rem; font-size:.78rem; font-weight:600; }
+    .risk-medium { background:#fef3cd; color:#856404; border-radius:50px; padding:.3rem .8rem; font-size:.78rem; font-weight:600; }
+    .risk-low { background:#d4edda; color:#155724; border-radius:50px; padding:.3rem .8rem; font-size:.78rem; font-weight:600; }
+    .student-avatar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.9rem; }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">My Students</h4>
+            <p class="text-muted mb-0">Performance analytics for all students in your classes.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search student..." style="min-width:200px" oninput="filterStudents()">
+        </div>
+    </div>
+</div>
+
+@{
+    var total = Model.Count();
+    var highRisk = Model.Count(s => s.RiskLevel == "High");
+    var mediumRisk = Model.Count(s => s.RiskLevel == "Medium");
+    var lowRisk = Model.Count(s => s.RiskLevel == "Low");
+    var avgScore = total > 0 ? Model.Average(s => s.AverageScore) : 0;
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body py-3">
+                <h3 class="fw-bold text-primary mb-0">@total</h3>
+                <small class="text-muted">Total Students</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body py-3">
+                <h3 class="fw-bold text-success mb-0">@avgScore.ToString("F1")%</h3>
+                <small class="text-muted">Average Score</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body py-3">
+                <h3 class="fw-bold text-danger mb-0">@highRisk</h3>
+                <small class="text-muted">At-Risk Students</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body py-3">
+                <h3 class="fw-bold text-success mb-0">@lowRisk</h3>
+                <small class="text-muted">Performing Well</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-group fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No students assigned yet</h5>
+            <p class="text-muted">Students will appear here once they are assigned to your classes.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="studentsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Class</th>
+                            <th>Avg Score</th>
+                            <th>Attendance</th>
+                            <th>Strong Areas</th>
+                            <th>Weak Areas</th>
+                            <th>Risk Level</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            var avatarColors = new[] { "#696cff", "#71dd37", "#fd7e14", "#e74c3c", "#20c997", "#9b59b6" };
+                            var color = avatarColors[Math.Abs(s.StudentName.GetHashCode()) % avatarColors.Length];
+                            <tr class="student-row">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="student-avatar text-white" style="background:@color">
+                                            @s.StudentName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <span class="fw-semibold student-name">@s.StudentName</span>
+                                    </div>
+                                </td>
+                                <td>@s.ClassName</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height:6px;min-width:50px">
+                                            <div class="progress-bar @(s.AverageScore >= 80 ? "bg-success" : s.AverageScore >= 60 ? "bg-warning" : s.AverageScore > 0 ? "bg-danger" : "bg-secondary")"
+                                                 style="width:@Math.Min(100, s.AverageScore)%"></div>
+                                        </div>
+                                        <span class="fw-bold @(s.AverageScore >= 80 ? "text-success" : s.AverageScore >= 60 ? "text-warning" : s.AverageScore > 0 ? "text-danger" : "text-muted")">
+                                            @(s.AverageScore > 0 ? s.AverageScore.ToString("F1") + "%" : "N/A")
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="@(s.AttendanceRate >= 90 ? "text-success" : s.AttendanceRate >= 75 ? "text-warning" : "text-danger") fw-semibold">
+                                        @s.AttendanceRate.ToString("F0")%
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (s.StrongAreas.Any())
+                                    {
+                                        @foreach (var area in s.StrongAreas.Take(2))
+                                        {
+                                            <span class="badge bg-label-success me-1">@area</span>
+                                        }
+                                    }
+                                    else { <span class="text-muted small">—</span> }
+                                </td>
+                                <td>
+                                    @if (s.WeakAreas.Any())
+                                    {
+                                        @foreach (var area in s.WeakAreas.Take(2))
+                                        {
+                                            <span class="badge bg-label-danger me-1">@area</span>
+                                        }
+                                    }
+                                    else { <span class="text-muted small">—</span> }
+                                </td>
+                                <td>
+                                    <span class="risk-@s.RiskLevel.ToLower()">@s.RiskLevel Risk</span>
+                                </td>
+                                <td>
+                                    <a asp-area="Teacher" asp-controller="Message" asp-action="Compose"
+                                       class="btn btn-sm btn-outline-primary" title="Message Student">
+                                        <i class="bx bx-envelope"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+function filterStudents() {
+    var q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('#studentsTable .student-row').forEach(function(row) {
+        var name = row.querySelector('.student-name').textContent.toLowerCase();
+        row.style.display = name.includes(q) ? '' : 'none';
+    });
+}
+</script>
+}
