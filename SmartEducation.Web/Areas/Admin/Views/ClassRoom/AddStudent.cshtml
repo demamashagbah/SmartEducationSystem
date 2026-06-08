@@ -1,0 +1,189 @@
+@model SmartEducation.Web.Areas.Admin.Models.StudentViewModel
+@{
+    ViewData["Title"] = "Add Student";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="text-muted text-decoration-none">Classes</a>
+            <span class="text-muted">/</span>
+            <a asp-action="Manage" asp-route-id="@Model.ClassRoomId" class="text-muted text-decoration-none">@Model.ClassRoomName</a>
+            <span class="text-muted">/</span>
+            <span>Add Student</span>
+        </div>
+        <h4 class="fw-bold">Add Student to @Model.ClassRoomName</h4>
+    </div>
+</div>
+
+<form asp-action="AddStudent" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ClassRoomId" />
+
+    <div class="row g-4">
+        <!-- Personal Information -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bx bx-user me-2"></i>Personal Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-semibold">First Name *</label>
+                            <input asp-for="FirstName" class="form-control" placeholder="Ahmad" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-semibold">Last Name *</label>
+                            <input asp-for="LastName" class="form-control" placeholder="Al-Hassan" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="StudentNumber" class="form-label fw-semibold">Student Number *</label>
+                            <input asp-for="StudentNumber" class="form-control" placeholder="STU-2024-001" />
+                            <span asp-validation-for="StudentNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NationalNumber" class="form-label fw-semibold">National Number *</label>
+                            <input asp-for="NationalNumber" class="form-control" placeholder="1234567890" />
+                            <span asp-validation-for="NationalNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label fw-semibold">Gender *</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label fw-semibold">Date of Birth *</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Credentials -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-success mb-0"><i class="bx bx-lock me-2"></i>Account Credentials</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="Username" class="form-label fw-semibold">Username *</label>
+                            <input asp-for="Username" class="form-control" placeholder="ahmad.hassan" />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Email" class="form-label fw-semibold">Email *</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="student@school.edu" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Password" class="form-label fw-semibold">Password *</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Min 6 characters" required />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Information -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-warning mb-0"><i class="bx bx-graduation me-2"></i>Academic Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Assigned Class</label>
+                            <input type="text" class="form-control" value="@Model.ClassRoomName" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="AcademicYearId" class="form-label fw-semibold">Academic Year</label>
+                            <select asp-for="AcademicYearId" asp-items="Model.AcademicYearOptions" class="form-select">
+                                <option value="">Select Academic Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EnrollmentDate" class="form-label fw-semibold">Enrollment Date *</label>
+                            <input asp-for="EnrollmentDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parent Information -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-info mb-0"><i class="bx bx-user-check me-2"></i>Parent / Guardian Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="ParentName" class="form-label fw-semibold">Parent Name *</label>
+                            <input asp-for="ParentName" class="form-control" placeholder="Mohammed Al-Hassan" />
+                            <span asp-validation-for="ParentName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ParentPhone" class="form-label fw-semibold">Parent Phone *</label>
+                            <input asp-for="ParentPhone" class="form-control" placeholder="+962 79 123 4567" />
+                            <span asp-validation-for="ParentPhone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ParentEmail" class="form-label fw-semibold">Parent Email *</label>
+                            <input asp-for="ParentEmail" type="email" class="form-control" placeholder="parent@email.com" />
+                            <span asp-validation-for="ParentEmail" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optional Information -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-secondary mb-0"><i class="bx bx-info-circle me-2"></i>Optional Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Address" class="form-label fw-semibold">Address</label>
+                            <input asp-for="Address" class="form-control" placeholder="123 Main St, City" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EmergencyContact" class="form-label fw-semibold">Emergency Contact</label>
+                            <input asp-for="EmergencyContact" class="form-control" placeholder="Name: +962 79 XXX XXXX" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 d-flex gap-2 justify-content-end">
+            <a asp-action="Manage" asp-route-id="@Model.ClassRoomId" class="btn btn-outline-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bx bx-user-plus me-1"></i> Add Student
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

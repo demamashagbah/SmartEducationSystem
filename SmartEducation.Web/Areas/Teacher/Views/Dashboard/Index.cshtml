@@ -36,59 +36,77 @@
 
 <!-- KPI Row -->
 <div class="row g-3 mb-4">
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="kpi-icon" style="background:#696cff22"><i class="bx bx-buildings" style="color:#696cff;font-size:1.3rem"></i></div>
-                <small class="text-muted fw-semibold">My Classes</small>
+    <div class="col-xl col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="kpi-icon" style="background:#696cff22"><i class="bx bx-buildings" style="color:#696cff;font-size:1.3rem"></i></div>
+                    <small class="text-muted fw-semibold">Classes</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#696cff">@Model.AssignedClasses</h3>
+                <small class="text-muted">Assigned</small>
             </div>
-            <h3 class="fw-bold mb-0" style="color:#696cff">@Model.AssignedClasses</h3>
-        </div></div>
+        </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="kpi-icon" style="background:#71dd3722"><i class="bx bx-book-open" style="color:#71dd37;font-size:1.3rem"></i></div>
-                <small class="text-muted fw-semibold">Subjects</small>
+    <div class="col-xl col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="kpi-icon" style="background:#71dd3722"><i class="bx bx-book-open" style="color:#71dd37;font-size:1.3rem"></i></div>
+                    <small class="text-muted fw-semibold">Subjects</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#71dd37">@Model.AssignedSubjects</h3>
+                <small class="text-muted">Teaching</small>
             </div>
-            <h3 class="fw-bold mb-0" style="color:#71dd37">@Model.AssignedSubjects</h3>
-        </div></div>
+        </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="kpi-icon" style="background:#fd7e1422"><i class="bx bx-group" style="color:#fd7e14;font-size:1.3rem"></i></div>
-                <small class="text-muted fw-semibold">Students</small>
+    <div class="col-xl col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="kpi-icon" style="background:#fd7e1422"><i class="bx bx-group" style="color:#fd7e14;font-size:1.3rem"></i></div>
+                    <small class="text-muted fw-semibold">Students</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#fd7e14">@Model.TotalStudents</h3>
+                <small class="text-muted">Total enrolled</small>
             </div>
-            <h3 class="fw-bold mb-0" style="color:#fd7e14">@Model.TotalStudents</h3>
-        </div></div>
+        </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="kpi-icon" style="background:#9b59b622"><i class="bx bx-notepad" style="color:#9b59b6;font-size:1.3rem"></i></div>
-                <small class="text-muted fw-semibold">Lesson Plans</small>
+    <div class="col-xl col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="kpi-icon" style="background:#e74c3c22"><i class="bx bx-file" style="color:#e74c3c;font-size:1.3rem"></i></div>
+                    <small class="text-muted fw-semibold">Upcoming Exams</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#e74c3c">@Model.UpcomingExams</h3>
+                <small class="text-muted">Scheduled</small>
             </div>
-            <h3 class="fw-bold mb-0" style="color:#9b59b6">@Model.LessonPlansCount</h3>
-        </div></div>
+        </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="kpi-icon" style="background:#e74c3c22"><i class="bx bx-file" style="color:#e74c3c;font-size:1.3rem"></i></div>
-                <small class="text-muted fw-semibold">Upcoming Exams</small>
+    <div class="col-xl col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="kpi-icon" style="background:#20c99722"><i class="bx bx-task" style="color:#20c997;font-size:1.3rem"></i></div>
+                    <small class="text-muted fw-semibold">Assignments</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#20c997">@Model.PendingAssignments</h3>
+                <small class="text-muted">Active</small>
             </div>
-            <h3 class="fw-bold mb-0" style="color:#e74c3c">@Model.UpcomingExams</h3>
-        </div></div>
+        </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card kpi-card shadow-sm h-100"><div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="kpi-icon" style="background:#20c99722"><i class="bx bx-task" style="color:#20c997;font-size:1.3rem"></i></div>
-                <small class="text-muted fw-semibold">Assignments</small>
+    <div class="col-xl col-md-4 col-6">
+        <div class="card kpi-card shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="kpi-icon" style="background:#9b59b622"><i class="bx bx-trophy" style="color:#9b59b6;font-size:1.3rem"></i></div>
+                    <small class="text-muted fw-semibold">Success Rate</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#9b59b6">@Model.LearningOutcomeMastery.ToString("F0")%</h3>
+                <small class="text-muted">Outcome mastery</small>
             </div>
-            <h3 class="fw-bold mb-0" style="color:#20c997">@Model.PendingAssignments</h3>
-        </div></div>
+        </div>
     </div>
 </div>
 
@@ -231,11 +249,27 @@
     <div class="card-header bg-transparent border-0"><h6 class="fw-bold mb-0"><i class="bx bx-zap me-2"></i>Quick Actions</h6></div>
     <div class="card-body">
         <div class="d-flex flex-wrap gap-2">
-            <a asp-area="Teacher" asp-controller="LessonPlan" asp-action="Create" class="btn btn-primary"><i class="bx bx-notepad me-1"></i>Create Lesson Plan</a>
-            <a asp-area="Teacher" asp-controller="Attendance" asp-action="Create" class="btn btn-success"><i class="bx bx-user-check me-1"></i>Take Attendance</a>
-            <a asp-area="Teacher" asp-controller="Assignment" asp-action="Create" class="btn btn-warning"><i class="bx bx-task me-1"></i>Create Assignment</a>
-            <a asp-area="Teacher" asp-controller="Students" asp-action="Index" class="btn btn-info text-white"><i class="bx bx-group me-1"></i>View Students</a>
-            <a asp-area="Teacher" asp-controller="Message" asp-action="Compose" class="btn btn-outline-secondary"><i class="bx bx-send me-1"></i>Send Message</a>
+            <a asp-area="Teacher" asp-controller="CurriculumPlan" asp-action="Generate" class="btn btn-primary">
+                <i class="bx bx-brain me-1"></i>Generate Curriculum Plan
+            </a>
+            <a asp-area="Teacher" asp-controller="Attendance" asp-action="Create" class="btn btn-success">
+                <i class="bx bx-user-check me-1"></i>Take Attendance
+            </a>
+            <a asp-area="Teacher" asp-controller="Assignment" asp-action="Create" class="btn btn-warning">
+                <i class="bx bx-task me-1"></i>Create Assignment
+            </a>
+            <a asp-area="Teacher" asp-controller="Exam" asp-action="Create" class="btn btn-danger text-white">
+                <i class="bx bx-file-blank me-1"></i>Create Exam
+            </a>
+            <a asp-area="Teacher" asp-controller="StudentAnalytics" asp-action="Index" class="btn btn-info text-white">
+                <i class="bx bx-bar-chart-alt-2 me-1"></i>Student Analytics
+            </a>
+            <a asp-area="Teacher" asp-controller="CurriculumProgress" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bx bx-trending-up me-1"></i>Curriculum Progress
+            </a>
+            <a asp-area="Teacher" asp-controller="Message" asp-action="Compose" class="btn btn-outline-secondary">
+                <i class="bx bx-send me-1"></i>Send Message
+            </a>
         </div>
     </div>
 </div>

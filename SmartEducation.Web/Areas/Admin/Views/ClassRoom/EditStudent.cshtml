@@ -1,0 +1,183 @@
+@model SmartEducation.Web.Areas.Admin.Models.StudentViewModel
+@{
+    ViewData["Title"] = "Edit Student";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="text-muted text-decoration-none">Classes</a>
+            <span class="text-muted">/</span>
+            <a asp-action="Manage" asp-route-id="@Model.ClassRoomId" class="text-muted text-decoration-none">@Model.ClassRoomName</a>
+            <span class="text-muted">/</span>
+            <span>Edit Student</span>
+        </div>
+        <h4 class="fw-bold">Edit Student: @Model.FirstName @Model.LastName</h4>
+    </div>
+</div>
+
+<form asp-action="EditStudent" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ProfileId" />
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="ClassRoomId" />
+
+    <div class="row g-4">
+        <!-- Personal -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bx bx-user me-2"></i>Personal Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-semibold">First Name *</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-semibold">Last Name *</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="StudentNumber" class="form-label fw-semibold">Student Number *</label>
+                            <input asp-for="StudentNumber" class="form-control" />
+                            <span asp-validation-for="StudentNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NationalNumber" class="form-label fw-semibold">National Number *</label>
+                            <input asp-for="NationalNumber" class="form-control" />
+                            <span asp-validation-for="NationalNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label fw-semibold">Gender *</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label fw-semibold">Date of Birth *</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-success mb-0"><i class="bx bx-lock me-2"></i>Account</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Username" class="form-label fw-semibold">Username *</label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold">Email *</label>
+                            <input asp-for="Email" type="email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-warning mb-0"><i class="bx bx-graduation me-2"></i>Academic Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ClassRoomId" class="form-label fw-semibold">Class</label>
+                            <select asp-for="ClassRoomId" asp-items="Model.ClassRoomOptions" class="form-select">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="AcademicYearId" class="form-label fw-semibold">Academic Year</label>
+                            <select asp-for="AcademicYearId" asp-items="Model.AcademicYearOptions" class="form-select">
+                                <option value="">Select Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EnrollmentDate" class="form-label fw-semibold">Enrollment Date</label>
+                            <input asp-for="EnrollmentDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parent -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-info mb-0"><i class="bx bx-user-check me-2"></i>Parent / Guardian</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="ParentName" class="form-label fw-semibold">Parent Name *</label>
+                            <input asp-for="ParentName" class="form-control" />
+                            <span asp-validation-for="ParentName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ParentPhone" class="form-label fw-semibold">Parent Phone *</label>
+                            <input asp-for="ParentPhone" class="form-control" />
+                            <span asp-validation-for="ParentPhone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ParentEmail" class="form-label fw-semibold">Parent Email *</label>
+                            <input asp-for="ParentEmail" type="email" class="form-control" />
+                            <span asp-validation-for="ParentEmail" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optional -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h6 class="fw-bold text-secondary mb-0">Optional</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Address" class="form-label fw-semibold">Address</label>
+                            <input asp-for="Address" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EmergencyContact" class="form-label fw-semibold">Emergency Contact</label>
+                            <input asp-for="EmergencyContact" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 d-flex gap-2 justify-content-end">
+            <a asp-action="Manage" asp-route-id="@Model.ClassRoomId" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bx bx-save me-1"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

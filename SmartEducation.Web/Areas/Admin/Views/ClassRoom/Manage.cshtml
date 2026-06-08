@@ -1,0 +1,263 @@
+@using SmartEducation.Application.DTOs
+@{
+    var classRoom = ViewBag.ClassRoom as ClassRoomDto;
+    var students = ViewBag.Students as List<StudentDetailDto>;
+    var subjects = ViewBag.Subjects as List<SubjectDto>;
+    var assignments = ViewBag.Assignments as List<TeacherAssignmentDetailDto>;
+    ViewData["Title"] = $"Manage {classRoom?.Name}";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="text-muted text-decoration-none small"><i class="bx bx-arrow-back me-1"></i>Classes</a>
+            <span class="text-muted">/</span>
+            <span class="fw-semibold">@classRoom?.Name</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <h4 class="fw-bold mb-0">@classRoom?.Name</h4>
+            <span class="badge bg-label-primary fs-6">@classRoom?.GradeName</span>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="bx bx-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="bx bx-error-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-15 rounded-3 p-3"><i class="bx bx-user-circle text-primary fs-4"></i></div>
+                <div><small class="text-muted d-block">Students</small><h4 class="mb-0 fw-bold">@(students?.Count ?? 0)</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="bg-success bg-opacity-15 rounded-3 p-3"><i class="bx bx-book-open text-success fs-4"></i></div>
+                <div><small class="text-muted d-block">Subjects</small><h4 class="mb-0 fw-bold">@(subjects?.Count ?? 0)</h4></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="bg-warning bg-opacity-15 rounded-3 p-3"><i class="bx bx-chalkboard text-warning fs-4"></i></div>
+                <div><small class="text-muted d-block">Teacher Assignments</small><h4 class="mb-0 fw-bold">@(assignments?.Count(a => a.IsActive) ?? 0)</h4></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Students Section -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 fw-bold"><i class="bx bx-group me-2 text-primary"></i>Students</h5>
+        <a asp-action="AssignStudents" asp-route-id="@classRoom?.Id" class="btn btn-primary">
+            <i class="bx bx-user-plus me-1"></i> Assign Students
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Student No.</th>
+                    <th>Parent Contact</th>
+                    <th>Status</th>
+                    <th class="text-end pe-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (students == null || !students.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bx bx-user-x fs-2 d-block mb-2"></i>
+                            No students in this class.
+                            <a asp-action="AssignStudents" asp-route-id="@classRoom?.Id">Assign students from the school roster.</a>
+                        </td>
+                    </tr>
+                }
+                @{ int si = 1; }
+                @foreach (var s in students ?? new List<StudentDetailDto>())
+                {
+                    <tr>
+                        <td class="text-muted small">@si++</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center fw-bold text-primary"
+                                     style="width:32px;height:32px;font-size:.8rem;flex-shrink:0">
+                                    @(s.FirstName.Length > 0 ? s.FirstName[0].ToString() : "?")@(s.LastName.Length > 0 ? s.LastName[0].ToString() : "")
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">@s.FullName</div>
+                                    <small class="text-muted">@s.Email</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><code>@(string.IsNullOrEmpty(s.StudentNumber) ? "—" : s.StudentNumber)</code></td>
+                        <td>
+                            <div class="fw-semibold">@(string.IsNullOrEmpty(s.ParentName) ? "—" : s.ParentName)</div>
+                            <small class="text-muted">@s.ParentPhone</small>
+                        </td>
+                        <td>
+                            @if (s.IsActive) { <span class="badge bg-label-success">Active</span> }
+                            else { <span class="badge bg-label-danger">Inactive</span> }
+                        </td>
+                        <td class="text-end pe-3">
+                            <a asp-controller="Student" asp-action="Details" asp-route-id="@s.ProfileId"
+                               class="btn btn-sm btn-outline-info me-1">
+                                <i class="bx bx-show me-1"></i>View Details
+                            </a>
+                            <a asp-action="TransferStudent" asp-route-profileId="@s.ProfileId"
+                               class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bx bx-transfer me-1"></i>Transfer
+                            </a>
+                            <form asp-action="RemoveStudent" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove @s.FullName from this class?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="profileId" value="@s.ProfileId" />
+                                <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bx bx-user-minus me-1"></i>Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Subjects Section -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 fw-bold"><i class="bx bx-book-open me-2 text-success"></i>Subjects</h5>
+        <a asp-action="AssignSubject" asp-route-classRoomId="@classRoom?.Id" class="btn btn-success">
+            <i class="bx bx-plus me-1"></i> Add Subject
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>#</th><th>Subject Name</th><th>Description</th><th class="text-end pe-3">Actions</th></tr>
+            </thead>
+            <tbody>
+                @if (subjects == null || !subjects.Any())
+                {
+                    <tr><td colspan="4" class="text-center py-4 text-muted">
+                        <i class="bx bx-book-x fs-2 d-block mb-2"></i>
+                        No subjects assigned. <a asp-action="AssignSubject" asp-route-classRoomId="@classRoom?.Id">Add subjects.</a>
+                    </td></tr>
+                }
+                @{ int subj = 1; }
+                @foreach (var s in subjects ?? new List<SubjectDto>())
+                {
+                    <tr>
+                        <td class="text-muted small">@subj++</td>
+                        <td><span class="fw-semibold">@s.Name</span></td>
+                        <td><small class="text-muted">@(s.Description ?? "—")</small></td>
+                        <td class="text-end pe-3">
+                            <a asp-controller="Subject" asp-action="Details" asp-route-id="@s.Id"
+                               class="btn btn-sm btn-outline-info me-1">
+                                <i class="bx bx-book-content me-1"></i>Curriculum
+                            </a>
+                            <a asp-controller="Subject" asp-action="UploadGuide" asp-route-id="@s.Id"
+                               class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bx bx-upload me-1"></i>Teacher Guide
+                            </a>
+                            <a asp-controller="Subject" asp-action="Edit" asp-route-id="@s.Id"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bx bx-edit me-1"></i>Edit
+                            </a>
+                            <form asp-action="RemoveSubject" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove subject @s.Name?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="subjectId" value="@s.Id" />
+                                <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bx bx-trash me-1"></i>Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Teacher Assignments Section -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 fw-bold"><i class="bx bx-chalkboard me-2 text-warning"></i>Teacher Assignments</h5>
+        <a asp-controller="TeacherAssignment" asp-action="Assign" asp-route-classRoomId="@classRoom?.Id"
+           class="btn btn-warning">
+            <i class="bx bx-plus me-1"></i> Assign Teacher
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Teacher</th><th>Subject</th><th>Academic Year</th><th>Status</th><th class="text-end pe-3">Actions</th></tr>
+            </thead>
+            <tbody>
+                @if (assignments == null || !assignments.Any())
+                {
+                    <tr><td colspan="5" class="text-center py-4 text-muted">
+                        <i class="bx bx-user-voice fs-2 d-block mb-2"></i>No teacher assignments yet.
+                    </td></tr>
+                }
+                @foreach (var a in assignments ?? new List<TeacherAssignmentDetailDto>())
+                {
+                    <tr class="@(a.IsActive ? "" : "opacity-75")">
+                        <td>
+                            <div class="fw-semibold">@a.TeacherName</div>
+                            <small class="text-muted">@a.TeacherEmail</small>
+                        </td>
+                        <td><span class="badge bg-label-success">@a.SubjectName</span></td>
+                        <td>@(string.IsNullOrEmpty(a.AcademicYearName) ? "—" : a.AcademicYearName)</td>
+                        <td>@if (a.IsActive) { <span class="badge bg-label-success">Active</span> } else { <span class="badge bg-label-secondary">Inactive</span> }</td>
+                        <td class="text-end pe-3">
+                            <form asp-controller="TeacherAssignment" asp-action="ToggleActive" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@a.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1">
+                                    <i class="bx @(a.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
+                                    @(a.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            </form>
+                            <form asp-controller="TeacherAssignment" asp-action="Remove" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove this assignment?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@a.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bx bx-trash me-1"></i>Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartEducation.Application.Constants;
+using SmartEducation.Application.DTOs;
 using SmartEducation.Application.Interfaces.Services;
-using SmartEducation.Domain.Entities;
 using SmartEducation.Web.Areas.Admin.Models;
 
 namespace SmartEducation.Web.Areas.Admin.Contollers
@@ -13,92 +13,135 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
     public class UserManagementController : Controller
     {
         private readonly IUserService _userService;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAcademicYearService _academicYearService;
 
-        public UserManagementController(IUserService userService, UserManager<ApplicationUser> userManager)
+        public UserManagementController(IUserService userService, IAcademicYearService academicYearService)
         {
             _userService = userService;
-            _userManager = userManager;
+            _academicYearService = academicYearService;
         }
 
-        public async Task<IActionResult> Index(string? role)
+        public async Task<IActionResult> Index(string? role, string? search)
         {
             var users = string.IsNullOrEmpty(role)
                 ? await _userService.GetAllAsync()
                 : await _userService.GetByRoleAsync(role);
 
-            var viewModels = users.Select(u => new UserViewModel
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                Id = u.Id,
-                FullName = u.FullName,
-                Email = u.Email,
-                PhoneNumber = u.PhoneNumber,
-                IsActive = u.IsActive,
-                Role = u.Role,
-                CreatedAt = u.CreatedAt
-            });
+                var q = search.ToLower();
+                users = users.Where(u =>
+                    u.FullName.ToLower().Contains(q) ||
+                    u.Email.ToLower().Contains(q) ||
+                    (u.PhoneNumber ?? "").Contains(q));
+            }
 
             ViewBag.CurrentRole = role;
-            return View(viewModels);
+            ViewBag.Search = search ?? "";
+            return View(users.ToList());
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new CreateUserViewModel());
+            var model = new CreateUserFullViewModel
+            {
+                AcademicYearOptions = await GetAcademicYearOptions()
+            };
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateUserViewModel model)
+        public async Task<IActionResult> Create(CreateUserFullViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
-
-            var (success, errors) = await _userService.CreateUserAsync(
-                model.FirstName, model.LastName, model.Email, model.Password, model.Role);
-
-            if (!success)
             {
-                foreach (var error in errors)
-                    ModelState.AddModelError("", error);
+                model.AcademicYearOptions = await GetAcademicYearOptions();
                 return View(model);
             }
 
-            TempData["Success"] = "User created successfully.";
-            return RedirectToAction(nameof(Index));
+            var (success, errors) = await _userService.CreateFullUserAsync(new CreateUserFullDto
+            {
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Username = model.Username,
+                Email = model.Email,
+                PhoneNumber = model.PhoneNumber,
+                Gender = model.Gender,
+                DateOfBirth = model.DateOfBirth,
+                Role = model.Role,
+                Password = model.Password,
+                StudentNumber = model.StudentNumber,
+                NationalNumber = model.NationalNumber,
+                AcademicYearId = model.AcademicYearId,
+                EnrollmentDate = model.EnrollmentDate,
+                ParentName = model.ParentName,
+                ParentPhone = model.ParentPhone,
+                ParentEmail = model.ParentEmail,
+                Address = model.Address,
+                EmergencyContact = model.EmergencyContact,
+                Specialization = model.Specialization,
+                Qualification = model.Qualification,
+                YearsOfExperience = model.YearsOfExperience,
+                Occupation = model.Occupation,
+                Position = model.Position,
+                Department = model.Department
+            });
+
+            if (!success)
+            {
+                foreach (var e in errors) ModelState.AddModelError("", e);
+                model.AcademicYearOptions = await GetAcademicYearOptions();
+                return View(model);
+            }
+
+            TempData["Success"] = $"{model.Role} account created successfully.";
+
+            return model.Role switch
+            {
+                Roles.Student => RedirectToAction("Index", "Student"),
+                Roles.Teacher => RedirectToAction("Index", "Teacher"),
+                Roles.Parent => RedirectToAction("Index", "Parent"),
+                _ => RedirectToAction(nameof(Index))
+            };
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleActive(Guid id)
+        public async Task<IActionResult> ToggleActive(Guid id, string? returnRole)
         {
             await _userService.ToggleActiveAsync(id);
             TempData["Success"] = "User status updated.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { role = returnRole });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(Guid id)
         {
-            await _userService.DeleteAsync(id);
-            TempData["Success"] = "User deactivated successfully.";
-            return RedirectToAction(nameof(Index));
+            var user = await _userService.GetByIdAsync(id);
+            if (user == null) return NotFound();
+            ViewBag.UserId = id;
+            ViewBag.UserName = user.FullName;
+            ViewBag.UserRole = user.Role;
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(Guid id, string newPassword)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
-            if (user == null) return NotFound();
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
-            TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
+            var (success, errors) = await _userService.ResetPasswordAsync(id, newPassword);
+            TempData[success ? "Success" : "Error"] = success
                 ? "Password reset successfully."
-                : string.Join(", ", result.Errors.Select(e => e.Description));
+                : string.Join(", ", errors);
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<IEnumerable<SelectListItem>> GetAcademicYearOptions()
+        {
+            var years = await _academicYearService.GetAllAsync();
+            return years.Select(y => new SelectListItem(y.Name, y.Id.ToString()));
         }
     }
 }

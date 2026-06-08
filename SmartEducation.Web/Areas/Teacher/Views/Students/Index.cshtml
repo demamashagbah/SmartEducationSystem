@@ -149,10 +149,17 @@ else
                                     <span class="risk-@s.RiskLevel.ToLower()">@s.RiskLevel Risk</span>
                                 </td>
                                 <td>
-                                    <a asp-area="Teacher" asp-controller="Message" asp-action="Compose"
-                                       class="btn btn-sm btn-outline-primary" title="Message Student">
-                                        <i class="bx bx-envelope"></i>
-                                    </a>
+                                    <div class="d-flex gap-1">
+                                        <a asp-area="Teacher" asp-controller="StudentAnalytics" asp-action="Detail"
+                                           asp-route-id="@s.StudentProfileId"
+                                           class="btn btn-sm btn-outline-info" title="View Analytics">
+                                            <i class="bx bx-bar-chart-alt-2"></i>
+                                        </a>
+                                        <a asp-area="Teacher" asp-controller="Message" asp-action="Compose"
+                                           class="btn btn-sm btn-outline-primary" title="Send Message">
+                                            <i class="bx bx-envelope"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }

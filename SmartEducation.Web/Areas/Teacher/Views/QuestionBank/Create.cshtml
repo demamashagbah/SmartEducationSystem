@@ -1,0 +1,108 @@
+@using SmartEducation.Web.Areas.Teacher.Controllers
+@model QuestionBankFormViewModel
+@{
+    ViewData["Title"] = "Add Question";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bx bx-plus-circle text-primary me-2"></i>Add Question to Bank</h4>
+            <p class="text-muted mb-0">Create a reusable question for use in exams and assessments.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bx bx-info-circle me-2"></i>Question Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Question Text <span class="text-danger">*</span></label>
+                        <textarea asp-for="QuestionText" class="form-control" rows="3"
+                                  placeholder="Enter the full question text..." required></textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select" required>
+                                <option value="">— Select —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Question Type</label>
+                            <select asp-for="QuestionType" asp-items="ViewBag.QuestionTypes" class="form-select"
+                                    id="questionTypeSelect" onchange="updateForm()"></select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Difficulty</label>
+                            <select asp-for="DifficultyLevel" asp-items="ViewBag.Difficulties" class="form-select"></select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Marks</label>
+                            <input asp-for="Marks" type="number" class="form-control" min="1" max="100" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options / Answer section (shown based on type) -->
+            <div class="card border-0 shadow-sm mb-4" id="optionsCard">
+                <div class="card-header bg-success bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-success mb-0"><i class="bx bx-list-check me-2"></i>Options &amp; Answer</h6>
+                </div>
+                <div class="card-body">
+                    <div id="mcqOptions">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Option A</label>
+                                <input asp-for="OptionA" class="form-control" placeholder="Option A" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Option B</label>
+                                <input asp-for="OptionB" class="form-control" placeholder="Option B" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Option C</label>
+                                <input asp-for="OptionC" class="form-control" placeholder="Option C (optional)" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Option D</label>
+                                <input asp-for="OptionD" class="form-control" placeholder="Option D (optional)" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Correct Answer</label>
+                        <input asp-for="CorrectAnswer" class="form-control" placeholder='e.g., "A", "True", or the answer text' />
+                        <div class="form-text">For MCQ: A, B, C or D. For True/False: True or False. For others: the model answer.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bx bx-save me-1"></i>Save Question</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function updateForm() {
+    var type = document.getElementById('questionTypeSelect').value;
+    var mcqOpts = document.getElementById('mcqOptions');
+    mcqOpts.style.display = (type === 'MultipleChoice' || type === 'TrueFalse') ? '' : 'none';
+}
+updateForm();
+</script>
+}

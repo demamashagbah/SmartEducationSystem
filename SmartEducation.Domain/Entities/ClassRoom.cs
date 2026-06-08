@@ -1,7 +1,4 @@
-﻿using SmartEducation.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using SmartEducation.Domain.Common;
 
 namespace SmartEducation.Domain.Entities
 {
@@ -10,7 +7,8 @@ namespace SmartEducation.Domain.Entities
         public string Name { get; set; }
 
         public Guid GradeId { get; set; }
-
         public Grade Grade { get; set; }
+
+        public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
     }
 }

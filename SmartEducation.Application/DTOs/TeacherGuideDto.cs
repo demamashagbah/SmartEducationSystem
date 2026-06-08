@@ -18,6 +18,8 @@ namespace SmartEducation.Application.DTOs
         public Guid SubjectId { get; set; }
         public string SubjectName { get; set; } = default!;
         public string? Description { get; set; }
+        public Guid ClassRoomId { get; set; }
+        public string ClassRoomName { get; set; } = string.Empty;
         public List<UnitCurriculumDto> Units { get; set; } = new();
         public List<TeacherGuideDto> TeacherGuides { get; set; } = new();
         public int TotalUnits { get; set; }

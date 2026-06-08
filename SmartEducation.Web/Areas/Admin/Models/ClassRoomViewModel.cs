@@ -15,8 +15,9 @@ namespace SmartEducation.Web.Areas.Admin.Models
         public Guid GradeId { get; set; }
 
         public string? GradeName { get; set; }
-
         public int StudentCount { get; set; }
+        public int SubjectCount { get; set; }
+        public int TeacherAssignmentCount { get; set; }
 
         public IEnumerable<SelectListItem> GradeOptions { get; set; } = new List<SelectListItem>();
     }

@@ -1,0 +1,107 @@
+@using SmartEducation.Web.Areas.Teacher.Controllers
+@model List<TeacherSubjectViewModel>
+@{
+    ViewData["Title"] = "My Subjects";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold mb-1"><i class="bx bx-book-open text-primary me-2"></i>My Subjects</h4>
+        <p class="text-muted mb-0">All subjects you are assigned to teach, with their curriculum structure.</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-book-open fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No subjects assigned</h5>
+            <p class="text-muted">Contact your administrator to get subjects assigned to you.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var s in Model)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                                     style="width:48px;height:48px;background:#696cff22;flex-shrink:0">
+                                    <i class="bx bx-book-open text-primary fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">@s.SubjectName</h5>
+                                    @if (!string.IsNullOrEmpty(s.Description))
+                                    {
+                                        <small class="text-muted">@(s.Description.Length > 60 ? s.Description.Substring(0,60)+"…" : s.Description)</small>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Classes -->
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Assigned Classes</small>
+                            @if (s.AssignedClasses.Any())
+                            {
+                                @foreach (var cls in s.AssignedClasses)
+                                {
+                                    <span class="badge bg-label-primary me-1 mb-1">@cls</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Not assigned to any class</span>
+                            }
+                        </div>
+
+                        <!-- Curriculum Stats -->
+                        <div class="row g-2 text-center">
+                            <div class="col-3">
+                                <div class="p-2 rounded-3" style="background:#f0f0ff">
+                                    <div class="fw-bold text-primary">@s.UnitCount</div>
+                                    <small class="text-muted" style="font-size:.7rem">Units</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 rounded-3" style="background:#f0fff0">
+                                    <div class="fw-bold text-success">@s.LessonCount</div>
+                                    <small class="text-muted" style="font-size:.7rem">Lessons</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 rounded-3" style="background:#fff8f0">
+                                    <div class="fw-bold text-warning">@s.TopicCount</div>
+                                    <small class="text-muted" style="font-size:.7rem">Topics</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 rounded-3" style="background:#f0fff9">
+                                    <div class="fw-bold text-info">@s.OutcomeCount</div>
+                                    <small class="text-muted" style="font-size:.7rem">Outcomes</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                        <a asp-area="Teacher" asp-controller="CurriculumPlan" asp-action="Generate"
+                           class="btn btn-sm btn-primary flex-grow-1">
+                            <i class="bx bx-brain me-1"></i>Generate Plan
+                        </a>
+                        <a asp-area="Teacher" asp-controller="CurriculumProgress" asp-action="Index"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bx bx-trending-up"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

@@ -7,5 +7,7 @@ namespace SmartEducation.Application.DTOs
         public Guid GradeId { get; set; }
         public string GradeName { get; set; } = default!;
         public int StudentCount { get; set; }
+        public int SubjectCount { get; set; }
+        public int TeacherAssignmentCount { get; set; }
     }
 }

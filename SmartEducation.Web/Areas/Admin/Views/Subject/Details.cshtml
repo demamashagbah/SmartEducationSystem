@@ -16,7 +16,18 @@
 <div class="row mb-4">
     <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <h4 class="fw-bold mb-1"><i class="bx bx-book-reader text-info me-2"></i>@Model.SubjectName — Curriculum Explorer</h4>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a asp-controller="ClassRoom" asp-action="Index" class="text-muted text-decoration-none">Classes</a>
+                <span class="text-muted">/</span>
+                @if (Model.ClassRoomId != Guid.Empty)
+                {
+                    <a asp-controller="ClassRoom" asp-action="Manage" asp-route-id="@Model.ClassRoomId"
+                       class="text-muted text-decoration-none">@Model.ClassRoomName</a>
+                    <span class="text-muted">/</span>
+                }
+                <span>Curriculum</span>
+            </div>
+            <h4 class="fw-bold mb-1"><i class="bx bx-book-reader text-info me-2"></i>@Model.SubjectName — Curriculum</h4>
             @if (!string.IsNullOrEmpty(Model.Description))
             {
                 <p class="text-muted mb-0">@Model.Description</p>
@@ -85,10 +96,11 @@
                 <div class="card-body text-center py-5">
                     <i class="bx bx-book-open fs-1 text-muted d-block mb-3"></i>
                     <h5 class="text-muted">No curriculum structure yet</h5>
-                    <p class="text-muted">Create Units, Lessons, and Topics using the curriculum management tools.</p>
+                    <p class="text-muted">Upload the Teacher Guide PDF and use AI extraction to automatically populate the curriculum.</p>
                     <div class="d-flex gap-2 justify-content-center">
-                        <a asp-area="Admin" asp-controller="Unit" asp-action="Create" class="btn btn-primary btn-sm">Add Unit</a>
-                        <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-outline-primary btn-sm">Upload Guide</a>
+                        <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-warning text-dark">
+                            <i class="bx bx-upload me-1"></i>Upload Guide &amp; Extract with AI
+                        </a>
                     </div>
                 </div>
             </div>
@@ -187,10 +199,28 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                            <div class="card-footer bg-transparent border-0 d-flex gap-2 flex-wrap">
                                 <a href="@guide.FilePath" target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1">
                                     <i class="bx bx-show me-1"></i> View PDF
                                 </a>
+                                @if (!guide.IsAnalyzed)
+                                {
+                                    <form asp-action="ExtractCurriculum" method="post"
+                                          onsubmit="return confirm('Extract curriculum structure from this guide? This will create Units, Lessons, Topics and Learning Outcomes.')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="guideId" value="@guide.Id" />
+                                        <input type="hidden" name="subjectId" value="@Model.SubjectId" />
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark">
+                                            <i class="bx bx-brain me-1"></i>Extract with AI
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="btn btn-sm btn-success disabled">
+                                        <i class="bx bx-check me-1"></i>Extracted
+                                    </span>
+                                }
                                 <form asp-action="DeleteGuide" method="post"
                                       onsubmit="return confirm('Delete this guide?')">
                                     @Html.AntiForgeryToken()

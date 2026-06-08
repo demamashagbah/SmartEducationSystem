@@ -15,6 +15,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w =>
+        w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -63,6 +65,7 @@ using (var scope = app.Services.CreateScope())
     await AdminSeeder.SeedAsync(userManager);
 
     var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
     await DataSeeder.SeedAsync(dbContext);
     await ProfileSeeder.SeedMissingProfilesAsync(userManager, dbContext);
 }

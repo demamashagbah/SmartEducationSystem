@@ -1,122 +1,158 @@
-@model IEnumerable<SmartEducation.Web.Areas.Admin.Models.UserViewModel>
+@model IEnumerable<SmartEducation.Application.DTOs.UserDto>
 @{
-    ViewData["Title"] = "User Management";
+    ViewData["Title"] = "Users";
     Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
     string? currentRole = ViewBag.CurrentRole;
+    string search = ViewBag.Search ?? "";
 }
 
 <div class="row mb-4">
-    <div class="col-12 d-flex align-items-center justify-content-between">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div>
             <h4 class="fw-bold mb-1">User Management</h4>
-            <p class="text-muted mb-0">Manage all users across the system.</p>
+            <p class="text-muted mb-0">Create and manage all system users.</p>
         </div>
-        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create" class="btn btn-primary">
-            <i class="bx bx-user-plus me-1"></i> Add User
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bx bx-user-plus me-1"></i> Create New User
         </a>
-    </div>
-</div>
-
-<!-- Filter Tabs -->
-<div class="mb-3">
-    <div class="nav nav-pills gap-2">
-        <a class="nav-link @(currentRole == null ? "active" : "")"
-           asp-action="Index">All</a>
-        <a class="nav-link @(currentRole == "Admin" ? "active" : "")"
-           asp-action="Index" asp-route-role="Admin">Admins</a>
-        <a class="nav-link @(currentRole == "Teacher" ? "active" : "")"
-           asp-action="Index" asp-route-role="Teacher">Teachers</a>
-        <a class="nav-link @(currentRole == "Student" ? "active" : "")"
-           asp-action="Index" asp-route-role="Student">Students</a>
-        <a class="nav-link @(currentRole == "Parent" ? "active" : "")"
-           asp-action="Index" asp-route-role="Parent">Parents</a>
     </div>
 </div>
 
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show mb-3">
-        @TempData["Success"]
+        <i class="bx bx-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="bx bx-error-circle me-2"></i>@TempData["Error"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<div class="card shadow-sm border-0">
+<!-- Tabs + Search -->
+<div class="card border-0 shadow-sm mb-0">
+    <div class="card-header bg-transparent border-0 pt-3 pb-0">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <ul class="nav nav-tabs border-0 gap-1">
+                <li class="nav-item">
+                    <a class="nav-link @(currentRole == null ? "active" : "")" asp-action="Index">
+                        All Users
+                        <span class="badge bg-secondary ms-1">@Model.Count()</span>
+                    </a>
+                </li>
+                @foreach (var (role, icon, color) in new[] {
+                    ("Student", "bx-user-circle", "primary"),
+                    ("Teacher", "bx-chalkboard", "success"),
+                    ("Parent", "bx-user", "warning"),
+                    ("Admin", "bx-shield", "danger")
+                })
+                {
+                    var count = Model.Count(u => u.Role == role);
+                    <li class="nav-item">
+                        <a class="nav-link @(currentRole == role ? "active" : "")"
+                           asp-action="Index" asp-route-role="@role">
+                            <i class="bx @icon me-1"></i>@role@(role == "Admin" ? "s" : "s")
+                            <span class="badge bg-label-@color ms-1">@count</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+            <form method="get" class="d-flex gap-2" style="min-width:280px">
+                <input type="hidden" name="role" value="@currentRole" />
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent"><i class="bx bx-search text-muted"></i></span>
+                    <input type="text" name="search" value="@search" class="form-control border-start-0"
+                           placeholder="Search name, email..." />
+                    <button type="submit" class="btn btn-outline-secondary">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Name</th>
+                    <th style="width:40px">#</th>
+                    <th>Full Name</th>
                     <th>Email</th>
+                    <th>Phone</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th class="text-end">Actions</th>
+                    <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="bx bx-user fs-1 d-block mb-2"></i>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bx bx-user-x fs-1 d-block mb-2"></i>
                             No users found.
+                            <a asp-action="Create">Create the first user.</a>
                         </td>
                     </tr>
                 }
+                @{ int i = 1; }
                 @foreach (var user in Model)
                 {
-                    <tr>
+                    var (badgeClass, iconClass) = user.Role switch
+                    {
+                        "Student" => ("bg-label-primary", "bx-user-circle"),
+                        "Teacher" => ("bg-label-success", "bx-chalkboard"),
+                        "Parent" => ("bg-label-warning", "bx-user"),
+                        "Admin" => ("bg-label-danger", "bx-shield"),
+                        _ => ("bg-label-secondary", "bx-user")
+                    };
+                    <tr class="@(user.IsActive ? "" : "opacity-75")">
+                        <td class="text-muted small">@i++</td>
                         <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2 bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px">
-                                    <span class="text-primary fw-bold">@user.FullName.Substring(0, 1)</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar bg-@(user.Role == "Admin" ? "danger" : user.Role == "Teacher" ? "success" : user.Role == "Parent" ? "warning" : "primary") bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                     style="width:36px;height:36px;font-size:.85rem">
+                                    @(user.FirstName.Length > 0 ? user.FirstName[0].ToString().ToUpper() : "?")@(user.LastName.Length > 0 ? user.LastName[0].ToString().ToUpper() : "")
                                 </div>
-                                <span class="fw-semibold">@user.FullName</span>
+                                <div>
+                                    <div class="fw-semibold">@user.FullName</div>
+                                    <small class="text-muted">@user.Username</small>
+                                </div>
                             </div>
                         </td>
-                        <td>@user.Email</td>
+                        <td><small>@user.Email</small></td>
+                        <td><small class="text-muted">@(user.PhoneNumber ?? "—")</small></td>
                         <td>
-                            @{
-                                var badgeClass = user.Role switch
-                                {
-                                    "Admin" => "bg-label-danger",
-                                    "Teacher" => "bg-label-primary",
-                                    "Student" => "bg-label-success",
-                                    "Parent" => "bg-label-warning",
-                                    _ => "bg-label-secondary"
-                                };
-                            }
-                            <span class="badge @badgeClass">@user.Role</span>
+                            <span class="badge @badgeClass">
+                                <i class="bx @iconClass me-1"></i>@user.Role
+                            </span>
                         </td>
                         <td>
                             @if (user.IsActive)
                             {
-                                <span class="badge bg-label-success">Active</span>
+                                <span class="badge bg-label-success"><i class="bx bx-check me-1"></i>Active</span>
                             }
                             else
                             {
-                                <span class="badge bg-label-danger">Inactive</span>
+                                <span class="badge bg-label-danger"><i class="bx bx-x me-1"></i>Inactive</span>
                             }
                         </td>
-                        <td class="text-end">
-                            <form asp-action="ToggleActive" asp-route-id="@user.Id"
-                                  method="post" class="d-inline">
+                        <td class="text-end pe-3">
+                            <a asp-action="ResetPassword" asp-route-id="@user.Id"
+                               class="btn btn-sm btn-outline-secondary me-1">
+                                <i class="bx bx-lock-open me-1"></i>Reset Password
+                            </a>
+                            <form asp-action="ToggleActive" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
-                                @if (user.IsActive)
-                                {
-                                    <button type="submit" class="btn btn-sm btn-warning me-1"
-                                            title="Deactivate User"
-                                            onclick="return confirm('Deactivate this user?')">
-                                        <i class="bx bx-power-off me-1"></i> Deactivate
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="btn btn-sm btn-success me-1"
-                                            title="Activate User">
-                                        <i class="bx bx-check me-1"></i> Activate
-                                    </button>
-                                }
+                                <input type="hidden" name="id" value="@user.Id" />
+                                <input type="hidden" name="returnRole" value="@currentRole" />
+                                <button type="submit"
+                                        class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                        onclick="return confirm('@(user.IsActive ? "Deactivate" : "Activate") @user.FullName?')">
+                                    <i class="bx @(user.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
+                                    @(user.IsActive ? "Deactivate" : "Activate")
+                                </button>
                             </form>
                         </td>
                     </tr>

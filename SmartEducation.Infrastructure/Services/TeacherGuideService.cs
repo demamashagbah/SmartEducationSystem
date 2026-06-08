@@ -76,6 +76,8 @@ namespace SmartEducation.Infrastructure.Services
         {
             var subject = await _unitOfWork.Subjects.GetByIdAsync(subjectId);
             if (subject == null) return new SubjectCurriculumDto();
+            var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
+            var classRoom = classRooms.FirstOrDefault(c => c.Id == subject.ClassRoomId);
 
             var allUnits = await _unitOfWork.Units.GetAllAsync();
             var allLessons = await _unitOfWork.Lessons.GetAllAsync();
@@ -132,6 +134,8 @@ namespace SmartEducation.Infrastructure.Services
                 SubjectId = subjectId,
                 SubjectName = subject.Name,
                 Description = subject.Description,
+                ClassRoomId = subject.ClassRoomId ?? Guid.Empty,
+                ClassRoomName = classRoom?.Name ?? "",
                 Units = unitDtos,
                 TeacherGuides = guides.ToList(),
                 TotalUnits = units.Count,

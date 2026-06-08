@@ -10,5 +10,7 @@ namespace SmartEducation.Application.Interfaces.Services
         Task<bool> ToggleActiveAsync(Guid id);
         Task<bool> DeleteAsync(Guid id);
         Task<(bool Success, string[] Errors)> CreateUserAsync(string firstName, string lastName, string email, string password, string role);
+        Task<(bool Success, string[] Errors)> CreateFullUserAsync(CreateUserFullDto dto);
+        Task<(bool Success, string[] Errors)> ResetPasswordAsync(Guid userId, string newPassword);
     }
 }

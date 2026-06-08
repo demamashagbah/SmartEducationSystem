@@ -39,7 +39,7 @@ namespace SmartEducation.Infrastructure.Services
             var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
             var grades = await _unitOfWork.Grades.GetAllAsync();
             var studentProfiles = await _unitOfWork.StudentProfiles.GetAllAsync();
-            var myStudents = studentProfiles.Where(s => myClassIds.Contains(s.ClassRoomId)).ToList();
+            var myStudents = studentProfiles.Where(s => s.ClassRoomId.HasValue && myClassIds.Contains(s.ClassRoomId.Value)).ToList();
 
             var lessonPlans = await _unitOfWork.LessonPlans.GetAllAsync();
             var myLessonPlanIds = myAssignments.Select(ta => ta.Id).ToList();
@@ -91,7 +91,7 @@ namespace SmartEducation.Infrastructure.Services
                 var classRoom = classRooms.FirstOrDefault(c => c.Id == classId);
                 if (classRoom == null) continue;
                 var grade = grades.FirstOrDefault(g => g.Id == classRoom.GradeId);
-                var classStudents = myStudents.Where(s => s.ClassRoomId == classId).ToList();
+                var classStudents = myStudents.Where(s => s.ClassRoomId == (Guid?)classId).ToList();
                 var classSubjects = myAssignments.Where(ta => ta.ClassRoomId == classId)
                     .Select(ta => ta.SubjectId).Distinct().ToList();
                 var classSubjectNames = subjects.Where(s => classSubjects.Contains(s.Id))
@@ -114,7 +114,7 @@ namespace SmartEducation.Infrastructure.Services
             var studentSummaries = myStudents.Take(5).Select(s =>
             {
                 var sUser = allUsers.FirstOrDefault(u => u.Id == s.UserId);
-                var cr = classRooms.FirstOrDefault(c => c.Id == s.ClassRoomId);
+                var cr = classRooms.FirstOrDefault(c => c.Id == s.ClassRoomId.GetValueOrDefault());
                 return new StudentSummaryDto
                 {
                     StudentProfileId = s.Id,
@@ -385,7 +385,7 @@ namespace SmartEducation.Infrastructure.Services
             var myClassIds = teacherAssignments.Where(ta => ta.TeacherId == teacherProfileId)
                                                .Select(ta => ta.ClassRoomId).Distinct().ToList();
             var studentProfiles = await _unitOfWork.StudentProfiles.GetAllAsync();
-            var myStudents = studentProfiles.Where(s => myClassIds.Contains(s.ClassRoomId)).ToList();
+            var myStudents = studentProfiles.Where(s => s.ClassRoomId.HasValue && myClassIds.Contains(s.ClassRoomId.Value)).ToList();
             var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
             var allUsers = _userManager.Users.ToList();
             var studentExams = await _unitOfWork.StudentExams.GetAllAsync();
@@ -394,7 +394,7 @@ namespace SmartEducation.Infrastructure.Services
             return myStudents.Select(s =>
             {
                 var user = allUsers.FirstOrDefault(u => u.Id == s.UserId);
-                var cr = classRooms.FirstOrDefault(c => c.Id == s.ClassRoomId);
+                var cr = classRooms.FirstOrDefault(c => c.Id == s.ClassRoomId.GetValueOrDefault());
                 var sExams = studentExams.Where(se => se.StudentId == s.Id && se.IsSubmitted).ToList();
                 var avgScore = sExams.Any() ? sExams.Average(e => e.Score) : 0;
                 var riskLevel = avgScore > 0 && avgScore < 50 ? "High" : avgScore < 70 ? "Medium" : "Low";

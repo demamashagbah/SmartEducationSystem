@@ -1,25 +1,32 @@
-﻿
 <!DOCTYPE html>
 <html lang="en" dir="ltr" class="light-style layout-menu-fixed" data-theme="theme-default" data-assets-path="~/assets/">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>Smart Adaptive Educational Ecosystem - Teacher Dashboard</title>
+    <title>@ViewData["Title"] — Teacher Portal</title>
 
-    <!-- Sneat Core CSS -->
     <link rel="stylesheet" href="~/assets/vendor/css/core.css" class="template-customizer-core-css" />
     <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
     <link rel="stylesheet" href="~/assets/css/demo.css" />
-
-    <!-- Vendors, Fonts & Icons -->
     <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-            body { font-family: 'Public Sans', sans-serif; }
+        body { font-family: 'Public Sans', sans-serif; }
+        #layout-menu { display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
+        .menu-inner { flex: 1; overflow-y: auto; }
+        .sidebar-logout { border-top: 1px solid rgba(0,0,0,.06); padding: 1rem 1.25rem 1.5rem; flex-shrink: 0; }
+        .sidebar-logout button {
+            width: 100%; display: flex; align-items: center; justify-content: center;
+            gap: .5rem; padding: .6rem 1rem; border-radius: .5rem;
+            background: rgba(255,62,29,.06); color: #ff3e1d;
+            border: 1px solid rgba(255,62,29,.15); font-weight: 600; cursor: pointer;
+            transition: background .2s;
+        }
+        .sidebar-logout button:hover { background: rgba(255,62,29,.15); }
+        .menu-item.active > .menu-link { background: rgba(105,108,255,.1); color: #696cff !important; border-radius: .375rem; }
+        .menu-item.active > .menu-link .menu-icon { color: #696cff !important; }
+        .nav-badge { font-size: .65rem; padding: .18rem .45rem; border-radius: 50px; }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -27,125 +34,258 @@
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-            
-            <!-- 1. Sidebar Menu -->
+
+            <!-- Sidebar -->
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-                <div class="app-brand demo">
-                    <a href="#" class="app-brand-link">
-                        <span class="app-brand-logo demo">
-                            <i class="bx bx-brain text-primary" style="font-size: 2rem;"></i>
-                        </span>
-                        <span class="app-brand-text demo menu-text fw-bolder ms-2 text-capitalize" style="font-size: 1.1rem;">Smart Educational</span>
+
+                <!-- Brand -->
+                <div class="app-brand demo" style="padding:1.25rem 1.5rem .75rem; flex-shrink:0">
+                    <a asp-area="Teacher" asp-controller="Dashboard" asp-action="Index"
+                       class="app-brand-link text-decoration-none d-flex align-items-center gap-2">
+                        <div class="bg-success bg-opacity-15 rounded-3 p-2">
+                            <i class="bx bx-chalkboard text-success" style="font-size:1.5rem"></i>
+                        </div>
+                        <span class="fw-bold fs-5 text-dark">Teacher Portal</span>
+                    </a>
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+                        <i class="bx bx-chevron-left bx-sm align-middle"></i>
                     </a>
                 </div>
 
                 <div class="menu-inner-shadow"></div>
 
-                <ul class="menu-inner py-1">
-                    <li class="menu-item">
+                <ul class="menu-inner py-1 flex-grow-1" id="sidebarMenu">
+
+                    <!-- Dashboard -->
+                    <li class="menu-item" data-match="/Teacher/Dashboard">
                         <a asp-area="Teacher" asp-controller="Dashboard" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
                             <div>Dashboard</div>
                         </a>
                     </li>
+
+                    <!-- Curriculum -->
                     <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">Teaching</span>
+                        <span class="menu-header-text">Curriculum</span>
                     </li>
-                    <li class="menu-item">
+                    <li class="menu-item" data-match="/Teacher/CurriculumPlan">
+                        <a asp-area="Teacher" asp-controller="CurriculumPlan" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-brain"></i>
+                            <div>Curriculum Plans</div>
+                        </a>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/CurriculumProgress">
+                        <a asp-area="Teacher" asp-controller="CurriculumProgress" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-trending-up"></i>
+                            <div>Curriculum Progress</div>
+                        </a>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/Subjects">
+                        <a asp-area="Teacher" asp-controller="Subjects" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-book-open"></i>
+                            <div>Subjects</div>
+                        </a>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/LessonPlan">
                         <a asp-area="Teacher" asp-controller="LessonPlan" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-calendar-edit"></i>
                             <div>Lesson Plans</div>
                         </a>
                     </li>
-                    <li class="menu-item">
+
+                    <!-- Teaching -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Teaching</span>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/Classes">
+                        <a asp-area="Teacher" asp-controller="Classes" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-buildings"></i>
+                            <div>Assigned Classes</div>
+                        </a>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/Attendance">
                         <a asp-area="Teacher" asp-controller="Attendance" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-user-check"></i>
                             <div>Attendance</div>
                         </a>
                     </li>
-                    <li class="menu-item">
+                    <li class="menu-item" data-match="/Teacher/Assignment">
                         <a asp-area="Teacher" asp-controller="Assignment" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-task"></i>
                             <div>Assignments</div>
                         </a>
                     </li>
-                    <li class="menu-item">
-                        <a asp-area="Teacher" asp-controller="Exam" asp-action="Index" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-file"></i>
-                            <div>Exams</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a asp-area="Teacher" asp-controller="CurriculumPlan" asp-action="Index" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-calendar-alt"></i>
-                            <div>Curriculum Plans</div>
-                        </a>
-                    </li>
-                    <li class="menu-header small text-uppercase">
-                        <span class="menu-header-text">Analytics</span>
-                    </li>
-                    <li class="menu-item">
+                    <li class="menu-item" data-match="/Teacher/Students">
                         <a asp-area="Teacher" asp-controller="Students" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-group"></i>
                             <div>My Students</div>
                         </a>
                     </li>
+
+                    <!-- Assessment -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Assessment</span>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/Exam">
+                        <a asp-area="Teacher" asp-controller="Exam" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-file-blank"></i>
+                            <div>Exams</div>
+                        </a>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/QuestionBank">
+                        <a asp-area="Teacher" asp-controller="QuestionBank" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-question-mark"></i>
+                            <div>Question Bank</div>
+                        </a>
+                    </li>
+
+                    <!-- Analytics -->
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Analytics</span>
+                    </li>
+                    <li class="menu-item" data-match="/Teacher/StudentAnalytics">
+                        <a asp-area="Teacher" asp-controller="StudentAnalytics" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
+                            <div>Student Analytics</div>
+                        </a>
+                    </li>
+
+                    <!-- Communication -->
                     <li class="menu-header small text-uppercase">
                         <span class="menu-header-text">Communication</span>
                     </li>
-                    <li class="menu-item">
+                    <li class="menu-item" data-match="/Teacher/Message">
                         <a asp-area="Teacher" asp-controller="Message" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-envelope"></i>
                             <div>Messages</div>
                         </a>
                     </li>
+                    <li class="menu-item" data-match="/Teacher/Notifications">
+                        <a asp-area="Teacher" asp-controller="Notifications" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-bell"></i>
+                            <div>Notifications</div>
+                        </a>
+                    </li>
+
+                    <!-- Account -->
                     <li class="menu-header small text-uppercase">
                         <span class="menu-header-text">Account</span>
                     </li>
-                    <li class="menu-item">
-                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="menu-link btn btn-link w-100 text-start border-0 p-0" style="background:none;">
-                                <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
-                                <div class="text-danger">Logout</div>
-                            </button>
-                        </form>
+                    <li class="menu-item" data-match="/Teacher/Profile">
+                        <a asp-area="Teacher" asp-controller="Profile" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                            <div>Profile</div>
+                        </a>
                     </li>
+                    <li class="menu-item" data-match="/Teacher/Settings">
+                        <a asp-area="Teacher" asp-controller="Settings" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-cog"></i>
+                            <div>Settings</div>
+                        </a>
+                    </li>
+
                 </ul>
+
+                <!-- Logout — always at bottom -->
+                <div class="sidebar-logout">
+                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit">
+                            <i class="bx bx-power-off"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
             </aside>
 
-            <!-- 2. Main Layout Container -->
+            <!-- Main Content -->
             <div class="layout-page">
-                
+
                 <!-- Navbar -->
                 <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-center nav-item d-none d-xl-block me-3">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="bx bx-menu bx-sm"></i>
+                        </a>
+                    </div>
                     <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-                        <div class="navbar-nav align-items-center">
-                            <div class="nav-item d-flex align-items-center">
-                                <span class="fw-semibold">Welcome, Teacher Profile</span>
+                        <div class="navbar-nav align-items-center ms-auto">
+                            <div class="nav-item dropdown dropdown-user">
+                                <a class="nav-link dropdown-toggle hide-arrow d-flex align-items-center gap-2"
+                                   href="javascript:void(0);" data-bs-toggle="dropdown">
+                                    <div class="bg-success bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width:38px;height:38px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#71dd37">
+                                            <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.86 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="d-none d-xl-block">
+                                        <small class="fw-semibold d-block lh-1">Teacher</small>
+                                        <small class="text-muted" style="font-size:.72rem">@User.Identity?.Name</small>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li>
+                                        <div class="dropdown-item d-flex align-items-center gap-3 py-3">
+                                            <div class="bg-success bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width:44px;height:44px;flex-shrink:0">
+                                                <i class="bx bx-chalkboard text-success fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold d-block">Teacher</span>
+                                                <small class="text-muted">@User.Identity?.Name</small>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li><div class="dropdown-divider my-0"></div></li>
+                                    <li>
+                                        <a asp-area="Teacher" asp-controller="Dashboard" asp-action="Index"
+                                           class="dropdown-item py-2">
+                                            <i class="bx bx-home-circle me-2 text-success"></i>Dashboard
+                                        </a>
+                                    </li>
+                                    <li><div class="dropdown-divider my-0"></div></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item py-2 text-danger">
+                                                <i class="bx bx-power-off me-2"></i>Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </nav>
 
-                <!-- Content Wrapper -->
+                <!-- Content -->
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         @RenderBody()
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- Core JS Files -->
     <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
     <script src="~/assets/vendor/libs/popper/popper.js"></script>
     <script src="~/assets/vendor/js/bootstrap.js"></script>
     <script src="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
     <script src="~/assets/vendor/js/menu.js"></script>
     <script src="~/assets/js/main.js"></script>
+    <script>
+    (function () {
+        var path = window.location.pathname;
+        document.querySelectorAll('#sidebarMenu .menu-item[data-match]').forEach(function (li) {
+            var match = li.getAttribute('data-match');
+            if (path.toLowerCase().startsWith(match.toLowerCase())) {
+                li.classList.add('active');
+            }
+        });
+    })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -10,7 +10,7 @@
             <p class="text-muted mb-0">Subject: <strong>@ViewBag.SubjectName</strong></p>
         </div>
         <a asp-action="Details" asp-route-id="@ViewBag.SubjectId" class="btn btn-outline-secondary btn-sm">
-            <i class="bx bx-arrow-back me-1"></i> Back
+            <i class="bx bx-arrow-back me-1"></i> Back to Curriculum
         </a>
     </div>
 </div>
@@ -39,8 +39,8 @@
                     </div>
 
                     <div class="alert alert-info small">
-                        <i class="bx bx-info-circle me-1"></i>
-                        <strong>After upload:</strong> The curriculum content (Units, Lessons, Topics, Learning Outcomes) should be added manually via the curriculum management tools, or extracted from the guide by the admin team.
+                        <i class="bx bx-brain me-1"></i>
+                        <strong>AI Extraction:</strong> After uploading, click <strong>"Extract with AI"</strong> on the curriculum page to automatically populate Units, Lessons, Topics, and Learning Outcomes from the guide content.
                     </div>
 
                     <div class="d-grid gap-2">

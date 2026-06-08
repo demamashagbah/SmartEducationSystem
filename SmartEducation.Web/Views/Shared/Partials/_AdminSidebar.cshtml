@@ -1,13 +1,12 @@
-<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme d-flex flex-column"
+       style="height:100vh;overflow-y:auto">
 
-    <div class="app-brand demo">
-        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="app-brand-link">
-            <span class="app-brand-logo demo">
-                <i class="bx bx-graduation text-primary fs-2"></i>
-            </span>
-            <span class="app-brand-text demo menu-text fw-bolder ms-2">
-                SmartEdu
-            </span>
+    <div class="app-brand demo" style="padding:1.5rem 1.5rem 1rem">
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="app-brand-link text-decoration-none d-flex align-items-center gap-2">
+            <div class="bg-primary bg-opacity-15 rounded-3 p-2">
+                <i class="bx bx-graduation text-primary fs-4"></i>
+            </div>
+            <span class="fw-bold fs-5 text-dark">SmartEdu</span>
         </a>
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm align-middle"></i>
@@ -16,7 +15,7 @@
 
     <div class="menu-inner-shadow"></div>
 
-    <ul class="menu-inner py-1">
+    <ul class="menu-inner py-1 flex-grow-1">
 
         <!-- Dashboard -->
         <li class="menu-item">
@@ -25,7 +24,6 @@
                 <div>Dashboard</div>
             </a>
         </li>
-
         <li class="menu-item">
             <a asp-area="Admin" asp-controller="Dashboard" asp-action="Analytics" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
@@ -33,61 +31,62 @@
             </a>
         </li>
 
-        <!-- Users -->
+        <!-- Class Management -->
         <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">User Management</span>
+            <span class="menu-header-text">Class Management</span>
         </li>
-
         <li class="menu-item">
-            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-group"></i>
-                <div>All Users</div>
+            <a asp-area="Admin" asp-controller="ClassRoom" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-buildings"></i>
+                <div>Classes</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="TeacherAssignment" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-link"></i>
+                <div>Teacher Assignments</div>
             </a>
         </li>
 
-        <li class="menu-item">
-            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
-               asp-route-role="Teacher" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-chalkboard"></i>
-                <div>Teachers</div>
-            </a>
+        <!-- People -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">People</span>
         </li>
-
         <li class="menu-item">
-            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
-               asp-route-role="Student" class="menu-link">
+            <a asp-area="Admin" asp-controller="Student" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-user-circle"></i>
                 <div>Students</div>
             </a>
         </li>
-
         <li class="menu-item">
-            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
-               asp-route-role="Parent" class="menu-link">
+            <a asp-area="Admin" asp-controller="Teacher" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-chalkboard"></i>
+                <div>Teachers</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="Parent" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div>Parents</div>
             </a>
         </li>
-
-        <!-- Academic Structure -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Academic Structure</span>
+        <li class="menu-item">
+            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-plus"></i>
+                <div>Create User</div>
+            </a>
         </li>
 
+        <!-- Academic Setup -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Academic Setup</span>
+        </li>
         <li class="menu-item">
             <a asp-area="Admin" asp-controller="Grade" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-category"></i>
                 <div>Grades</div>
             </a>
         </li>
-
-        <li class="menu-item">
-            <a asp-area="Admin" asp-controller="ClassRoom" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-buildings"></i>
-                <div>Classrooms</div>
-            </a>
-        </li>
-
         <li class="menu-item">
             <a asp-area="Admin" asp-controller="AcademicYear" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-calendar"></i>
@@ -95,60 +94,20 @@
             </a>
         </li>
 
-        <!-- Curriculum -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Curriculum</span>
-        </li>
-
-        <li class="menu-item">
-            <a asp-area="Admin" asp-controller="Subject" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-book-open"></i>
-                <div>Subjects</div>
-            </a>
-        </li>
-
-        <li class="menu-item">
-            <a asp-area="Admin" asp-controller="Unit" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div>Units</div>
-            </a>
-        </li>
-
-        <li class="menu-item">
-            <a asp-area="Admin" asp-controller="Lesson" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-book-reader"></i>
-                <div>Lessons</div>
-            </a>
-        </li>
-
-        <!-- Assessment -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Assessment</span>
-        </li>
-
-        <li class="menu-item">
-            <a asp-area="Admin" asp-controller="Exam" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file"></i>
-                <div>Exams</div>
-            </a>
-        </li>
-
-        <!-- Account -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Account</span>
-        </li>
-
-        <li class="menu-item">
-            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="menu-link btn btn-link w-100 text-start border-0 p-0"
-                        style="background:none;">
-                    <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
-                    <div class="text-danger">Logout</div>
-                </button>
-            </form>
-        </li>
-
     </ul>
+
+    <!-- Logout — pinned at bottom -->
+    <div class="mt-auto px-3 pb-4 pt-2" style="border-top:1px solid rgba(0,0,0,.06)">
+        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3"
+                    style="background:rgba(255,62,29,.06);color:#ff3e1d;border:1px solid rgba(255,62,29,.15);transition:.2s"
+                    onmouseover="this.style.background='rgba(255,62,29,.15)'"
+                    onmouseout="this.style.background='rgba(255,62,29,.06)'">
+                <i class="bx bx-power-off"></i>
+                <span class="fw-semibold">Logout</span>
+            </button>
+        </form>
+    </div>
 
 </aside>

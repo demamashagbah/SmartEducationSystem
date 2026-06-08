@@ -1,0 +1,174 @@
+@model List<SmartEducation.Application.DTOs.StudentDetailDto>
+@{
+    var classRoom = ViewBag.ClassRoom as SmartEducation.Application.DTOs.ClassRoomDto;
+    string search = ViewBag.Search ?? "";
+    ViewData["Title"] = $"Assign Students – {classRoom?.Name}";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="text-muted text-decoration-none small">Classes</a>
+            <span class="text-muted">/</span>
+            <a asp-action="Manage" asp-route-id="@classRoom?.Id" class="text-muted text-decoration-none small">@classRoom?.Name</a>
+            <span class="text-muted">/</span>
+            <span class="small">Assign Students</span>
+        </div>
+        <h4 class="fw-bold">Assign Students to @classRoom?.Name</h4>
+        <p class="text-muted">Search the school roster and select students to assign to this class.</p>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Search Bar -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="get" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="id" value="@classRoom?.Id" />
+            <div class="input-group" style="max-width:500px">
+                <span class="input-group-text bg-transparent"><i class="bx bx-search text-muted"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0"
+                       placeholder="Search by name, student number, national number, or email..." />
+            </div>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bx bx-search me-1"></i>Search
+            </button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a asp-action="AssignStudents" asp-route-id="@classRoom?.Id" class="btn btn-outline-secondary">
+                    <i class="bx bx-x me-1"></i>Clear
+                </a>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Student Selection Form -->
+<form asp-action="AssignStudents" method="post" id="assignForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+            <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" id="selectAll" class="form-check-input" />
+                <label for="selectAll" class="fw-semibold mb-0">Select All</label>
+                <span class="text-muted small ms-2">(@Model.Count available students)</span>
+            </div>
+            <button type="submit" class="btn btn-primary" id="assignBtn" disabled>
+                <i class="bx bx-user-plus me-1"></i>
+                Assign Selected (<span id="selectedCount">0</span>)
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:40px"></th>
+                        <th>Student</th>
+                        <th>Student No.</th>
+                        <th>National No.</th>
+                        <th>Current Class</th>
+                        <th>Parent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bx bx-user-check fs-2 d-block mb-2"></i>
+                                @if (!string.IsNullOrEmpty(search))
+                                {
+                                    <span>No students match "<strong>@search</strong>". <a asp-action="AssignStudents" asp-route-id="@classRoom?.Id">Show all available.</a></span>
+                                }
+                                else
+                                {
+                                    <span>All registered students are already in this class.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var s in Model)
+                    {
+                        <tr class="student-row">
+                            <td>
+                                <input type="checkbox" name="selectedProfiles" value="@s.ProfileId"
+                                       class="form-check-input student-check" />
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center fw-bold text-primary"
+                                         style="width:34px;height:34px;font-size:.8rem;flex-shrink:0">
+                                        @(s.FirstName.Length > 0 ? s.FirstName[0].ToString() : "?")@(s.LastName.Length > 0 ? s.LastName[0].ToString() : "")
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">@s.FullName</div>
+                                        <small class="text-muted">@s.Email</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><code>@(string.IsNullOrEmpty(s.StudentNumber) ? "—" : s.StudentNumber)</code></td>
+                            <td><small>@(string.IsNullOrEmpty(s.NationalNumber) ? "—" : s.NationalNumber)</small></td>
+                            <td>
+                                @if (s.ClassRoomId.HasValue)
+                                {
+                                    <span class="badge bg-label-secondary">@s.ClassRoomName</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-label-warning">Unassigned</span>
+                                }
+                            </td>
+                            <td>
+                                <div>@(string.IsNullOrEmpty(s.ParentName) ? "—" : s.ParentName)</div>
+                                <small class="text-muted">@s.ParentPhone</small>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3 justify-content-end">
+        <a asp-action="Manage" asp-route-id="@classRoom?.Id" class="btn btn-outline-secondary px-4">
+            <i class="bx bx-arrow-back me-1"></i>Back to Class
+        </a>
+        <button type="submit" class="btn btn-primary px-4" id="assignBtnBottom" disabled>
+            <i class="bx bx-user-plus me-1"></i>
+            Assign Selected (<span class="selectedCountDisplay">0</span>)
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const checks = document.querySelectorAll('.student-check');
+        const selectAll = document.getElementById('selectAll');
+        const assignBtn = document.getElementById('assignBtn');
+        const assignBtnBottom = document.getElementById('assignBtnBottom');
+        const counts = document.querySelectorAll('#selectedCount, .selectedCountDisplay');
+
+        function updateCount() {
+            const n = document.querySelectorAll('.student-check:checked').length;
+            counts.forEach(el => el.textContent = n);
+            [assignBtn, assignBtnBottom].forEach(b => b.disabled = n === 0);
+        }
+
+        selectAll.addEventListener('change', () => {
+            checks.forEach(c => c.checked = selectAll.checked);
+            updateCount();
+        });
+
+        checks.forEach(c => c.addEventListener('change', updateCount));
+    </script>
+}

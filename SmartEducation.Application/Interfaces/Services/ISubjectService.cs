@@ -5,6 +5,7 @@ namespace SmartEducation.Application.Interfaces.Services
     public interface ISubjectService
     {
         Task<IEnumerable<SubjectDto>> GetAllAsync();
+        Task<IEnumerable<SubjectDto>> GetByClassRoomAsync(Guid classRoomId);
         Task<SubjectDto?> GetByIdAsync(Guid id);
         Task<SubjectDto> CreateAsync(SubjectDto dto);
         Task<bool> UpdateAsync(SubjectDto dto);

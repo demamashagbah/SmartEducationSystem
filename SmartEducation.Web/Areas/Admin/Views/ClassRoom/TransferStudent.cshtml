@@ -1,0 +1,42 @@
+@using SmartEducation.Application.DTOs
+@{
+    var student = ViewBag.Student as StudentDetailDto;
+    var classRoomOptions = ViewBag.ClassRoomOptions as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>;
+    ViewData["Title"] = "Transfer Student";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="fw-bold">Transfer Student</h4>
+        <p class="text-muted">Move <strong>@student?.FullName</strong> from <strong>@student?.ClassRoomName</strong> to another class.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:480px">
+    <div class="card-body">
+        <form asp-action="TransferStudent" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="profileId" value="@student?.ProfileId" />
+            <input type="hidden" name="currentClassRoomId" value="@student?.ClassRoomId?.ToString()" />
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Transfer to Class *</label>
+                <select name="newClassRoomId" class="form-select form-select-lg" required>
+                    <option value="">Select destination class...</option>
+                    @foreach (var opt in classRoomOptions ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>())
+                    {
+                        <option value="@opt.Value">@opt.Text</option>
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a asp-action="Manage" asp-route-id="@student?.ClassRoomId?.ToString()" class="btn btn-outline-secondary flex-fill">Cancel</a>
+                <button type="submit" class="btn btn-warning flex-fill">
+                    <i class="bx bx-transfer me-1"></i> Transfer Student
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

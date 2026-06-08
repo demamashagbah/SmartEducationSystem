@@ -19,6 +19,8 @@ namespace SmartEducation.Infrastructure.Services
             var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
             var grades = await _unitOfWork.Grades.GetAllAsync();
             var students = await _unitOfWork.StudentProfiles.GetAllAsync();
+            var subjects = await _unitOfWork.Subjects.GetAllAsync();
+            var assignments = await _unitOfWork.TeacherAssignments.GetAllAsync();
 
             return classRooms.Select(c =>
             {
@@ -29,7 +31,9 @@ namespace SmartEducation.Infrastructure.Services
                     Name = c.Name,
                     GradeId = c.GradeId,
                     GradeName = grade?.Name ?? "",
-                    StudentCount = students.Count(s => s.ClassRoomId == c.Id)
+                    StudentCount = students.Count(s => s.ClassRoomId == c.Id),
+                    SubjectCount = subjects.Count(s => s.ClassRoomId == c.Id),
+                    TeacherAssignmentCount = assignments.Count(a => a.ClassRoomId == c.Id && a.IsActive)
                 };
             });
         }
@@ -39,7 +43,19 @@ namespace SmartEducation.Infrastructure.Services
             var c = await _unitOfWork.ClassRooms.GetByIdAsync(id);
             if (c == null) return null;
             var grade = await _unitOfWork.Grades.GetByIdAsync(c.GradeId);
-            return new ClassRoomDto { Id = c.Id, Name = c.Name, GradeId = c.GradeId, GradeName = grade?.Name ?? "" };
+            var subjects = await _unitOfWork.Subjects.GetAllAsync();
+            var students = await _unitOfWork.StudentProfiles.GetAllAsync();
+            var assignments = await _unitOfWork.TeacherAssignments.GetAllAsync();
+            return new ClassRoomDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                GradeId = c.GradeId,
+                GradeName = grade?.Name ?? "",
+                StudentCount = students.Count(s => s.ClassRoomId == id),
+                SubjectCount = subjects.Count(s => s.ClassRoomId == id),
+                TeacherAssignmentCount = assignments.Count(a => a.ClassRoomId == id && a.IsActive)
+            };
         }
 
         public async Task<IEnumerable<ClassRoomDto>> GetByGradeAsync(Guid gradeId)

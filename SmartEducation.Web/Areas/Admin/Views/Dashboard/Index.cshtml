@@ -12,7 +12,7 @@
     </div>
 </div>
 
-<!-- Statistics Cards Row 1 -->
+<!-- Educational Management Stats -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
@@ -43,6 +43,19 @@
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-info bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-buildings text-info fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Total Classes</small>
+                    <h3 class="mb-0 fw-bold">@Model.TotalClassRooms</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
                 <div class="avatar avatar-lg me-3 bg-warning bg-opacity-10 rounded-3 p-3">
                     <i class="bx bx-book-open text-warning fs-3"></i>
                 </div>
@@ -53,45 +66,19 @@
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="avatar avatar-lg me-3 bg-info bg-opacity-10 rounded-3 p-3">
-                    <i class="bx bx-buildings text-info fs-3"></i>
-                </div>
-                <div>
-                    <small class="text-muted d-block fw-semibold">Classrooms</small>
-                    <h3 class="mb-0 fw-bold">@Model.TotalClassRooms</h3>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Statistics Cards Row 2 -->
+<!-- Analytics Row -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center">
-                <div class="avatar avatar-lg me-3 bg-danger bg-opacity-10 rounded-3 p-3">
-                    <i class="bx bx-file text-danger fs-3"></i>
+                <div class="avatar avatar-lg me-3 bg-success bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-trending-up text-success fs-3"></i>
                 </div>
                 <div>
-                    <small class="text-muted d-block fw-semibold">Exams</small>
-                    <h3 class="mb-0 fw-bold">@Model.TotalExams</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="avatar avatar-lg me-3 bg-secondary bg-opacity-10 rounded-3 p-3">
-                    <i class="bx bx-task text-secondary fs-3"></i>
-                </div>
-                <div>
-                    <small class="text-muted d-block fw-semibold">Assignments</small>
-                    <h3 class="mb-0 fw-bold">@Model.TotalAssignments</h3>
+                    <small class="text-muted d-block fw-semibold">Student Success Rate</small>
+                    <h3 class="mb-0 fw-bold">@Model.SuccessRate.ToString("F1")%</h3>
                 </div>
             </div>
         </div>
@@ -112,12 +99,25 @@
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center">
-                <div class="avatar avatar-lg me-3 bg-success bg-opacity-10 rounded-3 p-3">
-                    <i class="bx bx-trending-up text-success fs-3"></i>
+                <div class="avatar avatar-lg me-3 bg-danger bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-x-circle text-danger fs-3"></i>
                 </div>
                 <div>
-                    <small class="text-muted d-block fw-semibold">Success Rate</small>
-                    <h3 class="mb-0 fw-bold">@Model.SuccessRate.ToString("F1")%</h3>
+                    <small class="text-muted d-block fw-semibold">Failure Rate</small>
+                    <h3 class="mb-0 fw-bold">@((100 - Model.SuccessRate).ToString("F1"))%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="avatar avatar-lg me-3 bg-warning bg-opacity-10 rounded-3 p-3">
+                    <i class="bx bx-target-lock text-warning fs-3"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-semibold">Outcome Mastery</small>
+                    <h3 class="mb-0 fw-bold">—</h3>
                 </div>
             </div>
         </div>
@@ -138,36 +138,68 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-auto">
-                        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create"
-                           class="btn btn-primary">
-                            <i class="bx bx-user-plus me-1"></i> Add New User
-                        </a>
-                    </div>
-                    <div class="col-auto">
-                        <a asp-area="Admin" asp-controller="Subject" asp-action="Create"
-                           class="btn btn-success">
-                            <i class="bx bx-book-add me-1"></i> Add New Subject
-                        </a>
-                    </div>
-                    <div class="col-auto">
                         <a asp-area="Admin" asp-controller="ClassRoom" asp-action="Create"
+                           class="btn btn-primary">
+                            <i class="bx bx-plus me-1"></i> Create New Class
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="ClassRoom" asp-action="Index"
+                           class="btn btn-info text-white">
+                            <i class="bx bx-buildings me-1"></i> Manage Classes
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-area="Admin" asp-controller="TeacherAssignment" asp-action="Index"
                            class="btn btn-warning">
-                            <i class="bx bx-plus me-1"></i> Add New Classroom
+                            <i class="bx bx-link me-1"></i> Teacher Assignments
                         </a>
                     </div>
                     <div class="col-auto">
-                        <a asp-area="Admin" asp-controller="Exam" asp-action="Create"
-                           class="btn btn-danger">
-                            <i class="bx bx-file me-1"></i> Create New Exam
+                        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create"
+                           class="btn btn-success">
+                            <i class="bx bx-user-plus me-1"></i> Add Teacher
                         </a>
                     </div>
                     <div class="col-auto">
-                        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
-                           asp-route-role="Teacher"
-                           class="btn btn-outline-info">
-                            <i class="bx bx-chalkboard me-1"></i> View All Teachers
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Analytics"
+                           class="btn btn-outline-secondary">
+                            <i class="bx bx-bar-chart-alt-2 me-1"></i> School Analytics
                         </a>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow Guide -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm border-start border-primary border-4">
+            <div class="card-body">
+                <h6 class="fw-bold text-primary mb-3"><i class="bx bx-info-circle me-2"></i>Setup Workflow</h6>
+                <div class="row g-2">
+                    @{
+                        var steps = new[]
+                        {
+                            ("1", "Create Classes (e.g. Grade 7, Grade 8)", "bx-buildings"),
+                            ("2", "Add Students to each Class", "bx-user-plus"),
+                            ("3", "Assign Subjects to each Class", "bx-book-add"),
+                            ("4", "Assign Teachers to Subjects in each Class", "bx-chalkboard"),
+                            ("5", "Upload Teacher Guides per Subject", "bx-upload"),
+                            ("6", "AI extracts curriculum structure automatically", "bx-bot")
+                        };
+                    }
+                    @foreach (var (num, text, icon) in steps)
+                    {
+                        <div class="col-md-4 col-sm-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-circle" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center">@num</span>
+                                <span class="small text-muted">@text</span>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

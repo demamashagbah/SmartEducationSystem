@@ -1,0 +1,75 @@
+@using SmartEducation.Web.Areas.Teacher.Controllers
+@model List<StudentAnalyticsViewModel>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th style="width:130px">Avg Score</th>
+                <th style="width:130px">Attendance</th>
+                <th style="width:130px">Assignments</th>
+                <th>Risk</th>
+                <th class="text-end pe-3">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int i = 1; }
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td class="text-muted small">@i++</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                                 style="width:34px;height:34px;font-size:.8rem;flex-shrink:0;background:@(s.RiskLevel=="High"?"#dc3545":s.RiskLevel=="Medium"?"#fd7e14":"#71dd37")">
+                                @(s.StudentName.Length > 0 ? s.StudentName[0].ToString() : "?")
+                            </div>
+                            <span class="fw-semibold">@s.StudentName</span>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-label-primary">@s.ClassName</span></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:6px">
+                                <div class="progress-bar @(s.AverageScore >= 70 ? "bg-success" : s.AverageScore >= 50 ? "bg-warning" : "bg-danger")"
+                                     style="width:@Math.Min(100,s.AverageScore)%"></div>
+                            </div>
+                            <small class="fw-semibold @(s.AverageScore >= 70 ? "text-success" : s.AverageScore >= 50 ? "text-warning" : "text-danger")" style="min-width:40px">
+                                @(s.AverageScore > 0 ? s.AverageScore + "%" : "N/A")
+                            </small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:6px">
+                                <div class="progress-bar @(s.AttendanceRate >= 85 ? "bg-success" : s.AttendanceRate >= 70 ? "bg-warning" : "bg-danger")"
+                                     style="width:@s.AttendanceRate%"></div>
+                            </div>
+                            <small class="fw-semibold" style="min-width:40px">@s.AttendanceRate%</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:6px">
+                                <div class="progress-bar bg-info" style="width:@s.AssignmentCompletionRate%"></div>
+                            </div>
+                            <small class="fw-semibold" style="min-width:40px">@s.AssignmentCompletionRate%</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill risk-@s.RiskLevel.ToLower()">@s.RiskLevel Risk</span>
+                    </td>
+                    <td class="text-end pe-3">
+                        <a asp-action="Detail" asp-route-id="@s.StudentProfileId"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bx bx-bar-chart-alt-2 me-1"></i>Analytics
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

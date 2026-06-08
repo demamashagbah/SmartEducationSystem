@@ -1,0 +1,52 @@
+@model SmartEducation.Web.Areas.Admin.Models.ParentEditViewModel
+@{
+    ViewData["Title"] = "Edit Parent";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+<div class="row mb-4"><div class="col-12">
+    <a asp-action="Index" class="text-muted text-decoration-none small"><i class="bx bx-arrow-back me-1"></i>Parents</a>
+    <h4 class="fw-bold mt-1">Edit Parent</h4>
+</div></div>
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ProfileId" /><input type="hidden" asp-for="UserId" />
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bx bx-user me-2"></i>Personal Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3"><label asp-for="FirstName" class="form-label fw-semibold">First Name *</label><input asp-for="FirstName" class="form-control" /><span asp-validation-for="FirstName" class="text-danger small"></span></div>
+                        <div class="col-md-3"><label asp-for="LastName" class="form-label fw-semibold">Last Name *</label><input asp-for="LastName" class="form-control" /><span asp-validation-for="LastName" class="text-danger small"></span></div>
+                        <div class="col-md-3"><label asp-for="Username" class="form-label fw-semibold">Username *</label><input asp-for="Username" class="form-control" /><span asp-validation-for="Username" class="text-danger small"></span></div>
+                        <div class="col-md-3"><label asp-for="Email" class="form-label fw-semibold">Email *</label><input asp-for="Email" type="email" class="form-control" /><span asp-validation-for="Email" class="text-danger small"></span></div>
+                        <div class="col-md-3"><label asp-for="PhoneNumber" class="form-label fw-semibold">Phone</label><input asp-for="PhoneNumber" class="form-control" /></div>
+                        <div class="col-md-2"><label asp-for="Gender" class="form-label fw-semibold">Gender</label>
+                            <select asp-for="Gender" class="form-select"><option value="">—</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                        <div class="col-md-3"><label asp-for="DateOfBirth" class="form-label fw-semibold">Date of Birth</label><input asp-for="DateOfBirth" type="date" class="form-control" /></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-warning mb-0"><i class="bx bx-user-check me-2"></i>Parent Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label asp-for="Occupation" class="form-label fw-semibold">Occupation</label><input asp-for="Occupation" class="form-control" /></div>
+                        <div class="col-md-6"><label asp-for="EmergencyContact" class="form-label fw-semibold">Emergency Contact</label><input asp-for="EmergencyContact" class="form-control" /></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 d-flex gap-2 justify-content-end">
+            <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4"><i class="bx bx-save me-1"></i>Save Changes</button>
+        </div>
+    </div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

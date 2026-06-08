@@ -82,7 +82,7 @@ namespace SmartEducation.Infrastructure.Services
                 var myAssignments = teacherAssignments.Where(ta => ta.TeacherId == teacher.Id).ToList();
                 var mySubjectIds = myAssignments.Select(ta => ta.SubjectId).Distinct().ToList();
                 var myClassIds = myAssignments.Select(ta => ta.ClassRoomId).Distinct().ToList();
-                var myStudents = studentProfiles.Where(s => myClassIds.Contains(s.ClassRoomId)).ToList();
+                var myStudents = studentProfiles.Where(s => s.ClassRoomId.HasValue && myClassIds.Contains(s.ClassRoomId.Value)).ToList();
                 var myLessonPlans = lessonPlans.Where(lp => myAssignments.Any(ta => ta.Id == lp.TeacherAssignmentId)).ToList();
                 var myExams = exams.Where(e => mySubjectIds.Contains(e.SubjectId)).ToList();
                 var myAssignmentItems = assignments.Where(a => a.TeacherId == teacher.Id).ToList();
@@ -129,7 +129,7 @@ namespace SmartEducation.Infrastructure.Services
             foreach (var classRoom in classRooms)
             {
                 var grade = grades.FirstOrDefault(g => g.Id == classRoom.GradeId);
-                var classStudents = studentProfiles.Where(s => s.ClassRoomId == classRoom.Id).ToList();
+                var classStudents = studentProfiles.Where(s => s.ClassRoomId == (Guid?)classRoom.Id).ToList();
                 var classExams = studentExams.Where(se => classStudents.Any(s => s.Id == se.StudentId)).ToList();
                 var classSubmissions = submissions.Where(sub => classStudents.Any(s => s.Id == sub.StudentId)).ToList();
                 var classAssignments = assignments.Where(a => a.ClassRoomId == classRoom.Id).ToList();
@@ -234,7 +234,7 @@ namespace SmartEducation.Infrastructure.Services
             foreach (var student in studentProfiles.Take(20))
             {
                 var user = allUsers.FirstOrDefault(u => u.Id == student.UserId);
-                var classRoom = classRooms.FirstOrDefault(c => c.Id == student.ClassRoomId);
+                var classRoom = classRooms.FirstOrDefault(c => c.Id == student.ClassRoomId.GetValueOrDefault());
                 var studentResults = studentExams.Where(se => se.StudentId == student.Id).ToList();
                 var studentSubmissions = submissions.Where(s => s.StudentId == student.Id).ToList();
                 var performance = studentPerformances.FirstOrDefault(p => p.StudentId == student.Id);
@@ -245,7 +245,7 @@ namespace SmartEducation.Infrastructure.Services
 
                 if (avgScore > 0 && avgScore < 50) riskFactors.Add("Low Exam Scores");
                 if (attendRate < 80) riskFactors.Add("Poor Attendance");
-                if (studentSubmissions.Count == 0 && assignments.Any(a => a.ClassRoomId == student.ClassRoomId))
+                if (studentSubmissions.Count == 0 && assignments.Any(a => student.ClassRoomId.HasValue && a.ClassRoomId == student.ClassRoomId.Value))
                     riskFactors.Add("Missing Assignments");
 
                 if (riskFactors.Count == 0) continue;

@@ -159,12 +159,13 @@ namespace SmartEducation.Persistence.Contexts
                 .HasForeignKey(s => s.AcademicYearId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // StudentProfile -> ClassRoom
+            // StudentProfile -> ClassRoom (nullable — student may not be assigned to a class yet)
             builder.Entity<StudentProfile>()
                 .HasOne(sp => sp.ClassRoom)
                 .WithMany()
                 .HasForeignKey(sp => sp.ClassRoomId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // TeacherAssignment -> Subject, ClassRoom
             builder.Entity<TeacherAssignment>()
@@ -335,6 +336,30 @@ namespace SmartEducation.Persistence.Contexts
                 .WithMany()
                 .HasForeignKey(m => m.ParentMessageId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Subject -> ClassRoom (nullable: subjects can exist without a class during migration)
+            builder.Entity<Subject>()
+                .HasOne(s => s.ClassRoom)
+                .WithMany(c => c.Subjects)
+                .HasForeignKey(s => s.ClassRoomId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // StudentProfile -> AcademicYear (optional)
+            builder.Entity<StudentProfile>()
+                .HasOne(sp => sp.AcademicYear)
+                .WithMany()
+                .HasForeignKey(sp => sp.AcademicYearId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // TeacherAssignment -> AcademicYear (optional)
+            builder.Entity<TeacherAssignment>()
+                .HasOne(ta => ta.AcademicYear)
+                .WithMany()
+                .HasForeignKey(ta => ta.AcademicYearId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // TeacherGuide -> Subject
             builder.Entity<TeacherGuide>()

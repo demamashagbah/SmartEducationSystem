@@ -1,0 +1,188 @@
+@using SmartEducation.Web.Areas.Teacher.Controllers
+@model StudentAnalyticsDetailViewModel
+@{
+    ViewData["Title"] = $"Analytics — {Model.StudentName}";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+    var scoreColor   = Model.AverageScore >= 70 ? "success" : Model.AverageScore >= 50 ? "warning" : "danger";
+    var attendColor  = Model.AttendanceRate >= 85 ? "success" : Model.AttendanceRate >= 70 ? "warning" : "danger";
+    var assignColor  = Model.AssignmentCompletionRate >= 80 ? "success" : Model.AssignmentCompletionRate >= 60 ? "warning" : "danger";
+    var riskColor    = Model.RiskLevel == "High" ? "danger" : Model.RiskLevel == "Medium" ? "warning" : "success";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a asp-action="Index" class="text-muted text-decoration-none small"><i class="bx bx-arrow-back me-1"></i>Student Analytics</a>
+                <span class="text-muted">/</span>
+                <span class="fw-semibold">@Model.StudentName</span>
+            </div>
+            <h4 class="fw-bold mb-1">
+                <i class="bx bx-user-circle text-primary me-2"></i>@Model.StudentName
+                <span class="badge bg-label-@riskColor ms-2 fs-6">@Model.RiskLevel Risk</span>
+            </h4>
+            <p class="text-muted mb-0">Student No: <code>@Model.StudentNumber</code> &bull; Class: <strong>@Model.ClassName</strong></p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+    </div>
+</div>
+
+<!-- KPI Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-4">
+            <div class="mb-2">
+                <div class="progress mx-auto" style="height:8px;width:80%">
+                    <div class="progress-bar bg-@scoreColor" style="width:@Math.Min(100,Model.AverageScore)%"></div>
+                </div>
+            </div>
+            <h2 class="fw-bold text-@scoreColor mb-0">@(Model.AverageScore > 0 ? Model.AverageScore + "%" : "N/A")</h2>
+            <small class="text-muted">Average Score</small>
+        </div></div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-4">
+            <div class="mb-2">
+                <div class="progress mx-auto" style="height:8px;width:80%">
+                    <div class="progress-bar bg-@attendColor" style="width:@Model.AttendanceRate%"></div>
+                </div>
+            </div>
+            <h2 class="fw-bold text-@attendColor mb-0">@Model.AttendanceRate%</h2>
+            <small class="text-muted">Attendance Rate</small>
+        </div></div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-4">
+            <div class="mb-2">
+                <div class="progress mx-auto" style="height:8px;width:80%">
+                    <div class="progress-bar bg-@assignColor" style="width:@Model.AssignmentCompletionRate%"></div>
+                </div>
+            </div>
+            <h2 class="fw-bold text-@assignColor mb-0">@Model.AssignmentCompletionRate%</h2>
+            <small class="text-muted">Assignment Completion</small>
+        </div></div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-4">
+            <h2 class="fw-bold text-primary mb-0">@Model.ExamsTaken</h2>
+            <small class="text-muted">Exams Taken</small>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left column -->
+    <div class="col-lg-7">
+
+        <!-- Exam History -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-file-blank text-primary me-2"></i>Exam Performance History</h6>
+            </div>
+            @if (!Model.ExamHistory.Any())
+            {
+                <div class="card-body text-center py-4 text-muted"><i class="bx bx-file fs-2 d-block mb-2"></i>No exam results yet.</div>
+            }
+            else
+            {
+                <div class="card-body pt-0">
+                    @foreach (var exam in Model.ExamHistory)
+                    {
+                        var pct = exam.TotalMarks > 0 ? Math.Round(exam.Score / exam.TotalMarks * 100, 1) : 0;
+                        var ec  = pct >= 70 ? "success" : pct >= 50 ? "warning" : "danger";
+                        <div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded-3" style="background:#f8f9ff">
+                            <div>
+                                <div class="fw-semibold">@exam.ExamTitle</div>
+                                <small class="text-muted">@exam.Date.ToString("MMM dd, yyyy")</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-@ec">@exam.Score / @exam.TotalMarks</div>
+                                <div class="progress mt-1" style="height:4px;width:100px">
+                                    <div class="progress-bar bg-@ec" style="width:@pct%"></div>
+                                </div>
+                                <small class="text-@ec">@pct%</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Subject Scores -->
+        @if (Model.SubjectScores.Any())
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-book-open text-success me-2"></i>Performance by Subject</h6>
+                </div>
+                <div class="card-body pt-0">
+                    @foreach (var ss in Model.SubjectScores.OrderBy(x => x.AverageScore))
+                    {
+                        var sc = ss.AverageScore >= 70 ? "success" : ss.AverageScore >= 50 ? "warning" : "danger";
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold">@ss.SubjectName</span>
+                                <span class="fw-bold text-@sc">@ss.AverageScore%</span>
+                            </div>
+                            <div class="progress" style="height:8px">
+                                <div class="progress-bar bg-@sc" style="width:@ss.AverageScore%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <!-- Right column — AI Insights -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm" style="background:linear-gradient(135deg,#696cff11,#71dd3711)">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0">
+                    <i class="bx bx-brain text-primary me-2"></i>AI Insights &amp; Recommendations
+                </h6>
+            </div>
+            <div class="card-body pt-0">
+                @foreach (var insight in Model.Insights)
+                {
+                    <div class="d-flex gap-3 mb-3 p-3 rounded-3" style="background:rgba(255,255,255,.7)">
+                        <div class="flex-shrink-0 mt-1">
+                            <i class="bx bx-bulb text-warning fs-5"></i>
+                        </div>
+                        <p class="mb-0 small">@insight</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-stats text-info me-2"></i>Quick Stats</h6>
+            </div>
+            <div class="card-body pt-0">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Exams Passed</span>
+                    <span class="fw-semibold">@Model.ExamHistory.Count(e => e.TotalMarks > 0 && (e.Score / e.TotalMarks * 100) >= 50)</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Best Score</span>
+                    <span class="fw-semibold text-success">
+                        @(Model.ExamHistory.Any() ? Model.ExamHistory.Max(e => e.Score) + " pts" : "—")
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Lowest Score</span>
+                    <span class="fw-semibold text-danger">
+                        @(Model.ExamHistory.Any() ? Model.ExamHistory.Min(e => e.Score) + " pts" : "—")
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Overall Status</span>
+                    <span class="badge bg-label-@riskColor">@Model.RiskLevel Risk</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

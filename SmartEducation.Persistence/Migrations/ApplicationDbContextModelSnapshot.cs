@@ -1200,14 +1200,53 @@ namespace SmartEducation.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AcademicYearId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("ClassRoomId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmergencyContact")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EnrollmentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("NationalNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ParentEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ParentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ParentPhone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudentNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1216,6 +1255,8 @@ namespace SmartEducation.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
 
                     b.HasIndex("ClassRoomId");
 
@@ -1228,6 +1269,9 @@ namespace SmartEducation.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ClassRoomId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1249,6 +1293,8 @@ namespace SmartEducation.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClassRoomId");
+
                     b.ToTable("Subjects");
                 });
 
@@ -1258,11 +1304,17 @@ namespace SmartEducation.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AcademicYearId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("ClassRoomId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1277,6 +1329,8 @@ namespace SmartEducation.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
 
                     b.HasIndex("ClassRoomId");
 
@@ -1844,6 +1898,11 @@ namespace SmartEducation.Persistence.Migrations
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.StudentProfile", b =>
                 {
+                    b.HasOne("SmartEducation.Domain.Entities.AcademicYear", "AcademicYear")
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
                         .WithMany()
                         .HasForeignKey("ClassRoomId")
@@ -1856,13 +1915,30 @@ namespace SmartEducation.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("AcademicYear");
+
                     b.Navigation("ClassRoom");
 
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SmartEducation.Domain.Entities.Subject", b =>
+                {
+                    b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
+                        .WithMany("Subjects")
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ClassRoom");
+                });
+
             modelBuilder.Entity("SmartEducation.Domain.Entities.TeacherAssignment", b =>
                 {
+                    b.HasOne("SmartEducation.Domain.Entities.AcademicYear", "AcademicYear")
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SmartEducation.Domain.Entities.ClassRoom", "ClassRoom")
                         .WithMany()
                         .HasForeignKey("ClassRoomId")
@@ -1880,6 +1956,8 @@ namespace SmartEducation.Persistence.Migrations
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AcademicYear");
 
                     b.Navigation("ClassRoom");
 
@@ -1961,6 +2039,11 @@ namespace SmartEducation.Persistence.Migrations
             modelBuilder.Entity("SmartEducation.Domain.Entities.AttendanceSession", b =>
                 {
                     b.Navigation("Records");
+                });
+
+            modelBuilder.Entity("SmartEducation.Domain.Entities.ClassRoom", b =>
+                {
+                    b.Navigation("Subjects");
                 });
 
             modelBuilder.Entity("SmartEducation.Domain.Entities.CurriculumPlan", b =>

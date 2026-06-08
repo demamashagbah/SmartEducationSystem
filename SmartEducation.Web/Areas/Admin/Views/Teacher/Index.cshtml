@@ -1,0 +1,131 @@
+@model List<SmartEducation.Application.DTOs.TeacherDetailDto>
+@{
+    ViewData["Title"] = "Teachers";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+    string search = ViewBag.Search ?? "";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bold mb-1">Teachers</h4>
+            <p class="text-muted mb-0">Manage all teachers. Create new teachers from User Management.</p>
+        </div>
+        <a asp-controller="UserManagement" asp-action="Create" class="btn btn-primary">
+            <i class="bx bx-plus me-1"></i> Add New Teacher
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pt-3 pb-2">
+        <form method="get" class="d-flex gap-2">
+            <div class="input-group" style="max-width:380px">
+                <span class="input-group-text bg-transparent"><i class="bx bx-search text-muted"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0"
+                       placeholder="Name, email, employee no, specialization..." />
+            </div>
+            <button type="submit" class="btn btn-outline-success"><i class="bx bx-search me-1"></i>Search</button>
+            @if (!string.IsNullOrEmpty(search)) { <a asp-action="Index" class="btn btn-outline-secondary"><i class="bx bx-x me-1"></i>Clear</a> }
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Teacher</th>
+                    <th>Employee No.</th>
+                    <th>Specialization</th>
+                    <th>Assigned Classes</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bx bx-chalkboard fs-1 d-block mb-2"></i>
+                            No teachers yet. <a asp-controller="UserManagement" asp-action="Create">Add the first teacher.</a>
+                        </td>
+                    </tr>
+                }
+                @{ int i = 1; }
+                @foreach (var t in Model)
+                {
+                    <tr class="@(t.IsActive ? "" : "opacity-75")">
+                        <td class="text-muted small">@i++</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-success bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center fw-bold text-success"
+                                     style="width:38px;height:38px;font-size:.85rem;flex-shrink:0">
+                                    @(t.FirstName.Length > 0 ? t.FirstName[0].ToString().ToUpper() : "?")@(t.LastName.Length > 0 ? t.LastName[0].ToString().ToUpper() : "")
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">@t.FullName</div>
+                                    <small class="text-muted">@t.Email</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><code>@t.EmployeeNumber</code></td>
+                        <td>@(string.IsNullOrEmpty(t.Specialization) ? "—" : t.Specialization)</td>
+                        <td>
+                            @if (t.AssignedClassNames.Any())
+                            {
+                                foreach (var cn in t.AssignedClassNames.Take(3))
+                                {
+                                    <span class="badge bg-label-primary me-1">@cn</span>
+                                }
+                                if (t.AssignedClassNames.Count > 3)
+                                {
+                                    <span class="text-muted small">+@(t.AssignedClassNames.Count - 3) more</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Not assigned</span>
+                            }
+                        </td>
+                        <td>
+                            @if (t.IsActive)
+                            {
+                                <span class="badge bg-label-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-danger">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end pe-3">
+                            <a asp-action="Details" asp-route-id="@t.ProfileId" class="btn btn-sm btn-outline-info me-1">
+                                <i class="bx bx-show me-1"></i>View Details
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@t.ProfileId" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bx bx-edit me-1"></i>Edit
+                            </a>
+                            <a asp-action="ResetPassword" asp-route-id="@t.ProfileId" class="btn btn-sm btn-outline-secondary me-1">
+                                <i class="bx bx-lock-open me-1"></i>Reset Password
+                            </a>
+                            <form asp-action="ToggleActive" method="post" class="d-inline"
+                                  onsubmit="return confirm('@(t.IsActive ? "Deactivate" : "Activate") @t.FullName?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@t.ProfileId" />
+                                <button type="submit" class="btn btn-sm @(t.IsActive ? "btn-outline-warning" : "btn-outline-success")">
+                                    <i class="bx @(t.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
+                                    @(t.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

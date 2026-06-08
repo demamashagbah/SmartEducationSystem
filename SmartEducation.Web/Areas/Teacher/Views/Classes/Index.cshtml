@@ -1,0 +1,115 @@
+@using SmartEducation.Web.Areas.Teacher.Controllers
+@model List<TeacherClassViewModel>
+@{
+    ViewData["Title"] = "Assigned Classes";
+    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bx bx-buildings text-primary me-2"></i>Assigned Classes</h4>
+            <p class="text-muted mb-0">All classes you are currently teaching — @Model.Count class(es).</p>
+        </div>
+        <a asp-area="Teacher" asp-controller="Attendance" asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="bx bx-user-check me-1"></i>Take Attendance
+        </a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-buildings fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">No classes assigned</h5>
+            <p class="text-muted">Contact your administrator to get classes assigned to you.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var cls in Model)
+        {
+            var attColor = cls.AttendanceRate >= 85 ? "success" : cls.AttendanceRate >= 70 ? "warning" : "danger";
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <!-- Header -->
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="rounded-3 d-flex align-items-center justify-content-center"
+                                 style="width:52px;height:52px;background:#696cff22;flex-shrink:0">
+                                <i class="bx bx-buildings text-primary fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">@cls.ClassName</h5>
+                                <span class="badge bg-label-secondary">@cls.GradeName</span>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-3 rounded-3 text-center" style="background:#f0f0ff">
+                                    <div class="fw-bold text-primary fs-5">@cls.StudentCount</div>
+                                    <small class="text-muted">Students</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-3 text-center" style="background:#f0fff0">
+                                    <div class="fw-bold text-success fs-5">@cls.TotalSessions</div>
+                                    <small class="text-muted">Sessions</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-3 text-center" style="background:#fff8f0">
+                                    <div class="fw-bold text-warning fs-5">@cls.UpcomingExams</div>
+                                    <small class="text-muted">Upcoming Exams</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-3 text-center" style="background:#f0fff9">
+                                    <div class="fw-bold text-info fs-5">@cls.ActiveAssignments</div>
+                                    <small class="text-muted">Assignments</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attendance -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted fw-semibold">Attendance Rate</small>
+                                <small class="fw-bold text-@attColor">@cls.AttendanceRate%</small>
+                            </div>
+                            <div class="progress" style="height:6px">
+                                <div class="progress-bar bg-@attColor" style="width:@cls.AttendanceRate%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Subjects -->
+                        @if (cls.Subjects.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (var subj in cls.Subjects)
+                                {
+                                    <span class="badge bg-label-primary">@subj</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                        <a asp-area="Teacher" asp-controller="Attendance" asp-action="Create"
+                           class="btn btn-sm btn-success flex-grow-1">
+                            <i class="bx bx-user-check me-1"></i>Take Attendance
+                        </a>
+                        <a asp-area="Teacher" asp-controller="StudentAnalytics" asp-action="Index"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bx bx-bar-chart-alt-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using SmartEducation.Application.DTOs;
 using SmartEducation.Application.Interfaces;
 using SmartEducation.Application.Interfaces.Services;
@@ -18,24 +17,36 @@ namespace SmartEducation.Infrastructure.Services
         public async Task<IEnumerable<SubjectDto>> GetAllAsync()
         {
             var subjects = await _unitOfWork.Subjects.GetAllAsync();
-            return subjects.Select(s => new SubjectDto
-            {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description
-            });
+            var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
+            return subjects.Select(s => MapToDto(s, classRooms));
         }
+
+        public async Task<IEnumerable<SubjectDto>> GetByClassRoomAsync(Guid classRoomId)
+        {
+            var all = await _unitOfWork.Subjects.GetAllAsync();
+            var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
+            return all.Where(s => s.ClassRoomId == classRoomId).Select(s => MapToDto(s, classRooms));
+        }
+
+
 
         public async Task<SubjectDto?> GetByIdAsync(Guid id)
         {
             var s = await _unitOfWork.Subjects.GetByIdAsync(id);
             if (s == null) return null;
-            return new SubjectDto { Id = s.Id, Name = s.Name, Description = s.Description };
+            var classRooms = await _unitOfWork.ClassRooms.GetAllAsync();
+            return MapToDto(s, classRooms);
         }
 
         public async Task<SubjectDto> CreateAsync(SubjectDto dto)
         {
-            var entity = new Subject { Id = Guid.NewGuid(), Name = dto.Name, Description = dto.Description };
+            var entity = new Subject
+            {
+                Id = Guid.NewGuid(),
+                Name = dto.Name,
+                Description = dto.Description,
+                ClassRoomId = dto.ClassRoomId == Guid.Empty ? null : dto.ClassRoomId
+            };
             await _unitOfWork.Subjects.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
             dto.Id = entity.Id;
@@ -48,6 +59,7 @@ namespace SmartEducation.Infrastructure.Services
             if (entity == null) return false;
             entity.Name = dto.Name;
             entity.Description = dto.Description;
+            entity.ClassRoomId = dto.ClassRoomId == Guid.Empty ? null : dto.ClassRoomId;
             await _unitOfWork.Subjects.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -61,5 +73,16 @@ namespace SmartEducation.Infrastructure.Services
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
+        private static SubjectDto MapToDto(Subject s, IEnumerable<ClassRoom> classRooms) => new()
+        {
+            Id = s.Id,
+            Name = s.Name,
+            Description = s.Description,
+            ClassRoomId = s.ClassRoomId,
+            ClassRoomName = s.ClassRoomId.HasValue
+                ? classRooms.FirstOrDefault(c => c.Id == s.ClassRoomId.Value)?.Name ?? ""
+                : ""
+        };
     }
 }

@@ -13,6 +13,9 @@ namespace SmartEducation.Web.Areas.Admin.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
+        public Guid ClassRoomId { get; set; }
+        public string ClassRoomName { get; set; } = string.Empty;
+
         public int UnitCount { get; set; }
     }
 }

@@ -1,90 +1,65 @@
-﻿<nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme">
+<nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme">
 
-    <div class="navbar-nav-right d-flex align-items-center"
-         id="navbar-collapse">
+    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
 
-        <ul class="navbar-nav flex-row align-items-center ms-auto">
+        <ul class="navbar-nav flex-row align-items-center ms-auto gap-2">
 
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
-
-                <a class="nav-link dropdown-toggle hide-arrow"
-                   href="javascript:void(0);"
-                   data-bs-toggle="dropdown">
-
+                <a class="nav-link dropdown-toggle hide-arrow d-flex align-items-center gap-2"
+                   href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <!-- Professional admin avatar (SVG, no real person image) -->
                     <div class="avatar avatar-online">
-
-                        <img src="~/assets/img/avatars/1.png"
-                             class="w-px-40 h-auto rounded-circle" />
-
+                        <div class="w-px-40 h-px-40 rounded-circle bg-primary d-flex align-items-center justify-content-center"
+                             style="width:40px;height:40px">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.86 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
+                            </svg>
+                        </div>
                     </div>
-
+                    <div class="d-none d-xl-block">
+                        <small class="fw-semibold d-block lh-1">Administrator</small>
+                        <small class="text-muted" style="font-size:.72rem">@User.Identity?.Name</small>
+                    </div>
                 </a>
 
-                <ul class="dropdown-menu dropdown-menu-end">
-
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                     <li>
-
-                        <a class="dropdown-item"
-                           href="#">
-
-                            <div class="d-flex">
-
-                                <div class="flex-shrink-0 me-3">
-
-                                    <div class="avatar avatar-online">
-
-                                        <img src="~/assets/img/avatars/1.png"
-                                             class="w-px-40 h-auto rounded-circle" />
-
-                                    </div>
-
-                                </div>
-
-                                <div class="flex-grow-1">
-
-                                    <span class="fw-semibold d-block">
-                                        @User.Identity?.Name
-                                    </span>
-
-                                </div>
-
+                        <div class="dropdown-item d-flex align-items-center gap-3 py-3">
+                            <div class="bg-primary bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:46px;height:46px;flex-shrink:0">
+                                <i class="bx bx-shield text-primary fs-4"></i>
                             </div>
-
+                            <div>
+                                <span class="fw-semibold d-block">Administrator</span>
+                                <small class="text-muted">@User.Identity?.Name</small>
+                            </div>
+                        </div>
+                    </li>
+                    <li><div class="dropdown-divider my-0"></div></li>
+                    <li>
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+                           class="dropdown-item py-2">
+                            <i class="bx bx-home-circle me-2 text-primary"></i>Dashboard
                         </a>
-
                     </li>
-
                     <li>
-                        <div class="dropdown-divider"></div>
+                        <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index"
+                           class="dropdown-item py-2">
+                            <i class="bx bx-group me-2 text-info"></i>Manage Users
+                        </a>
                     </li>
-
+                    <li><div class="dropdown-divider my-0"></div></li>
                     <li>
-
-                        <form asp-controller="Account"
-                              asp-action="Logout"
-                              method="post">
-
-                            <button type="submit"
-                                    class="dropdown-item">
-
-                                <i class="bx bx-power-off me-2"></i>
-
-                                <span>
-                                    Log Out
-                                </span>
-
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="dropdown-item py-2 text-danger">
+                                <i class="bx bx-power-off me-2"></i>Log Out
                             </button>
-
                         </form>
-
                     </li>
-
                 </ul>
-
             </li>
 
         </ul>
-
     </div>
-
 </nav>

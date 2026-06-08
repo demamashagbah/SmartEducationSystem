@@ -8,6 +8,7 @@ using SmartEducation.Application.Interfaces;
 using SmartEducation.Application.Interfaces.Services;
 using SmartEducation.Domain.Entities;
 using SmartEducation.Domain.Enums;
+using SmartEducation.Web.Areas.Teacher.Models;
 
 namespace SmartEducation.Web.Areas.Teacher.Controllers
 {
@@ -41,15 +42,12 @@ namespace SmartEducation.Web.Areas.Teacher.Controllers
             if (profile == null) return RedirectToAction("Index", "Dashboard");
 
             var teacherAssignments = await _unitOfWork.TeacherAssignments.GetAllAsync();
-            var mySubjectIds = teacherAssignments.Where(ta => ta.TeacherId == profile.Id)
-                                                  .Select(ta => ta.SubjectId).Distinct().ToList();
-            var myClassIds = teacherAssignments.Where(ta => ta.TeacherId == profile.Id)
-                                                .Select(ta => ta.ClassRoomId).Distinct().ToList();
+            var mySubjectIds = teacherAssignments.Where(ta => ta.TeacherId == profile.Id).Select(ta => ta.SubjectId).Distinct().ToList();
+            var myClassIds = teacherAssignments.Where(ta => ta.TeacherId == profile.Id).Select(ta => ta.ClassRoomId).Distinct().ToList();
 
             var allExams = await _examService.GetAllAsync();
-            var myExams = allExams.Where(e =>
-                mySubjectIds.Contains(e.SubjectId) ||
-                (e.ClassRoomId.HasValue && myClassIds.Contains(e.ClassRoomId.Value)))
+            var myExams = allExams
+                .Where(e => mySubjectIds.Contains(e.SubjectId) || (e.ClassRoomId.HasValue && myClassIds.Contains(e.ClassRoomId.Value)))
                 .OrderByDescending(e => e.ExamDate).ToList();
 
             return View(myExams);
@@ -62,24 +60,47 @@ namespace SmartEducation.Web.Areas.Teacher.Controllers
             if (profile == null) return RedirectToAction("Index", "Dashboard");
 
             await PopulateDropdowns(profile.Id);
-            return View(new ExamDto { ExamDate = DateTime.Today.AddDays(7), TotalMarks = 100, DurationMinutes = 60 });
+            return View(new ExamCreateViewModel { ExamDate = DateTime.Today.AddDays(7) });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ExamDto dto)
+        public async Task<IActionResult> Create(ExamCreateViewModel model)
         {
             var profile = await GetTeacherProfile();
             if (profile == null) return RedirectToAction("Index", "Dashboard");
 
-            if (!ModelState.IsValid)
+            var sections = (model.Sections ?? new List<ExamSectionViewModel>())
+                .Where(s => !string.IsNullOrWhiteSpace(s.SectionName) && s.QuestionCount > 0 && s.MarksEach > 0)
+                .ToList();
+
+            if (!sections.Any())
             {
+                ModelState.AddModelError("", "Please add at least one exam section with a name, question count, and marks.");
                 await PopulateDropdowns(profile.Id);
-                return View(dto);
+                return View(model);
             }
 
+            int totalMarks = sections.Sum(s => s.QuestionCount * s.MarksEach);
+            var sectionSummary = string.Join(" | ", sections.Select(s => $"{s.SectionName}: {s.QuestionCount}×{s.QuestionType}@{s.MarksEach}mk"));
+
+            var dto = new ExamDto
+            {
+                Title = model.Title,
+                Description = string.IsNullOrWhiteSpace(model.Description)
+                    ? $"[Sections: {sectionSummary}]"
+                    : $"{model.Description}\n[Sections: {sectionSummary}]",
+                SubjectId = model.SubjectId,
+                ClassRoomId = model.ClassRoomId,
+                ExamDate = model.ExamDate,
+                DurationMinutes = model.DurationMinutes,
+                TotalMarks = totalMarks
+            };
+
+            if (Enum.TryParse<ExamType>(model.ExamType, out var examType)) dto.ExamType = examType;
+
             await _examService.CreateAsync(dto);
-            TempData["Success"] = "Exam created successfully.";
+            TempData["Success"] = $"Exam '{model.Title}' created — {totalMarks} marks across {sections.Count} section(s).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -134,7 +155,6 @@ namespace SmartEducation.Web.Areas.Teacher.Controllers
                 var user = sp != null ? allUsers.FirstOrDefault(u => u.Id == sp.UserId) : null;
                 return new
                 {
-                    StudentExamId = se.Id,
                     StudentName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown",
                     Score = se.Score,
                     IsSubmitted = se.IsSubmitted,
@@ -154,100 +174,133 @@ namespace SmartEducation.Web.Areas.Teacher.Controllers
             if (profile == null) return RedirectToAction("Index", "Dashboard");
 
             await PopulateDropdowns(profile.Id);
-            await PopulateTopicDropdownsForExam(profile.Id);
-            return View(new ExamDto { ExamDate = DateTime.Today.AddDays(14), TotalMarks = 100, DurationMinutes = 60 });
+            await PopulateCurriculumTree(profile.Id);
+            return View(new ExamCreateViewModel { ExamDate = DateTime.Today.AddDays(14) });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerateAI(ExamDto dto, List<Guid> topicIds, int questionCount, string difficulty)
+        public async Task<IActionResult> GenerateAI(ExamCreateViewModel model, List<Guid> topicIds, string difficulty)
         {
             var profile = await GetTeacherProfile();
             if (profile == null) return RedirectToAction("Index", "Dashboard");
 
+            var sections = (model.Sections ?? new List<ExamSectionViewModel>())
+                .Where(s => !string.IsNullOrWhiteSpace(s.SectionName) && s.QuestionCount > 0 && s.MarksEach > 0)
+                .ToList();
+
+            if (!sections.Any())
+                sections = new List<ExamSectionViewModel>
+                {
+                    new() { SectionName = "Section A", QuestionType = "MultipleChoice", QuestionCount = 10, MarksEach = 1 }
+                };
+
+            int totalMarks = sections.Sum(s => s.QuestionCount * s.MarksEach);
+
+            var dto = new ExamDto
+            {
+                Title = model.Title,
+                Description = model.Description,
+                SubjectId = model.SubjectId,
+                ClassRoomId = model.ClassRoomId,
+                ExamDate = model.ExamDate,
+                DurationMinutes = model.DurationMinutes,
+                TotalMarks = totalMarks
+            };
+            if (Enum.TryParse<ExamType>(model.ExamType, out var examType)) dto.ExamType = examType;
+
             var exam = await _examService.CreateAsync(dto);
 
-            // Generate questions from selected topics
             var topics = await _unitOfWork.Topics.GetAllAsync();
             var outcomes = await _unitOfWork.LearningOutcomes.GetAllAsync();
-            var questionTypes = Enum.GetValues<SmartEducation.Domain.Enums.QuestionType>();
-            var diffLevel = Enum.TryParse<SmartEducation.Domain.Enums.DifficultyLevel>(difficulty, out var dl) ? dl : SmartEducation.Domain.Enums.DifficultyLevel.Medium;
+            var diffLevel = Enum.TryParse<DifficultyLevel>(difficulty, out var dl) ? dl : DifficultyLevel.Medium;
 
-            int qPerTopic = topicIds.Count > 0 ? Math.Max(1, questionCount / topicIds.Count) : 0;
-            int qIndex = 0;
+            var selectedTopics = topicIds.Any()
+                ? topics.Where(t => topicIds.Contains(t.Id)).ToList()
+                : topics.Take(5).ToList();
 
-            foreach (var topicId in topicIds.Take(10))
+            int topicIndex = 0;
+            int totalGenerated = 0;
+
+            foreach (var section in sections)
             {
-                var topic = topics.FirstOrDefault(t => t.Id == topicId);
-                if (topic == null) continue;
-
-                var topicOutcomes = outcomes.Where(lo => lo.TopicId == topicId).ToList();
-                int questionsForThisTopic = Math.Min(qPerTopic, questionCount - qIndex);
-
-                for (int q = 0; q < questionsForThisTopic; q++)
+                var qType = section.QuestionType switch
                 {
-                    var qType = questionTypes[qIndex % questionTypes.Length];
-                    var question = BuildQuestion(topic.Name, topicOutcomes.Select(lo => lo.Description).ToList(), qType, q + 1, exam.TotalMarks / questionCount);
+                    "TrueFalse" => QuestionType.TrueFalse,
+                    "Essay" => QuestionType.Essay,
+                    "FillInBlank" or "FillInTheBlank" => QuestionType.FillInTheBlank,
+                    _ => QuestionType.MultipleChoice
+                };
 
-                    await _unitOfWork.QuestionBanks.AddAsync(question);
+                for (int q = 0; q < section.QuestionCount; q++)
+                {
+                    var topic = selectedTopics.Count > 0 ? selectedTopics[topicIndex % selectedTopics.Count] : null;
+                    topicIndex++;
+
+                    var topicName = topic?.Name ?? "General";
+                    var topicOutcomes = topic != null
+                        ? outcomes.Where(lo => lo.TopicId == topic.Id).Select(lo => lo.Description).ToList()
+                        : new List<string>();
+
+                    var question = BuildQuestion(topicName, topicOutcomes, qType, q + 1, section.MarksEach, section.SectionName);
                     question.SubjectId = dto.SubjectId;
                     question.ExamId = exam.Id;
-                    question.QuestionType = qType;
                     question.DifficultyLevel = diffLevel;
 
-                    qIndex++;
-                    if (qIndex >= questionCount) break;
+                    await _unitOfWork.QuestionBanks.AddAsync(question);
+                    totalGenerated++;
                 }
-                if (qIndex >= questionCount) break;
             }
 
             await _unitOfWork.SaveChangesAsync();
-            TempData["Success"] = $"Exam created with {qIndex} AI-generated questions!";
+            TempData["Success"] = $"AI generated {totalGenerated} questions across {sections.Count} section(s). Total marks: {totalMarks}.";
             return RedirectToAction(nameof(Index));
         }
 
-        private static SmartEducation.Domain.Entities.QuestionBank BuildQuestion(string topicName, List<string> outcomes, SmartEducation.Domain.Enums.QuestionType qType, int num, int marks)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _examService.DeleteAsync(id);
+            TempData["Success"] = "Exam deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private static QuestionBank BuildQuestion(string topicName, List<string> outcomes, QuestionType qType, int num, int marks, string sectionName)
         {
             var outcome = outcomes.FirstOrDefault() ?? topicName;
-            var q = new SmartEducation.Domain.Entities.QuestionBank
-            {
-                Id = Guid.NewGuid(),
-                Marks = Math.Max(1, marks)
-            };
+            var q = new QuestionBank { Id = Guid.NewGuid(), Marks = Math.Max(1, marks), QuestionType = qType };
 
             switch (qType)
             {
-                case SmartEducation.Domain.Enums.QuestionType.MultipleChoice:
-                    q.QuestionText = $"Which of the following best describes {topicName}?";
+                case QuestionType.MultipleChoice:
+                    q.QuestionText = $"Which of the following best describes: {topicName}?";
                     q.OptionA = $"The primary concept of {topicName}";
-                    q.OptionB = $"An unrelated concept to {topicName}";
-                    q.OptionC = $"A partial definition of {topicName}";
-                    q.OptionD = $"None of the above";
+                    q.OptionB = "An unrelated concept";
+                    q.OptionC = $"A partial aspect of {topicName}";
+                    q.OptionD = "None of the above";
                     q.CorrectAnswer = "A";
                     break;
-                case SmartEducation.Domain.Enums.QuestionType.TrueFalse:
+                case QuestionType.TrueFalse:
                     q.QuestionText = $"{outcome} — This statement is correct regarding {topicName}.";
-                    q.OptionA = "True";
-                    q.OptionB = "False";
-                    q.CorrectAnswer = "True";
+                    q.OptionA = "True"; q.OptionB = "False"; q.CorrectAnswer = "True";
                     break;
-                case SmartEducation.Domain.Enums.QuestionType.Essay:
-                    q.QuestionText = $"Explain in detail: {outcome}. Use examples related to {topicName} to support your answer.";
-                    q.CorrectAnswer = $"Expected answer should demonstrate understanding of {topicName} and cover: {outcome}";
+                case QuestionType.Essay:
+                    q.QuestionText = $"Explain in detail: {outcome}. Use examples related to {topicName}.";
+                    q.CorrectAnswer = $"Answer should demonstrate understanding of {topicName}";
                     break;
                 default:
-                    q.QuestionText = $"Fill in the blank: ________ is a key concept in {topicName}.";
+                    q.QuestionText = $"________ is a key concept in {topicName}.";
                     q.CorrectAnswer = topicName;
                     break;
             }
             return q;
         }
 
-        private async Task PopulateTopicDropdownsForExam(Guid teacherProfileId)
+        private async Task PopulateCurriculumTree(Guid teacherProfileId)
         {
             var teacherAssignments = await _unitOfWork.TeacherAssignments.GetAllAsync();
-            var mySubjectIds = teacherAssignments.Where(ta => ta.TeacherId == teacherProfileId)
-                                                  .Select(ta => ta.SubjectId).Distinct().ToList();
+            var mySubjectIds = teacherAssignments.Where(ta => ta.TeacherId == teacherProfileId).Select(ta => ta.SubjectId).Distinct().ToList();
             var subjects = await _unitOfWork.Subjects.GetAllAsync();
             var units = await _unitOfWork.Units.GetAllAsync();
             var lessons = await _unitOfWork.Lessons.GetAllAsync();
@@ -257,27 +310,15 @@ namespace SmartEducation.Web.Areas.Teacher.Controllers
             var myLessonIds = lessons.Where(l => myUnitIds.Contains(l.UnitId)).Select(l => l.Id).ToList();
             var myTopics = topics.Where(t => myLessonIds.Contains(t.LessonId)).ToList();
 
-            ViewBag.TopicsList = myTopics.Select(t => {
+            ViewBag.TopicsList = myTopics.Select(t =>
+            {
                 var lesson = lessons.FirstOrDefault(l => l.Id == t.LessonId);
                 var unit = lesson != null ? units.FirstOrDefault(u => u.Id == lesson.UnitId) : null;
                 var subject = unit != null ? subjects.FirstOrDefault(s => s.Id == unit.SubjectId) : null;
                 return new { Value = t.Id.ToString(), Text = $"{subject?.Name} › {unit?.Name} › {lesson?.Name} › {t.Name}" };
             }).ToList();
 
-            ViewBag.Difficulties = Enum.GetNames<SmartEducation.Domain.Enums.DifficultyLevel>()
-                .Select(d => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem(d, d));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var profile = await GetTeacherProfile();
-            if (profile == null) return RedirectToAction("Index", "Dashboard");
-
-            await _examService.DeleteAsync(id);
-            TempData["Success"] = "Exam deleted.";
-            return RedirectToAction(nameof(Index));
+            ViewBag.Difficulties = Enum.GetNames<DifficultyLevel>().Select(d => new SelectListItem(d, d));
         }
 
         private async Task PopulateDropdowns(Guid teacherProfileId)
@@ -290,12 +331,9 @@ namespace SmartEducation.Web.Areas.Teacher.Controllers
             var mySubjectIds = myAssignments.Select(ta => ta.SubjectId).Distinct().ToList();
             var myClassIds = myAssignments.Select(ta => ta.ClassRoomId).Distinct().ToList();
 
-            ViewBag.Subjects = subjects.Where(s => mySubjectIds.Contains(s.Id))
-                .Select(s => new SelectListItem(s.Name, s.Id.ToString()));
-            ViewBag.ClassRooms = classRooms.Where(c => myClassIds.Contains(c.Id))
-                .Select(c => new SelectListItem(c.Name, c.Id.ToString()));
-            ViewBag.ExamTypes = Enum.GetValues<ExamType>()
-                .Select(t => new SelectListItem(t.ToString(), ((int)t).ToString()));
+            ViewBag.Subjects = subjects.Where(s => mySubjectIds.Contains(s.Id)).Select(s => new SelectListItem(s.Name, s.Id.ToString()));
+            ViewBag.ClassRooms = classRooms.Where(c => myClassIds.Contains(c.Id)).Select(c => new SelectListItem(c.Name, c.Id.ToString()));
+            ViewBag.ExamTypes = Enum.GetValues<ExamType>().Select(t => new SelectListItem(t.ToString(), t.ToString()));
         }
     }
 }

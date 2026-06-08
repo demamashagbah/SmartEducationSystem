@@ -1,0 +1,142 @@
+@model List<SmartEducation.Application.DTOs.StudentDetailDto>
+@{
+    ViewData["Title"] = "Students";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+    string search = ViewBag.Search ?? "";
+}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bold mb-1">Students</h4>
+            <p class="text-muted mb-0">All registered students. Use Class management to assign them to a class.</p>
+        </div>
+        <a asp-controller="UserManagement" asp-action="Create" class="btn btn-primary">
+            <i class="bx bx-user-plus me-1"></i> Add New Student
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pt-3 pb-0">
+        <form method="get" class="d-flex gap-2 mb-3">
+            <div class="input-group" style="max-width:420px">
+                <span class="input-group-text bg-transparent"><i class="bx bx-search text-muted"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0"
+                       placeholder="Search by name, student number, national number, email..." />
+            </div>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bx bx-search me-1"></i>Search
+            </button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bx bx-x me-1"></i>Clear
+                </a>
+            }
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Student No.</th>
+                    <th>National No.</th>
+                    <th>Class</th>
+                    <th>Parent</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bx bx-user-x fs-1 d-block mb-2"></i>
+                            @if (!string.IsNullOrEmpty(search))
+                            {
+                                <span>No students match "<strong>@search</strong>". <a asp-action="Index">Clear search.</a></span>
+                            }
+                            else
+                            {
+                                <span>No students yet. <a asp-controller="UserManagement" asp-action="Create">Add the first student.</a></span>
+                            }
+                        </td>
+                    </tr>
+                }
+                @{ int i = 1; }
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td class="text-muted small">@i++</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center fw-bold text-primary"
+                                     style="width:36px;height:36px;font-size:.82rem;flex-shrink:0">
+                                    @(s.FirstName.Length > 0 ? s.FirstName[0].ToString() : "?")@(s.LastName.Length > 0 ? s.LastName[0].ToString() : "")
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">@s.FullName</div>
+                                    <small class="text-muted">@s.Email</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><code class="text-primary">@(string.IsNullOrEmpty(s.StudentNumber) ? "—" : s.StudentNumber)</code></td>
+                        <td><small>@(string.IsNullOrEmpty(s.NationalNumber) ? "—" : s.NationalNumber)</small></td>
+                        <td>
+                            @if (s.ClassRoomId.HasValue)
+                            {
+                                <span class="badge bg-label-success">@s.ClassRoomName</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-warning"><i class="bx bx-error me-1"></i>Unassigned</span>
+                            }
+                        </td>
+                        <td>
+                            <div>@(string.IsNullOrEmpty(s.ParentName) ? "—" : s.ParentName)</div>
+                            <small class="text-muted">@s.ParentPhone</small>
+                        </td>
+                        <td>
+                            @if (s.IsActive)
+                            {
+                                <span class="badge bg-label-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-danger">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end pe-3">
+                            <a asp-action="Details" asp-route-id="@s.ProfileId"
+                               class="btn btn-sm btn-outline-info me-1">
+                                <i class="bx bx-show me-1"></i>View Details
+                            </a>
+                            <a asp-action="ResetPassword" asp-route-id="@s.ProfileId"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bx bx-lock-open me-1"></i>Reset Password
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.Any())
+    {
+        <div class="card-footer bg-transparent border-0 text-muted small py-2 px-4">
+            Showing @Model.Count student(s)@(string.IsNullOrEmpty(search) ? "" : $" matching \"{search}\"")
+        </div>
+    }
+</div>

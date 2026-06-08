@@ -1,4 +1,4 @@
-@model SmartEducation.Application.DTOs.ExamDto
+@model SmartEducation.Web.Areas.Teacher.Models.ExamCreateViewModel
 @{
     ViewData["Title"] = "Create Exam";
     Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
@@ -7,38 +7,57 @@
 <div class="row mb-4">
     <div class="col-12 d-flex align-items-center justify-content-between">
         <div>
-            <h4 class="fw-bold mb-1">Create Exam</h4>
-            <p class="text-muted mb-0">Schedule a new exam for your students.</p>
+            <h4 class="fw-bold mb-1"><i class="bx bx-file-blank text-primary me-2"></i>Create Exam</h4>
+            <p class="text-muted mb-0">Define sections, question types, and marks. Total is calculated automatically.</p>
         </div>
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+        <div class="d-flex gap-2">
+            <a asp-action="GenerateAI" class="btn btn-outline-primary">
+                <i class="bx bx-brain me-1"></i> AI Generate
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i> Back
+            </a>
+        </div>
     </div>
 </div>
 
-<form asp-action="Create" method="post">
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger mb-3">
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div><i class="bx bx-error-circle me-1"></i>@e.ErrorMessage</div>
+        }
+    </div>
+}
+
+<form asp-action="Create" method="post" id="examForm">
     @Html.AntiForgeryToken()
     <div class="row g-4">
+
+        <!-- Left: Details + Sections -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0">
-                    <h6 class="fw-bold mb-0"><i class="bx bx-info-circle me-2 text-primary"></i>Exam Details</h6>
+
+            <!-- Exam Info Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bx bx-info-circle me-2"></i>Exam Information</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label asp-for="Title" class="form-label fw-semibold">Exam Title <span class="text-danger">*</span></label>
-                        <input asp-for="Title" class="form-control" placeholder="e.g., Chapter 5 Mid-term Exam" />
-                        <span asp-validation-for="Title" class="text-danger small"></span>
+                        <label asp-for="Title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="e.g., Unit 3 Mid-Term Exam" required />
                     </div>
                     <div class="mb-3">
-                        <label asp-for="Description" class="form-label fw-semibold">Description / Instructions</label>
-                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Exam instructions and coverage..."></textarea>
+                        <label asp-for="Description" class="form-label fw-semibold">Instructions</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="Read all questions carefully..."></textarea>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="SubjectId" class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
-                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select">
+                            <select asp-for="SubjectId" asp-items="ViewBag.Subjects" class="form-select" required>
                                 <option value="">— Select Subject —</option>
                             </select>
-                            <span asp-validation-for="SubjectId" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="ClassRoomId" class="form-label fw-semibold">Class</label>
@@ -46,35 +65,131 @@
                                 <option value="">— Optional —</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="row g-3 mt-1">
                         <div class="col-md-4">
-                            <label asp-for="ExamType" class="form-label fw-semibold">Exam Type <span class="text-danger">*</span></label>
+                            <label asp-for="ExamType" class="form-label fw-semibold">Type</label>
                             <select asp-for="ExamType" asp-items="ViewBag.ExamTypes" class="form-select"></select>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="ExamDate" class="form-label fw-semibold">Exam Date <span class="text-danger">*</span></label>
-                            <input asp-for="ExamDate" type="date" class="form-control" />
-                            <span asp-validation-for="ExamDate" class="text-danger small"></span>
+                            <label asp-for="ExamDate" class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                            <input asp-for="ExamDate" type="date" class="form-control" required />
                         </div>
                         <div class="col-md-4">
                             <label asp-for="DurationMinutes" class="form-label fw-semibold">Duration (min)</label>
                             <input asp-for="DurationMinutes" type="number" class="form-control" min="15" max="300" />
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <label asp-for="TotalMarks" class="form-label fw-semibold">Total Marks</label>
-                        <input asp-for="TotalMarks" type="number" class="form-control" min="1" max="1000" style="max-width:200px" />
+                </div>
+            </div>
+
+            <!-- Section Builder Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success bg-opacity-10 border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-success mb-0"><i class="bx bx-list-ol me-2"></i>Exam Sections</h6>
+                    <button type="button" class="btn btn-success btn-sm" onclick="addSection()">
+                        <i class="bx bx-plus me-1"></i>Add Section
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Section Name</th>
+                                    <th>Question Type</th>
+                                    <th style="width:95px">Questions</th>
+                                    <th style="width:95px">Marks Each</th>
+                                    <th style="width:95px" class="text-center">Total</th>
+                                    <th style="width:44px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="sectionsBody">
+                                @for (int si = 0; si < Model.Sections.Count; si++)
+                                {
+                                    <tr>
+                                        <td class="ps-3">
+                                            <input type="text" name="Sections[@si].SectionName"
+                                                   value="@Model.Sections[si].SectionName"
+                                                   class="form-control form-control-sm" placeholder="Section A" required />
+                                        </td>
+                                        <td>
+                                            <select name="Sections[@si].QuestionType"
+                                                    class="form-select form-select-sm qtype-select">
+                                                @foreach (var qt in new[] { "MultipleChoice", "TrueFalse", "Essay", "FillInBlank", "Matching" })
+                                                {
+                                                    var label = qt == "MultipleChoice" ? "Multiple Choice" :
+                                                                qt == "TrueFalse" ? "True / False" :
+                                                                qt == "FillInBlank" ? "Fill in the Blank" : qt;
+                                                    <option value="@qt" selected="@(Model.Sections[si].QuestionType == qt ? "selected" : null)">@label</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Sections[@si].QuestionCount"
+                                                   value="@Model.Sections[si].QuestionCount"
+                                                   class="form-control form-control-sm q-count" min="1" max="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Sections[@si].MarksEach"
+                                                   value="@Model.Sections[si].MarksEach"
+                                                   class="form-control form-control-sm m-each" min="1" max="100" required />
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-label-success sec-total fw-bold fs-6">
+                                                @(Model.Sections[si].QuestionCount * Model.Sections[si].MarksEach)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="removeSection(this)" title="Remove section">
+                                                <i class="bx bx-x"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="4" class="text-end fw-bold pe-3 py-2">Grand Total:</td>
+                                    <td class="text-center py-2">
+                                        <span class="badge bg-primary fw-bold fs-5" id="grandTotal">@Model.TotalMarks</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <small class="text-muted">
+                        <i class="bx bx-info-circle me-1"></i>
+                        Total marks = sum of (Questions × Marks Each) per section.
+                    </small>
                 </div>
             </div>
         </div>
+
+        <!-- Right: Live Summary + Actions -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm sticky-top" style="top:80px">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-bar-chart-alt-2 me-2 text-warning"></i>Live Summary</h6>
+                </div>
                 <div class="card-body">
-                    <h6 class="fw-bold mb-3">Actions</h6>
+                    <div id="sectionSummary" class="mb-3 small"></div>
+
+                    <div class="text-center p-3 rounded-3 mb-4"
+                         style="background:linear-gradient(135deg,rgba(105,108,255,.1),rgba(113,221,55,.1))">
+                        <div class="text-muted small mb-1">Total Marks</div>
+                        <div class="fw-bold text-primary" id="grandTotalBig" style="font-size:2.5rem;line-height:1">@Model.TotalMarks</div>
+                    </div>
+
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary"><i class="bx bx-save me-1"></i>Create Exam</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save me-1"></i>Create Exam
+                        </button>
+                        <a asp-action="GenerateAI" class="btn btn-outline-primary">
+                            <i class="bx bx-brain me-1"></i>Generate with AI
+                        </a>
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </div>
@@ -84,5 +199,76 @@
 </form>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+<script>
+let sIdx = @Model.Sections.Count;
+
+function addSection() {
+    const i = sIdx++;
+    const letter = String.fromCharCode(65 + (document.querySelectorAll('#sectionsBody tr').length));
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="ps-3"><input type="text" name="Sections[${i}].SectionName" value="Section ${letter}" class="form-control form-control-sm" placeholder="Section ${letter}" required /></td>
+        <td><select name="Sections[${i}].QuestionType" class="form-select form-select-sm qtype-select">
+            <option value="MultipleChoice">Multiple Choice</option>
+            <option value="TrueFalse">True / False</option>
+            <option value="Essay">Essay</option>
+            <option value="FillInBlank">Fill in the Blank</option>
+            <option value="Matching">Matching</option>
+        </select></td>
+        <td><input type="number" name="Sections[${i}].QuestionCount" value="5" class="form-control form-control-sm q-count" min="1" max="100" required /></td>
+        <td><input type="number" name="Sections[${i}].MarksEach" value="2" class="form-control form-control-sm m-each" min="1" max="100" required /></td>
+        <td class="text-center"><span class="badge bg-label-success sec-total fw-bold fs-6">10</span></td>
+        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSection(this)" title="Remove"><i class="bx bx-x"></i></button></td>
+    `;
+    document.getElementById('sectionsBody').appendChild(tr);
+    bindRow(tr);
+    updateTotals();
+}
+
+function removeSection(btn) {
+    if (document.querySelectorAll('#sectionsBody tr').length <= 1) { alert('At least one section required.'); return; }
+    btn.closest('tr').remove();
+    renumber();
+    updateTotals();
+}
+
+function renumber() {
+    document.querySelectorAll('#sectionsBody tr').forEach((tr, i) => {
+        tr.querySelectorAll('input,select').forEach(el => {
+            el.name = el.name.replace(/Sections\[\d+\]/, `Sections[${i}]`);
+        });
+    });
+    sIdx = document.querySelectorAll('#sectionsBody tr').length;
+}
+
+function bindRow(tr) {
+    tr.querySelectorAll('.q-count,.m-each').forEach(el => el.addEventListener('input', updateTotals));
+}
+
+function updateTotals() {
+    let grand = 0;
+    let html = '';
+    document.querySelectorAll('#sectionsBody tr').forEach(tr => {
+        const cnt = parseInt(tr.querySelector('.q-count')?.value) || 0;
+        const mk = parseInt(tr.querySelector('.m-each')?.value) || 0;
+        const tot = cnt * mk;
+        const sp = tr.querySelector('.sec-total');
+        if (sp) sp.textContent = tot;
+        grand += tot;
+        const name = tr.querySelector('[name*="SectionName"]')?.value || 'Section';
+        const typeEl = tr.querySelector('select[name*="QuestionType"]');
+        const type = typeEl?.options[typeEl.selectedIndex]?.text || '';
+        html += `<div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background:#f8f9fa">
+            <div><div class="fw-semibold">${name}</div><small class="text-muted">${cnt} × ${type} @@ ${mk} mk</small></div>
+            <span class="badge bg-label-success">${tot}</span>
+        </div>`;
+    });
+    document.getElementById('grandTotal').textContent = grand;
+    document.getElementById('grandTotalBig').textContent = grand;
+    document.getElementById('sectionSummary').innerHTML = html;
+}
+
+document.querySelectorAll('#sectionsBody tr').forEach(bindRow);
+updateTotals();
+</script>
 }

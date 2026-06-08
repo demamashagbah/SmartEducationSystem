@@ -1,0 +1,63 @@
+@model SmartEducation.Application.DTOs.ParentDetailDto
+@{
+    ViewData["Title"] = "Parent Details";
+    Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+}
+<div class="row mb-4">
+    <div class="col-12 d-flex align-items-center justify-content-between">
+        <div>
+            <a asp-action="Index" class="text-muted text-decoration-none small"><i class="bx bx-arrow-back me-1"></i>Parents</a>
+            <h4 class="fw-bold mt-1 mb-0">@Model.FullName</h4>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.ProfileId" class="btn btn-outline-primary"><i class="bx bx-edit me-1"></i>Edit</a>
+            <a asp-action="ResetPassword" asp-route-id="@Model.ProfileId" class="btn btn-outline-secondary"><i class="bx bx-lock-open me-1"></i>Reset Password</a>
+        </div>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
+                <h6 class="fw-bold text-warning mb-0"><i class="bx bx-user me-2"></i>Contact Information</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0 small">
+                    <tr><th class="text-muted fw-normal" style="width:40%">Full Name</th><td class="fw-semibold">@Model.FullName</td></tr>
+                    <tr><th class="text-muted fw-normal">Email</th><td>@Model.Email</td></tr>
+                    <tr><th class="text-muted fw-normal">Phone</th><td>@(Model.PhoneNumber ?? "—")</td></tr>
+                    <tr><th class="text-muted fw-normal">Gender</th><td>@(Model.Gender ?? "—")</td></tr>
+                    <tr><th class="text-muted fw-normal">Occupation</th><td>@(Model.Occupation ?? "—")</td></tr>
+                    <tr><th class="text-muted fw-normal">Emergency</th><td>@(Model.EmergencyContact ?? "—")</td></tr>
+                    <tr><th class="text-muted fw-normal">Status</th>
+                        <td>@if (Model.IsActive) { <span class="badge bg-label-success">Active</span> } else { <span class="badge bg-label-danger">Inactive</span> }</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                <h6 class="fw-bold text-primary mb-0"><i class="bx bx-group me-2"></i>Children (@Model.Children.Count)</h6>
+            </div>
+            <div class="card-body">
+                @if (!Model.Children.Any())
+                {
+                    <p class="text-muted text-center py-3">No linked children.</p>
+                }
+                @foreach (var c in Model.Children)
+                {
+                    <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-light rounded">
+                        <div>
+                            <div class="fw-semibold">@c.FullName</div>
+                            <small class="text-muted">@(c.ClassRoomId.HasValue ? c.ClassRoomName : "Unassigned")</small>
+                        </div>
+                        <span class="badge @(c.IsActive ? "bg-label-success" : "bg-label-danger")">
+                            @(c.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

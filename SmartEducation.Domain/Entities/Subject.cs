@@ -1,16 +1,15 @@
-﻿using SmartEducation.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using SmartEducation.Domain.Common;
 
 namespace SmartEducation.Domain.Entities
 {
     public class Subject : BaseEntity
     {
         public string Name { get; set; }
-
         public string Description { get; set; }
 
-        public ICollection<Unit> Units { get; set; }
+        public Guid? ClassRoomId { get; set; }
+        public ClassRoom? ClassRoom { get; set; }
+
+        public ICollection<Unit> Units { get; set; } = new List<Unit>();
     }
 }

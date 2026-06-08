@@ -21,6 +21,10 @@ namespace SmartEducation.Infrastructure
             services.AddScoped<IMessageService, MessageService>();
             services.AddScoped<ITeacherGuideService, TeacherGuideService>();
             services.AddScoped<ICurriculumPlanService, CurriculumPlanService>();
+            services.AddScoped<IAdminStudentService, AdminStudentService>();
+            services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
+            services.AddScoped<ITeacherManagementService, TeacherManagementService>();
+            services.AddScoped<IParentManagementService, ParentManagementService>();
 
             return services;
         }

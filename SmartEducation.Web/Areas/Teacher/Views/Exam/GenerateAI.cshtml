@@ -1,4 +1,4 @@
-@model SmartEducation.Application.DTOs.ExamDto
+@model SmartEducation.Web.Areas.Teacher.Models.ExamCreateViewModel
 @{
     ViewData["Title"] = "AI Exam Generator";
     Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
@@ -6,28 +6,49 @@
 }
 
 <div class="row mb-4">
-    <div class="col-12 d-flex align-items-center justify-content-between">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <h4 class="fw-bold mb-1"><i class="bx bx-brain me-2" style="color:#696cff"></i>AI Exam Generator</h4>
-            <p class="text-muted mb-0">Select topics and AI will generate exam questions automatically.</p>
+            <p class="text-muted mb-0">Define your exam structure, select topics — AI generates the questions automatically.</p>
         </div>
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+        <div class="d-flex gap-2">
+            <a asp-action="Create" class="btn btn-outline-secondary btn-sm"><i class="bx bx-pencil me-1"></i>Manual</a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bx bx-arrow-back me-1"></i>Back</a>
+        </div>
     </div>
 </div>
 
-<form asp-action="GenerateAI" method="post">
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger mb-3">
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div><i class="bx bx-error-circle me-1"></i>@e.ErrorMessage</div>
+        }
+    </div>
+}
+
+<form asp-action="GenerateAI" method="post" id="aiExamForm">
     @Html.AntiForgeryToken()
     <div class="row g-4">
+
+        <!-- LEFT: Exam Details + Sections + Topics -->
         <div class="col-lg-8">
-            <!-- Exam Details -->
+
+            <!-- Exam Info -->
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-transparent border-0">
-                    <h6 class="fw-bold mb-0"><i class="bx bx-info-circle me-2 text-primary"></i>Exam Details</h6>
+                <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-primary mb-0"><i class="bx bx-info-circle me-2"></i>Exam Information</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <label asp-for="Title" class="form-label fw-semibold">Exam Title <span class="text-danger">*</span></label>
-                        <input asp-for="Title" class="form-control" placeholder="e.g., Chapter 3 Assessment" required />
+                        <input asp-for="Title" class="form-control" placeholder="e.g., Unit 3 Assessment — AI Generated" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Instructions</label>
+                        <textarea asp-for="Description" class="form-control" rows="2"
+                                  placeholder="Read all questions carefully..."></textarea>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -42,118 +63,272 @@
                                 <option value="">— Optional —</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label asp-for="ExamType" class="form-label fw-semibold">Type</label>
                             <select asp-for="ExamType" asp-items="ViewBag.ExamTypes" class="form-select"></select>
                         </div>
-                        <div class="col-md-3">
-                            <label asp-for="ExamDate" class="form-label fw-semibold">Exam Date</label>
-                            <input asp-for="ExamDate" type="date" class="form-control" />
+                        <div class="col-md-4">
+                            <label asp-for="ExamDate" class="form-label fw-semibold">Exam Date <span class="text-danger">*</span></label>
+                            <input asp-for="ExamDate" type="date" class="form-control" required />
                         </div>
-                        <div class="col-md-3">
-                            <label asp-for="TotalMarks" class="form-label fw-semibold">Total Marks</label>
-                            <input asp-for="TotalMarks" type="number" class="form-control" value="100" />
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label asp-for="DurationMinutes" class="form-label fw-semibold">Duration (min)</label>
-                            <input asp-for="DurationMinutes" type="number" class="form-control" value="60" />
+                            <input asp-for="DurationMinutes" type="number" class="form-control" min="15" max="300" />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- AI Configuration -->
+            <!-- Sections Builder -->
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-transparent border-0">
-                    <h6 class="fw-bold mb-0"><i class="bx bx-brain me-2" style="color:#696cff"></i>AI Generation Settings</h6>
+                <div class="card-header bg-success bg-opacity-10 border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-success mb-0"><i class="bx bx-list-ol me-2"></i>Exam Sections</h6>
+                    <button type="button" class="btn btn-success btn-sm" onclick="addSection()">
+                        <i class="bx bx-plus me-1"></i>Add Section
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Section Name</th>
+                                    <th>Question Type</th>
+                                    <th style="width:90px">Questions</th>
+                                    <th style="width:90px">Marks Each</th>
+                                    <th style="width:90px" class="text-center">Total</th>
+                                    <th style="width:44px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="sectionsBody">
+                                @for (int si = 0; si < Model.Sections.Count; si++)
+                                {
+                                    <tr>
+                                        <td class="ps-3">
+                                            <input type="text" name="Sections[@si].SectionName"
+                                                   value="@Model.Sections[si].SectionName"
+                                                   class="form-control form-control-sm" placeholder="Section A" required />
+                                        </td>
+                                        <td>
+                                            <select name="Sections[@si].QuestionType"
+                                                    class="form-select form-select-sm qtype-select">
+                                                @foreach (var qt in new[] { "MultipleChoice", "TrueFalse", "Essay", "FillInBlank", "Matching" })
+                                                {
+                                                    var label = qt switch { "MultipleChoice" => "Multiple Choice", "TrueFalse" => "True / False", "FillInBlank" => "Fill in the Blank", _ => qt };
+                                                    <option value="@qt" selected="@(Model.Sections[si].QuestionType == qt ? "selected" : null)">@label</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Sections[@si].QuestionCount"
+                                                   value="@Model.Sections[si].QuestionCount"
+                                                   class="form-control form-control-sm q-count" min="1" max="100" required />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Sections[@si].MarksEach"
+                                                   value="@Model.Sections[si].MarksEach"
+                                                   class="form-control form-control-sm m-each" min="1" max="100" required />
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-label-success sec-total fw-bold fs-6">
+                                                @(Model.Sections[si].QuestionCount * Model.Sections[si].MarksEach)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="removeSection(this)">
+                                                <i class="bx bx-x"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="4" class="text-end fw-bold pe-3 py-2">Grand Total:</td>
+                                    <td class="text-center py-2">
+                                        <span class="badge bg-primary fw-bold fs-5" id="grandTotal">@Model.TotalMarks</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic & Difficulty Selection -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
+                    <h6 class="fw-bold text-warning mb-0"><i class="bx bx-brain me-2"></i>AI Generation — Topic Selection</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Number of Questions <span class="text-danger">*</span></label>
-                            <select name="questionCount" class="form-select" required>
-                                <option value="5">5 questions</option>
-                                <option value="10" selected>10 questions</option>
-                                <option value="15">15 questions</option>
-                                <option value="20">20 questions</option>
-                                <option value="25">25 questions</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Difficulty Level</label>
-                            <select name="difficulty" asp-items="ViewBag.Difficulties" class="form-select"></select>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Difficulty Level</label>
+                        <select name="difficulty" asp-items="ViewBag.Difficulties" class="form-select" style="max-width:200px"></select>
                     </div>
-
-                    <div>
-                        <label class="form-label fw-semibold">Select Topics <span class="text-danger">*</span></label>
-                        <div class="form-text mb-2">Select one or more topics — AI will generate questions covering these topics.</div>
-                        @if (!topicsList.Any())
-                        {
-                            <div class="alert alert-warning small">
-                                <i class="bx bx-info-circle me-1"></i>
-                                No topics found for your subjects. Ask your administrator to add Topics and Learning Outcomes to the curriculum.
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="border rounded-3 p-3" style="max-height:250px;overflow-y:auto">
-                                @foreach (var topic in topicsList)
-                                {
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox"
-                                               name="topicIds" value="@topic.Value"
-                                               id="topic_@topic.Value" />
-                                        <label class="form-check-label small" for="topic_@topic.Value">
-                                            @topic.Text
-                                        </label>
-                                    </div>
-                                }
-                            </div>
-                            <div class="mt-2 d-flex gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllTopics(true)">Select All</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllTopics(false)">Clear All</button>
-                            </div>
-                        }
-                    </div>
+                    <label class="form-label fw-semibold">
+                        Select Topics <span class="text-danger">*</span>
+                        <span class="text-muted fw-normal small ms-2">AI generates questions per section for each selected topic</span>
+                    </label>
+                    @if (!topicsList.Any())
+                    {
+                        <div class="alert alert-warning small mb-0">
+                            <i class="bx bx-info-circle me-1"></i>
+                            No topics found. Ask your administrator to upload a Teacher Guide and extract the curriculum structure.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="border rounded-3 p-3" style="max-height:260px;overflow-y:auto">
+                            @foreach (var topic in topicsList)
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="topicIds" value="@topic.Value"
+                                           id="topic_@topic.Value" />
+                                    <label class="form-check-label small" for="topic_@topic.Value">
+                                        <i class="bx bx-tag text-warning me-1"></i>@topic.Text
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <div class="mt-2 d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAll(true)">
+                                <i class="bx bx-check-square me-1"></i>Select All
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAll(false)">
+                                <i class="bx bx-square me-1"></i>Clear All
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
+
         </div>
 
+        <!-- RIGHT: Live Summary + Generate -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm mb-4" style="background:linear-gradient(135deg,#696cff22,#71dd3722)">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3"><i class="bx bx-bulb me-2 text-warning"></i>Question Types Generated</h6>
-                    <ul class="list-unstyled small text-muted mb-0">
-                        <li class="mb-2"><i class="bx bx-check-circle text-success me-1"></i><strong>MCQ</strong> — Multiple choice with 4 options</li>
-                        <li class="mb-2"><i class="bx bx-check-circle text-success me-1"></i><strong>True/False</strong> — Based on learning outcomes</li>
-                        <li class="mb-2"><i class="bx bx-check-circle text-success me-1"></i><strong>Essay</strong> — Open-ended explanation questions</li>
-                        <li><i class="bx bx-check-circle text-success me-1"></i><strong>Fill in Blank</strong> — Recall-based questions</li>
-                    </ul>
+            <div class="card border-0 shadow-sm sticky-top mb-4" style="top:80px">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h6 class="fw-bold mb-0"><i class="bx bx-bar-chart-alt-2 me-2 text-warning"></i>Live Summary</h6>
                 </div>
-            </div>
-
-            <div class="card border-0 shadow-sm">
                 <div class="card-body">
+                    <div id="sectionSummary" class="mb-3 small"></div>
+                    <div class="text-center p-3 rounded-3 mb-4"
+                         style="background:linear-gradient(135deg,rgba(105,108,255,.1),rgba(113,221,55,.1))">
+                        <div class="text-muted small mb-1">Total Marks</div>
+                        <div class="fw-bold text-primary" id="grandTotalBig" style="font-size:2.5rem;line-height:1">@Model.TotalMarks</div>
+                    </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bx bx-brain me-2"></i>Generate Exam
+                            <i class="bx bx-brain me-2"></i>Generate Exam with AI
                         </button>
-                        <a asp-action="Create" class="btn btn-outline-secondary">Manual Exam</a>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <a asp-action="Create" class="btn btn-outline-secondary">
+                            <i class="bx bx-pencil me-1"></i>Manual Creation
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm" style="background:linear-gradient(135deg,#696cff11,#fd7e1411)">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3"><i class="bx bx-bulb text-warning me-2"></i>How AI Works</h6>
+                    <div class="d-flex gap-2 mb-2 small">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-white fw-bold"
+                             style="width:22px;height:22px;background:#696cff;font-size:.7rem">1</div>
+                        <span class="text-muted">For each section, AI creates questions matching the question type</span>
+                    </div>
+                    <div class="d-flex gap-2 mb-2 small">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-white fw-bold"
+                             style="width:22px;height:22px;background:#71dd37;font-size:.7rem">2</div>
+                        <span class="text-muted">Questions are drawn from your selected topics &amp; learning outcomes</span>
+                    </div>
+                    <div class="d-flex gap-2 small">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-white fw-bold"
+                             style="width:22px;height:22px;background:#fd7e14;font-size:.7rem">3</div>
+                        <span class="text-muted">Marks are distributed per section — you can edit before publishing</span>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 </form>
 
 @section Scripts {
 <script>
-function selectAllTopics(select) {
-    document.querySelectorAll('input[name="topicIds"]').forEach(function(cb) { cb.checked = select; });
+let sIdx = @Model.Sections.Count;
+
+function addSection() {
+    const i = sIdx++;
+    const letter = String.fromCharCode(65 + document.querySelectorAll('#sectionsBody tr').length);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="ps-3"><input type="text" name="Sections[${i}].SectionName" value="Section ${letter}" class="form-control form-control-sm" required /></td>
+        <td><select name="Sections[${i}].QuestionType" class="form-select form-select-sm qtype-select">
+            <option value="MultipleChoice">Multiple Choice</option>
+            <option value="TrueFalse">True / False</option>
+            <option value="Essay">Essay</option>
+            <option value="FillInBlank">Fill in the Blank</option>
+            <option value="Matching">Matching</option>
+        </select></td>
+        <td><input type="number" name="Sections[${i}].QuestionCount" value="5" class="form-control form-control-sm q-count" min="1" max="100" required /></td>
+        <td><input type="number" name="Sections[${i}].MarksEach" value="2" class="form-control form-control-sm m-each" min="1" max="100" required /></td>
+        <td class="text-center"><span class="badge bg-label-success sec-total fw-bold fs-6">10</span></td>
+        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSection(this)"><i class="bx bx-x"></i></button></td>`;
+    document.getElementById('sectionsBody').appendChild(tr);
+    bindRow(tr);
+    updateTotals();
 }
+
+function removeSection(btn) {
+    if (document.querySelectorAll('#sectionsBody tr').length <= 1) { alert('At least one section required.'); return; }
+    btn.closest('tr').remove();
+    renumber();
+    updateTotals();
+}
+
+function renumber() {
+    document.querySelectorAll('#sectionsBody tr').forEach((tr, i) => {
+        tr.querySelectorAll('input,select').forEach(el => {
+            el.name = el.name.replace(/Sections\[\d+\]/, `Sections[${i}]`);
+        });
+    });
+    sIdx = document.querySelectorAll('#sectionsBody tr').length;
+}
+
+function bindRow(tr) {
+    tr.querySelectorAll('.q-count,.m-each').forEach(el => el.addEventListener('input', updateTotals));
+}
+
+function updateTotals() {
+    let grand = 0, html = '';
+    document.querySelectorAll('#sectionsBody tr').forEach(tr => {
+        const cnt = parseInt(tr.querySelector('.q-count')?.value) || 0;
+        const mk  = parseInt(tr.querySelector('.m-each')?.value) || 0;
+        const tot = cnt * mk;
+        const sp  = tr.querySelector('.sec-total');
+        if (sp) sp.textContent = tot;
+        grand += tot;
+        const name   = tr.querySelector('[name*="SectionName"]')?.value || 'Section';
+        const typeEl = tr.querySelector('select[name*="QuestionType"]');
+        const type   = typeEl?.options[typeEl.selectedIndex]?.text || '';
+        html += `<div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background:#f8f9fa">
+            <div><div class="fw-semibold">${name}</div><small class="text-muted">${cnt} &times; ${type} &commat; ${mk} mk</small></div>
+            <span class="badge bg-label-success">${tot}</span></div>`;
+    });
+    document.getElementById('grandTotal').textContent   = grand;
+    document.getElementById('grandTotalBig').textContent = grand;
+    document.getElementById('sectionSummary').innerHTML  = html;
+}
+
+function selectAll(val) {
+    document.querySelectorAll('input[name="topicIds"]').forEach(cb => cb.checked = val);
+}
+
+document.querySelectorAll('#sectionsBody tr').forEach(bindRow);
+updateTotals();
 </script>
 }
