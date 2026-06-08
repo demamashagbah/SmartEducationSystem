@@ -75,21 +75,24 @@
                                 <span class="badge bg-secondary">Inactive</span>
                             }
                         </td>
-                        <td class="text-end">
+                        <td class="text-end pe-3">
                             <form asp-action="ToggleActive" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@a.Id" />
                                 <button type="submit" class="btn btn-sm btn-outline-secondary me-1"
-                                        title="@(a.IsActive ? "Deactivate" : "Activate")">
+                                        data-bs-toggle="tooltip"
+                                        title="@(a.IsActive ? "Deactivate Assignment" : "Activate Assignment")">
                                     <i class="bx bx-toggle-@(a.IsActive ? "right text-success" : "left")"></i>
+                                    @(a.IsActive ? "Deactivate" : "Activate")
                                 </button>
                             </form>
                             <form asp-action="Remove" method="post" class="d-inline"
-                                  onsubmit="return confirm('Remove this teacher assignment?')">
+                                  onsubmit="return confirm('Remove this teacher assignment? This action cannot be undone.')">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@a.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bx bx-trash"></i>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="tooltip" title="Remove Assignment">
+                                    <i class="bx bx-trash me-1"></i>Remove
                                 </button>
                             </form>
                         </td>

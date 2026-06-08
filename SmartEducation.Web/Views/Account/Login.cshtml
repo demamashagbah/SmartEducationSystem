@@ -1,114 +1,511 @@
-﻿@model LoginViewModel
+@model LoginViewModel
 @{
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="en" class="light-style">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign In - Smart Education System</title>
+    <title>Sign In — SmartEdu Nexus</title>
     <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
     <link rel="stylesheet" href="~/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" />
     <link rel="stylesheet" href="~/assets/css/demo.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%); min-height: 100vh; }
-        .login-card { max-width: 440px; width: 100%; }
-        .brand-logo i { font-size: 2.5rem; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
+
+        /* ── Layout ── */
+        .login-wrapper { display: flex; height: 100vh; }
+
+        /* ── Left Panel — Form ── */
+        .login-left {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 4rem;
+            background: #fff;
+            position: relative;
+            overflow-y: auto;
+        }
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #696cff, #9b59b6, #e74c3c);
+        }
+        .login-form-inner { width: 100%; max-width: 420px; }
+
+        .brand-mark {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #696cff, #5f61e6);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(105,108,255,.35);
+        }
+        .login-title { font-size: 1.9rem; font-weight: 800; color: #2b2d42; line-height: 1.2; }
+        .login-subtitle { color: #6c757d; font-size: .93rem; margin-top: .5rem; line-height: 1.6; }
+
+        .form-label { font-weight: 600; font-size: .85rem; color: #3d3d4e; margin-bottom: .4rem; }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #f8f9ff;
+            border: 1.5px solid #e8eaf6;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .input-wrap:focus-within {
+            border-color: #696cff;
+            box-shadow: 0 0 0 3px rgba(105,108,255,.12);
+            background: #fff;
+        }
+        .input-wrap .input-icon {
+            padding: 0 1rem;
+            color: #9fa3c8;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .input-wrap input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: .8rem .5rem .8rem 0;
+            font-size: .93rem;
+            color: #2b2d42;
+            outline: none;
+        }
+        .input-wrap input::placeholder { color: #b0b3cc; }
+        .input-wrap .eye-btn {
+            padding: 0 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9fa3c8;
+            font-size: 1.1rem;
+            transition: color .2s;
+        }
+        .input-wrap .eye-btn:hover { color: #696cff; }
+
+        .remember-row { display: flex; align-items: center; justify-content: space-between; }
+        .custom-check { display: flex; align-items: center; gap: .5rem; cursor: pointer; }
+        .custom-check input[type="checkbox"] { width: 16px; height: 16px; accent-color: #696cff; cursor: pointer; }
+        .custom-check span { font-size: .85rem; color: #6c757d; }
+
+        .btn-signin {
+            width: 100%;
+            padding: .9rem;
+            background: linear-gradient(135deg, #696cff 0%, #5f61e6 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .25s;
+            box-shadow: 0 8px 20px rgba(105,108,255,.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+        }
+        .btn-signin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(105,108,255,.5);
+        }
+        .btn-signin:active { transform: translateY(0); }
+
+        .divider { display: flex; align-items: center; gap: .8rem; color: #b0b3cc; font-size: .82rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e8eaf6; }
+
+        .demo-box {
+            background: linear-gradient(135deg, #f8f9ff, #fff);
+            border: 1px solid #e8eaf6;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+        }
+        .demo-box .demo-label { font-size: .75rem; font-weight: 700; color: #696cff; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
+        .demo-box .demo-cred { font-size: .82rem; color: #6c757d; font-family: 'Courier New', monospace; }
+
+        .back-link { font-size: .85rem; color: #9fa3c8; text-decoration: none; display: flex; align-items: center; gap: .4rem; transition: color .2s; }
+        .back-link:hover { color: #696cff; }
+
+        .validation-error {
+            background: #fde8e8;
+            border: 1px solid #f5c2c7;
+            border-radius: 10px;
+            padding: .7rem 1rem;
+            font-size: .85rem;
+            color: #c0392b;
+        }
+
+        /* ── Right Panel — Illustration ── */
+        .login-right {
+            width: 50%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 45%, #0f3460 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+        .login-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 70% 30%, rgba(105,108,255,.25) 0%, transparent 60%),
+                        radial-gradient(ellipse at 30% 80%, rgba(113,221,55,.12) 0%, transparent 50%);
+        }
+        .login-right .content { position: relative; z-index: 2; text-align: center; max-width: 480px; }
+        .login-right h2 { color: #fff; font-size: 1.9rem; font-weight: 800; line-height: 1.2; }
+        .login-right h2 span {
+            background: linear-gradient(135deg, #696cff, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .login-right p { color: rgba(255,255,255,.65); font-size: .95rem; line-height: 1.7; margin-top: .8rem; }
+
+        /* ── SVG Illustration ── */
+        .illus-wrap {
+            position: relative;
+            width: 420px;
+            height: 340px;
+            margin: 2rem auto 2.5rem;
+        }
+
+        /* Floating badges */
+        .badge-float {
+            position: absolute;
+            background: rgba(255,255,255,.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 14px;
+            padding: .6rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            animation: floatAnim 3.5s ease-in-out infinite;
+        }
+        .badge-float.b1 { top: 0; right: 0; animation-delay: 0s; }
+        .badge-float.b2 { bottom: 20px; left: 0; animation-delay: .7s; }
+        .badge-float.b3 { top: 100px; left: -20px; animation-delay: 1.4s; }
+        .badge-float .bicon { font-size: 1.3rem; }
+        .badge-float .btxt { font-size: .78rem; }
+        .badge-float .btxt strong { display: block; color: #fff; font-weight: 700; }
+        .badge-float .btxt span { color: rgba(255,255,255,.6); }
+        @@keyframes floatAnim { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+        /* Features strip */
+        .features-strip {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .feature-chip {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 50px;
+            padding: .4rem 1rem;
+            font-size: .8rem;
+            color: rgba(255,255,255,.8);
+        }
+        .feature-chip i { font-size: 1rem; }
+
+        /* Responsive */
+        @@media (max-width: 900px) {
+            .login-right { display: none; }
+            .login-left { width: 100%; padding: 2rem 1.5rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-4">
-        <div class="login-card">
+<div class="login-wrapper">
+
+    <!-- ─────────────────── LEFT: Form ─────────────────── -->
+    <div class="login-left">
+        <div class="login-form-inner">
+
             <!-- Brand -->
-            <div class="text-center mb-4">
-                <div class="brand-logo mb-3">
-                    <i class="bx bx-graduation text-primary"></i>
+            <div class="brand-mark">
+                <i class="bx bx-graduation" style="color:#fff;font-size:1.6rem"></i>
+            </div>
+            <div class="mb-1" style="font-size:.8rem;font-weight:700;color:#696cff;letter-spacing:.06em;text-transform:uppercase">SmartEdu Nexus</div>
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Sign in to access your Smart Education Dashboard.</p>
+
+            <!-- Validation Errors -->
+            @{
+                var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors).ToList();
+            }
+            @if (errors.Any())
+            {
+                <div class="validation-error mt-4">
+                    <i class="bx bx-error-circle me-2"></i>
+                    @foreach (var e in errors)
+                    {
+                        <div>@e.ErrorMessage</div>
+                    }
                 </div>
-                <h2 class="fw-bold text-primary mb-1">Smart Education</h2>
-                <p class="text-muted">Welcome back! Please sign in to continue.</p>
+            }
+
+            <!-- Form -->
+            <form asp-action="Login" method="post" class="mt-4" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrap">
+                        <i class="bx bx-envelope input-icon"></i>
+                        <input asp-for="Email" type="email"
+                               placeholder="admin@smarteducation.com"
+                               autocomplete="email" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger" style="font-size:.8rem"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <i class="bx bx-lock input-icon"></i>
+                        <input asp-for="Password" type="password"
+                               id="pwdInput" placeholder="••••••••"
+                               autocomplete="current-password" />
+                        <button type="button" class="eye-btn" onclick="togglePwd()">
+                            <i class="bx bx-show" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger" style="font-size:.8rem"></span>
+                </div>
+
+                <div class="remember-row mb-4">
+                    <label class="custom-check">
+                        <input type="checkbox" name="rememberMe" />
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" style="font-size:.85rem;color:#696cff;text-decoration:none;font-weight:600;">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <button type="submit" class="btn-signin mb-4">
+                    <i class="bx bx-log-in" style="font-size:1.1rem"></i>
+                    Sign In to Dashboard
+                </button>
+
+                <div class="divider mb-4">or</div>
+
+                <!-- Demo credentials -->
+                <div class="demo-box mb-4">
+                    <div class="demo-label">Demo Credentials</div>
+                    <div class="demo-cred d-flex align-items-center gap-2 mb-1">
+                        <i class="bx bx-user text-primary"></i>
+                        admin@smarteducation.com
+                    </div>
+                    <div class="demo-cred d-flex align-items-center gap-2">
+                        <i class="bx bx-lock text-primary"></i>
+                        Admin@123
+                    </div>
+                </div>
+            </form>
+
+            <div class="text-center">
+                <a asp-controller="Home" asp-action="Index" class="back-link justify-content-center">
+                    <i class="bx bx-arrow-back"></i>Back to Home
+                </a>
             </div>
 
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-4 p-md-5">
-                    <h4 class="fw-bold mb-4">Sign In</h4>
+        </div>
+    </div>
 
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+    <!-- ─────────────────── RIGHT: Illustration ─────────────────── -->
+    <div class="login-right">
+        <div class="content">
+            <h2>AI-Powered<br><span>Educational Ecosystem</span></h2>
+            <p>Empowering teachers, inspiring students, and connecting every stakeholder in one intelligent platform.</p>
 
-                    <form asp-action="Login" method="post">
+            <!-- Illustration -->
+            <div class="illus-wrap">
+                <!-- Main dashboard card -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280"
+                     style="width:100%;height:100%;filter:drop-shadow(0 20px 40px rgba(0,0,0,.4))">
+                    <defs>
+                        <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+                            <stop offset="100%" stop-color="rgba(255,255,255,0.06)"/>
+                        </linearGradient>
+                        <linearGradient id="bar1" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#696cff"/>
+                            <stop offset="100%" stop-color="#9b59b6"/>
+                        </linearGradient>
+                        <linearGradient id="bar2" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#71dd37"/>
+                            <stop offset="100%" stop-color="#28a745"/>
+                        </linearGradient>
+                        <linearGradient id="progress1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#696cff"/>
+                            <stop offset="100%" stop-color="#71dd37"/>
+                        </linearGradient>
+                        <clipPath id="cardClip">
+                            <rect rx="20" width="380" height="260"/>
+                        </clipPath>
+                    </defs>
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label fw-semibold">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text border-end-0 bg-transparent">
-                                    <i class="bx bx-envelope text-muted"></i>
-                                </span>
-                                <input asp-for="Email" class="form-control border-start-0 ps-0"
-                                       type="email" placeholder="admin@smarteducation.com" />
-                            </div>
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
+                    <!-- Main card bg -->
+                    <rect x="20" y="10" width="380" height="260" rx="20"
+                          fill="url(#cardBg)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
 
-                        <div class="mb-4">
-                            <label asp-for="Password" class="form-label fw-semibold">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text border-end-0 bg-transparent">
-                                    <i class="bx bx-lock text-muted"></i>
-                                </span>
-                                <input asp-for="Password" type="password"
-                                       class="form-control border-start-0 ps-0"
-                                       placeholder="••••••••" id="passwordInput" />
-                                <button type="button" class="input-group-text bg-transparent border-start-0"
-                                        onclick="togglePassword()">
-                                    <i class="bx bx-show text-muted" id="eyeIcon"></i>
-                                </button>
-                            </div>
-                            <span asp-validation-for="Password" class="text-danger small"></span>
-                        </div>
+                    <!-- Header bar -->
+                    <rect x="20" y="10" width="380" height="50" rx="20" fill="rgba(255,255,255,0.08)"/>
+                    <rect x="20" y="40" width="380" height="20" fill="rgba(255,255,255,0.08)"/>
 
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">
-                            <i class="bx bx-log-in me-2"></i>Sign In
-                        </button>
+                    <!-- Header dots -->
+                    <circle cx="46" cy="35" r="5" fill="#e74c3c"/>
+                    <circle cx="62" cy="35" r="5" fill="#fd7e14"/>
+                    <circle cx="78" cy="35" r="5" fill="#71dd37"/>
 
-                    </form>
+                    <!-- Header text -->
+                    <rect x="100" y="30" width="100" height="10" rx="5" fill="rgba(255,255,255,0.3)"/>
+                    <rect x="340" y="28" width="44" height="14" rx="7" fill="rgba(113,221,55,0.3)"/>
+                    <circle cx="348" cy="35" r="3" fill="#71dd37"/>
+                    <rect x="355" y="31" width="24" height="8" rx="4" fill="rgba(113,221,55,0.5)"/>
 
-                    <div class="text-center mt-4">
-                        <a asp-controller="Home" asp-action="Index" class="text-muted small">
-                            <i class="bx bx-arrow-back me-1"></i>Back to Home
-                        </a>
+                    <!-- Stats row -->
+                    <!-- Stat 1 -->
+                    <rect x="36" y="72" width="80" height="60" rx="12" fill="rgba(105,108,255,0.2)" stroke="rgba(105,108,255,0.3)" stroke-width="1"/>
+                    <circle cx="56" cy="90" r="8" fill="rgba(105,108,255,0.4)"/>
+                    <rect x="70" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="44" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="44" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+
+                    <!-- Stat 2 -->
+                    <rect x="126" y="72" width="80" height="60" rx="12" fill="rgba(113,221,55,0.15)" stroke="rgba(113,221,55,0.25)" stroke-width="1"/>
+                    <circle cx="146" cy="90" r="8" fill="rgba(113,221,55,0.4)"/>
+                    <rect x="160" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="134" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="134" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+
+                    <!-- Stat 3 -->
+                    <rect x="216" y="72" width="80" height="60" rx="12" fill="rgba(253,126,20,0.15)" stroke="rgba(253,126,20,0.25)" stroke-width="1"/>
+                    <circle cx="236" cy="90" r="8" fill="rgba(253,126,20,0.4)"/>
+                    <rect x="250" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="224" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="224" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+
+                    <!-- Stat 4 -->
+                    <rect x="306" y="72" width="80" height="60" rx="12" fill="rgba(231,76,60,0.15)" stroke="rgba(231,76,60,0.25)" stroke-width="1"/>
+                    <circle cx="326" cy="90" r="8" fill="rgba(231,76,60,0.4)"/>
+                    <rect x="340" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="314" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="314" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+
+                    <!-- Chart bars -->
+                    <g transform="translate(36, 145)">
+                        @{ var barData = new[] { 60, 85, 45, 95, 70, 80, 55, 90, 65, 75 }; }
+                        @for (int b = 0; b < barData.Length; b++)
+                        {
+                            var bh = barData[b] * 0.65;
+                            var bx = b * 22;
+                            var by = 65 - bh;
+                            <rect x="@bx" y="@by" width="15" height="@bh" rx="4" fill="url(#bar@((b%2==0)?1:2))" opacity="0.8"/>
+                        }
+                    </g>
+
+                    <!-- Progress bars -->
+                    <rect x="260" y="150" width="130" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
+                    <rect x="260" y="150" width="107" height="8" rx="4" fill="url(#progress1)"/>
+                    <rect x="260" y="155" width="80" height="6" rx="3" fill="rgba(255,255,255,0.08)"/>
+
+                    <rect x="260" y="168" width="130" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
+                    <rect x="260" y="168" width="120" height="8" rx="4" fill="url(#bar1)" opacity="0.8"/>
+
+                    <rect x="260" y="186" width="130" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
+                    <rect x="260" y="186" width="85" height="8" rx="4" fill="url(#bar2)" opacity="0.8"/>
+
+                    <!-- Labels -->
+                    <rect x="260" y="145" width="50" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="260" y="163" width="40" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+                    <rect x="260" y="181" width="55" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+
+                    <!-- Bottom row -->
+                    <rect x="36" y="220" width="180" height="32" rx="10" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                    <circle cx="56" cy="236" r="8" fill="rgba(105,108,255,0.5)"/>
+                    <rect x="70" y="231" width="80" height="7" rx="3.5" fill="rgba(255,255,255,0.3)"/>
+                    <rect x="70" y="241" width="55" height="5" rx="2.5" fill="rgba(255,255,255,0.15)"/>
+
+                    <rect x="226" y="220" width="160" height="32" rx="10" fill="rgba(113,221,55,0.1)" stroke="rgba(113,221,55,0.2)" stroke-width="1"/>
+                    <circle cx="246" cy="236" r="8" fill="rgba(113,221,55,0.5)"/>
+                    <rect x="260" y="231" width="60" height="7" rx="3.5" fill="rgba(255,255,255,0.3)"/>
+                    <rect x="260" y="241" width="45" height="5" rx="2.5" fill="rgba(255,255,255,0.15)"/>
+                </svg>
+
+                <!-- Floating badges -->
+                <div class="badge-float b1">
+                    <i class="bx bx-brain bicon" style="color:#a78bfa"></i>
+                    <div class="btxt">
+                        <strong>AI Insight</strong>
+                        <span>3 at-risk students</span>
+                    </div>
+                </div>
+                <div class="badge-float b2">
+                    <i class="bx bx-check-circle bicon" style="color:#71dd37"></i>
+                    <div class="btxt">
+                        <strong>Plan Generated</strong>
+                        <span>Unit 3 — 12 lessons</span>
+                    </div>
+                </div>
+                <div class="badge-float b3">
+                    <i class="bx bx-trending-up bicon" style="color:#fd7e14"></i>
+                    <div class="btxt">
+                        <strong>92% Attendance</strong>
+                        <span>This week</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Demo Credentials -->
-            <div class="card border-0 bg-light mt-3">
-                <div class="card-body py-3 px-4">
-                    <p class="text-muted small mb-1 fw-semibold">Demo Credentials:</p>
-                    <p class="text-muted small mb-0">
-                        <i class="bx bx-user me-1"></i>admin@smarteducation.com
-                        <span class="mx-2">|</span>
-                        <i class="bx bx-lock me-1"></i>Admin@123
-                    </p>
-                </div>
+            <!-- Feature chips -->
+            <div class="features-strip">
+                <div class="feature-chip"><i class="bx bx-brain" style="color:#a78bfa"></i>AI-Powered</div>
+                <div class="feature-chip"><i class="bx bx-bar-chart-alt-2" style="color:#71dd37"></i>Analytics</div>
+                <div class="feature-chip"><i class="bx bx-shield-check" style="color:#696cff"></i>Secure</div>
+                <div class="feature-chip"><i class="bx bx-devices" style="color:#fd7e14"></i>Multi-Role</div>
             </div>
         </div>
+
+        <!-- Decorative circles -->
+        <div style="position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(105,108,255,.08);pointer-events:none"></div>
+        <div style="position:absolute;bottom:-100px;left:-60px;width:250px;height:250px;border-radius:50%;background:rgba(113,221,55,.06);pointer-events:none"></div>
     </div>
 
-    <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="~/assets/vendor/js/bootstrap.js"></script>
-    <script>
-        function togglePassword() {
-            const input = document.getElementById('passwordInput');
-            const icon = document.getElementById('eyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('bx-show', 'bx-hide');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('bx-hide', 'bx-show');
-            }
-        }
-    </script>
+</div>
+
+<script src="~/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="~/assets/vendor/js/bootstrap.js"></script>
+<script>
+function togglePwd() {
+    const i = document.getElementById('pwdInput');
+    const e = document.getElementById('eyeIcon');
+    if (i.type === 'password') {
+        i.type = 'text';
+        e.classList.replace('bx-show', 'bx-hide');
+    } else {
+        i.type = 'password';
+        e.classList.replace('bx-hide', 'bx-show');
+    }
+}
+</script>
 </body>
 </html>

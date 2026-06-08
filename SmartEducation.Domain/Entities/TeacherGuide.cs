@@ -8,15 +8,14 @@ namespace SmartEducation.Domain.Entities
         public Subject Subject { get; set; } = default!;
 
         public string FileName { get; set; } = default!;
-
         public string FilePath { get; set; } = default!;
-
         public string? Description { get; set; }
 
+        public Guid? AcademicYearId { get; set; }
+        public AcademicYear? AcademicYear { get; set; }
+
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
-
         public bool IsAnalyzed { get; set; } = false;
-
         public string? AnalysisNotes { get; set; }
     }
 }

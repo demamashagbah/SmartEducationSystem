@@ -104,24 +104,34 @@
                             }
                         </td>
                         <td class="text-end pe-3">
-                            <a asp-action="Details" asp-route-id="@t.ProfileId" class="btn btn-sm btn-outline-info me-1">
-                                <i class="bx bx-show me-1"></i>View Details
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@t.ProfileId" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="bx bx-edit me-1"></i>Edit
-                            </a>
-                            <a asp-action="ResetPassword" asp-route-id="@t.ProfileId" class="btn btn-sm btn-outline-secondary me-1">
-                                <i class="bx bx-lock-open me-1"></i>Reset Password
-                            </a>
-                            <form asp-action="ToggleActive" method="post" class="d-inline"
-                                  onsubmit="return confirm('@(t.IsActive ? "Deactivate" : "Activate") @t.FullName?')">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@t.ProfileId" />
-                                <button type="submit" class="btn btn-sm @(t.IsActive ? "btn-outline-warning" : "btn-outline-success")">
-                                    <i class="bx @(t.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
-                                    @(t.IsActive ? "Deactivate" : "Activate")
-                                </button>
-                            </form>
+                            <div class="d-flex justify-content-end gap-1">
+                                <a asp-action="Details" asp-route-id="@t.ProfileId"
+                                   class="btn btn-sm btn-outline-info"
+                                   data-bs-toggle="tooltip" title="View Details">
+                                    <i class="bx bx-show me-1"></i>View
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@t.ProfileId"
+                                   class="btn btn-sm btn-outline-primary"
+                                   data-bs-toggle="tooltip" title="Edit Teacher">
+                                    <i class="bx bx-edit me-1"></i>Edit
+                                </a>
+                                <a asp-action="ResetPassword" asp-route-id="@t.ProfileId"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Reset Password">
+                                    <i class="bx bx-lock-open"></i>
+                                </a>
+                                <form asp-action="ToggleActive" method="post" class="d-inline"
+                                      onsubmit="return confirm('@(t.IsActive ? "Deactivate" : "Activate") @t.FullName?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@t.ProfileId" />
+                                    <button type="submit"
+                                            class="btn btn-sm @(t.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                            data-bs-toggle="tooltip"
+                                            title="@(t.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="bx @(t.IsActive ? "bx-pause-circle" : "bx-play-circle")"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }

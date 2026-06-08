@@ -196,30 +196,10 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
         // ── Subject Assignment ────────────────────────────────────────────
 
         [HttpGet]
-        public async Task<IActionResult> AssignSubject(Guid classRoomId)
+        public IActionResult AssignSubject(Guid classRoomId)
         {
-            var classRoom = await _classRoomService.GetByIdAsync(classRoomId);
-            if (classRoom == null) return NotFound();
-            return View(new SubjectViewModel
-            {
-                ClassRoomId = classRoomId,
-                ClassRoomName = classRoom.Name
-            });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignSubject(SubjectViewModel model)
-        {
-            if (!ModelState.IsValid) return View(model);
-            await _subjectService.CreateAsync(new SubjectDto
-            {
-                Name = model.Name,
-                Description = model.Description,
-                ClassRoomId = model.ClassRoomId
-            });
-            TempData["Success"] = $"Subject '{model.Name}' added.";
-            return RedirectToAction(nameof(Manage), new { id = model.ClassRoomId });
+            // Redirect to the unified Subject/Create workflow which requires a Teacher Guide PDF
+            return RedirectToAction("Create", "Subject", new { area = "Admin", classRoomId });
         }
 
         [HttpPost]

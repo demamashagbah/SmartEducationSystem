@@ -16,17 +16,11 @@
           type="image/x-icon"
           href="~/assets/img/favicon/favicon.ico" />
 
-    <link rel="stylesheet"
-          href="~/assets/vendor/fonts/boxicons.css" />
-
-    <link rel="stylesheet"
-          href="~/assets/vendor/css/core.css" />
-
-    <link rel="stylesheet"
-          href="~/assets/vendor/css/theme-default.css" />
-
-    <link rel="stylesheet"
-          href="~/assets/css/demo.css" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" />
+    <link rel="stylesheet" href="~/assets/css/demo.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
 </head>
 
@@ -63,13 +57,87 @@
     </div>
 
     <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
-
     <script src="~/assets/vendor/js/bootstrap.js"></script>
-
     <script src="~/assets/vendor/js/menu.js"></script>
-
     <script src="~/assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script>
+    (function () {
+        // ── Initialize Bootstrap tooltips ──
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (el) {
+            new bootstrap.Tooltip(el, { boundary: document.body });
+        });
 
+        // ── Replace all confirm() dialogs with SweetAlert2 ──
+        function swalConfirm(msg, callback) {
+            Swal.fire({
+                title: 'Confirm Action', text: msg, icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#696cff', cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, proceed', cancelButtonText: 'Cancel'
+            }).then(function (result) { if (result.isConfirmed) callback(); });
+        }
+
+        // Forms with onsubmit="return confirm(...)"
+        document.querySelectorAll('form[onsubmit]').forEach(function (form) {
+            var attr = form.getAttribute('onsubmit') || '';
+            var match = attr.match(/confirm\('([^']+)'\)/);
+            if (!match) return;
+            var msg = match[1];
+            form.removeAttribute('onsubmit');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var f = this;
+                swalConfirm(msg, function () { f.submit(); });
+            });
+        });
+
+        // Buttons with onclick="return confirm(...)"
+        document.querySelectorAll('button[onclick], a[onclick]').forEach(function (btn) {
+            var attr = btn.getAttribute('onclick') || '';
+            var match = attr.match(/return confirm\('([^']+)'\)/);
+            if (!match) return;
+            var msg = match[1];
+            btn.removeAttribute('onclick');
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var b = this;
+                swalConfirm(msg, function () {
+                    b.removeEventListener('click', arguments.callee);
+                    if (b.form) { b.form.submit(); }
+                    else if (b.closest('form')) { b.closest('form').submit(); }
+                });
+            });
+        });
+
+        // ── TempData alerts → SweetAlert2 toasts ──
+        document.querySelectorAll('.alert-success').forEach(function (el) {
+            var txt = el.textContent.trim().replace(/×/g, '').trim();
+            if (!txt) return;
+            el.style.display = 'none';
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'success',
+                title: txt, showConfirmButton: false, timer: 4000,
+                timerProgressBar: true,
+                didOpen: function (toast) {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        });
+        document.querySelectorAll('.alert-danger').forEach(function (el) {
+            var txt = el.textContent.trim().replace(/×/g, '').trim();
+            if (!txt || el.closest('form')) return;
+            el.style.display = 'none';
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'error',
+                title: txt, showConfirmButton: false, timer: 5000,
+                timerProgressBar: true
+            });
+        });
+    })();
+    </script>
     @await RenderSectionAsync("Scripts", false)
 
 </body>

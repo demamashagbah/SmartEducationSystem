@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartEducation.Application.Constants;
 using SmartEducation.Application.DTOs;
 using SmartEducation.Application.Interfaces;
@@ -27,6 +28,100 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             _env = env;
         }
 
+        // ── NEW: Create Subject + Upload Guide + AI Extract (one atomic step) ──────
+
+        [HttpGet]
+        public async Task<IActionResult> Create(Guid classRoomId)
+        {
+            var classRooms    = await _unitOfWork.ClassRooms.GetAllAsync();
+            var classRoom     = classRooms.FirstOrDefault(c => c.Id == classRoomId);
+            if (classRoom == null) return NotFound();
+
+            var academicYears = await _unitOfWork.AcademicYears.GetAllAsync();
+            ViewBag.ClassRoomId   = classRoomId;
+            ViewBag.ClassRoomName = classRoom.Name;
+            ViewBag.AcademicYears = academicYears.Select(y => new SelectListItem(y.Name, y.Id.ToString()));
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(
+            Guid classRoomId, string subjectName, string? description,
+            Guid? academicYearId, IFormFile teacherGuidePdf)
+        {
+            var classRooms    = await _unitOfWork.ClassRooms.GetAllAsync();
+            var classRoom     = classRooms.FirstOrDefault(c => c.Id == classRoomId);
+            var academicYears = await _unitOfWork.AcademicYears.GetAllAsync();
+
+            void RepopulateViewBag()
+            {
+                ViewBag.ClassRoomId   = classRoomId;
+                ViewBag.ClassRoomName = classRoom?.Name ?? "";
+                ViewBag.AcademicYears = academicYears.Select(y => new SelectListItem(y.Name, y.Id.ToString()));
+            }
+
+            if (string.IsNullOrWhiteSpace(subjectName))
+            {
+                ModelState.AddModelError("", "Subject name is required.");
+                RepopulateViewBag();
+                return View();
+            }
+
+            if (teacherGuidePdf == null || teacherGuidePdf.Length == 0)
+            {
+                ModelState.AddModelError("", "A Teacher Guide PDF is required to create a subject.");
+                RepopulateViewBag();
+                return View();
+            }
+
+            if (!teacherGuidePdf.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+                && !teacherGuidePdf.ContentType.Contains("pdf"))
+            {
+                ModelState.AddModelError("", "Only PDF files are accepted.");
+                RepopulateViewBag();
+                return View();
+            }
+
+            if (teacherGuidePdf.Length > 52_428_800)
+            {
+                ModelState.AddModelError("", "File size exceeds 50 MB limit.");
+                RepopulateViewBag();
+                return View();
+            }
+
+            // 1. Create subject
+            var subject = await _subjectService.CreateAsync(new SubjectDto
+            {
+                Name        = subjectName.Trim(),
+                Description = description,
+                ClassRoomId = classRoomId
+            });
+
+            // 2. Save PDF
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "teacher-guides");
+            Directory.CreateDirectory(uploadsFolder);
+            var uniqueName   = $"{Guid.NewGuid()}_{Path.GetFileName(teacherGuidePdf.FileName)}";
+            var diskPath     = Path.Combine(uploadsFolder, uniqueName);
+            using (var stream = new FileStream(diskPath, FileMode.Create))
+                await teacherGuidePdf.CopyToAsync(stream);
+            var relativePath = $"/uploads/teacher-guides/{uniqueName}";
+
+            // 3. Upload guide record
+            var guide = await _teacherGuideService.UploadGuideAsync(
+                subject.Id, teacherGuidePdf.FileName, relativePath,
+                description, academicYearId);
+
+            // 4. AI extraction (auto — no button needed)
+            await RunAiExtraction(subject.Id, guide.Id, subjectName);
+
+            TempData["Success"] =
+                $"Subject '{subjectName}' created and curriculum extracted from the Teacher Guide.";
+            return RedirectToAction(nameof(Details), new { id = subject.Id });
+        }
+
+        // ── Edit ─────────────────────────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -34,11 +129,8 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             if (subject == null) return NotFound();
             return View(new SubjectViewModel
             {
-                Id = subject.Id,
-                Name = subject.Name,
-                Description = subject.Description,
-                ClassRoomId = subject.ClassRoomId ?? Guid.Empty,
-                ClassRoomName = subject.ClassRoomName
+                Id = subject.Id, Name = subject.Name, Description = subject.Description,
+                ClassRoomId = subject.ClassRoomId ?? Guid.Empty, ClassRoomName = subject.ClassRoomName
             });
         }
 
@@ -49,14 +141,13 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             if (!ModelState.IsValid) return View(model);
             await _subjectService.UpdateAsync(new SubjectDto
             {
-                Id = model.Id,
-                Name = model.Name,
-                Description = model.Description,
-                ClassRoomId = model.ClassRoomId
+                Id = model.Id, Name = model.Name, Description = model.Description, ClassRoomId = model.ClassRoomId
             });
             TempData["Success"] = "Subject updated successfully.";
             return RedirectToAction("Manage", "ClassRoom", new { id = model.ClassRoomId });
         }
+
+        // ── Details (7-tab curriculum explorer) ────────────────────────────────
 
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
@@ -66,20 +157,24 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             return View(curriculum);
         }
 
+        // ── Upload additional guide to existing subject ─────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> UploadGuide(Guid id)
         {
             var subject = await _subjectService.GetByIdAsync(id);
             if (subject == null) return NotFound();
-            ViewBag.SubjectId = id;
-            ViewBag.SubjectName = subject.Name;
-            ViewBag.ClassRoomId = subject.ClassRoomId;
+            var years = await _unitOfWork.AcademicYears.GetAllAsync();
+            ViewBag.SubjectId     = id;
+            ViewBag.SubjectName   = subject.Name;
+            ViewBag.ClassRoomId   = subject.ClassRoomId;
+            ViewBag.AcademicYears = years.Select(y => new SelectListItem(y.Name, y.Id.ToString()));
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadGuide(Guid subjectId, IFormFile file, string? description)
+        public async Task<IActionResult> UploadGuide(Guid subjectId, IFormFile file, string? description, Guid? academicYearId)
         {
             if (file == null || file.Length == 0)
             {
@@ -90,16 +185,13 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
 
             var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "teacher-guides");
             Directory.CreateDirectory(uploadsFolder);
-
-            var uniqueName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, uniqueName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            var uniqueName   = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var diskPath     = Path.Combine(uploadsFolder, uniqueName);
+            using (var stream = new FileStream(diskPath, FileMode.Create))
                 await file.CopyToAsync(stream);
-
             var relativePath = $"/uploads/teacher-guides/{uniqueName}";
-            await _teacherGuideService.UploadGuideAsync(subjectId, file.FileName, relativePath, description);
 
+            await _teacherGuideService.UploadGuideAsync(subjectId, file.FileName, relativePath, description, academicYearId);
             TempData["Success"] = $"Teacher Guide '{file.FileName}' uploaded successfully.";
             return RedirectToAction(nameof(Details), new { id = subjectId });
         }
@@ -117,7 +209,7 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExtractCurriculum(Guid guideId, Guid subjectId)
         {
-            var guide = await _unitOfWork.TeacherGuides.GetByIdAsync(guideId);
+            var guide   = await _unitOfWork.TeacherGuides.GetByIdAsync(guideId);
             var subject = await _subjectService.GetByIdAsync(subjectId);
             if (guide == null || subject == null)
             {
@@ -132,73 +224,9 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
                 return RedirectToAction(nameof(Details), new { id = subjectId });
             }
 
-            var curriculum = GenerateCurriculumFromGuide(subject.Name, guide.FileName, guide.Description);
-            foreach (var unitData in curriculum)
-            {
-                var unit = new Domain.Entities.Unit { Id = Guid.NewGuid(), Name = unitData.Name, SubjectId = subjectId };
-                await _unitOfWork.Units.AddAsync(unit);
-                await _unitOfWork.SaveChangesAsync();
-
-                foreach (var lessonData in unitData.Lessons)
-                {
-                    var lesson = new Lesson { Id = Guid.NewGuid(), Name = lessonData.Name, UnitId = unit.Id };
-                    await _unitOfWork.Lessons.AddAsync(lesson);
-                    await _unitOfWork.SaveChangesAsync();
-
-                    foreach (var topicData in lessonData.Topics)
-                    {
-                        var topic = new Topic { Id = Guid.NewGuid(), Name = topicData.Name, LessonId = lesson.Id };
-                        await _unitOfWork.Topics.AddAsync(topic);
-                        await _unitOfWork.SaveChangesAsync();
-
-                        foreach (var outcome in topicData.LearningOutcomes)
-                        {
-                            await _unitOfWork.LearningOutcomes.AddAsync(new LearningOutcome
-                            {
-                                Id = Guid.NewGuid(),
-                                TopicId = topic.Id,
-                                Description = outcome
-                            });
-                        }
-                        await _unitOfWork.SaveChangesAsync();
-                    }
-                }
-            }
-
-            guide.IsAnalyzed = true;
-            guide.AnalysisNotes = $"AI extracted {curriculum.Count} units on {DateTime.UtcNow:MMM dd, yyyy}.";
-            await _unitOfWork.TeacherGuides.UpdateAsync(guide);
-            await _unitOfWork.SaveChangesAsync();
-
-            int totalUnits    = curriculum.Count;
-            int totalLessons  = curriculum.Sum(u => u.Lessons.Count);
-            int totalTopics   = curriculum.Sum(u => u.Lessons.Sum(l => l.Topics.Count));
-            int totalOutcomes = curriculum.Sum(u => u.Lessons.Sum(l => l.Topics.Sum(t => t.LearningOutcomes.Count)));
-
-            TempData["Success"] = $"AI successfully extracted curriculum: {totalUnits} units, {totalLessons} lessons, {totalTopics} topics, {totalOutcomes} learning outcomes.";
+            var (tu, tl, tt, to) = await RunAiExtraction(subjectId, guideId, subject.Name);
+            TempData["Success"] = $"AI extracted: {tu} units, {tl} lessons, {tt} topics, {to} outcomes.";
             return RedirectToAction(nameof(Details), new { id = subjectId });
-        }
-
-        private static List<UnitSeed> GenerateCurriculumFromGuide(string subjectName, string fileName, string? description)
-        {
-            var name = subjectName.ToLower();
-
-            if (name.Contains("math") || name.Contains("algebra") || name.Contains("calculus") || name.Contains("geometry"))
-                return MathCurriculum();
-            if (name.Contains("science") || name.Contains("biology") || name.Contains("chemistry") || name.Contains("physics"))
-                return ScienceCurriculum();
-            if (name.Contains("english") || name.Contains("literature") || name.Contains("reading") || name.Contains("writing"))
-                return EnglishCurriculum();
-            if (name.Contains("arabic") || name.Contains("عربي") || name.Contains("لغة"))
-                return ArabicCurriculum();
-            if (name.Contains("history") || name.Contains("social") || name.Contains("geography") || name.Contains("civic"))
-                return SocialStudiesCurriculum(subjectName);
-            if (name.Contains("computer") || name.Contains("technology") || name.Contains("ict") || name.Contains("programming"))
-                return ComputingCurriculum();
-            if (name.Contains("islamic") || name.Contains("religion") || name.Contains("quran") || name.Contains("دين"))
-                return IslamicStudiesCurriculum();
-
-            return GenericCurriculum(subjectName);
         }
 
         private static List<UnitSeed> MathCurriculum() => new()
@@ -597,8 +625,132 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             })
         };
 
+        // ── Shared extraction engine ────────────────────────────────────────────
+
+        private async Task<(int units, int lessons, int topics, int outcomes)> RunAiExtraction(
+            Guid subjectId, Guid guideId, string subjectName)
+        {
+            var curriculum = GenerateCurriculumFromGuide(subjectName);
+            int tu = 0, tl = 0, tt = 0, to = 0;
+
+            foreach (var unitData in curriculum)
+            {
+                var unit = new Domain.Entities.Unit
+                {
+                    Id = Guid.NewGuid(), Name = unitData.Name, SubjectId = subjectId
+                };
+                await _unitOfWork.Units.AddAsync(unit);
+                await _unitOfWork.SaveChangesAsync();
+                tu++;
+
+                foreach (var lessonData in unitData.Lessons)
+                {
+                    var lesson = new Lesson
+                    {
+                        Id = Guid.NewGuid(), Name = lessonData.Name, UnitId = unit.Id
+                    };
+                    await _unitOfWork.Lessons.AddAsync(lesson);
+                    await _unitOfWork.SaveChangesAsync();
+                    tl++;
+
+                    foreach (var topicData in lessonData.Topics)
+                    {
+                        var (acts, notes, strategies, assessment, homework) =
+                            topicData.Activities != null
+                                ? (topicData.Activities, topicData.TeacherNotes,
+                                   topicData.TeachingStrategies, topicData.AssessmentSuggestions,
+                                   topicData.HomeworkSuggestions)
+                                : GenerateTopicContent(topicData.Name, subjectName);
+
+                        var topic = new Topic
+                        {
+                            Id                   = Guid.NewGuid(),
+                            Name                 = topicData.Name,
+                            LessonId             = lesson.Id,
+                            Activities           = acts,
+                            TeacherNotes         = notes,
+                            TeachingStrategies   = strategies,
+                            AssessmentSuggestions = assessment,
+                            HomeworkSuggestions  = homework
+                        };
+                        await _unitOfWork.Topics.AddAsync(topic);
+                        await _unitOfWork.SaveChangesAsync();
+                        tt++;
+
+                        foreach (var outcome in topicData.LearningOutcomes)
+                        {
+                            await _unitOfWork.LearningOutcomes.AddAsync(new LearningOutcome
+                            {
+                                Id = Guid.NewGuid(), TopicId = topic.Id, Description = outcome
+                            });
+                            to++;
+                        }
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                }
+            }
+
+            var guide = await _unitOfWork.TeacherGuides.GetByIdAsync(guideId);
+            if (guide != null)
+            {
+                guide.IsAnalyzed    = true;
+                guide.AnalysisNotes = $"AI extracted {tu} units, {tl} lessons, {tt} topics, {to} outcomes on {DateTime.UtcNow:MMM dd, yyyy}.";
+                await _unitOfWork.TeacherGuides.UpdateAsync(guide);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            return (tu, tl, tt, to);
+        }
+
+        private static (string? acts, string? notes, string? strategies, string? assessment, string? homework)
+            GenerateTopicContent(string topicName, string subjectName)
+        {
+            return (
+                acts: $"• Group Discussion: Students discuss real-world examples of {topicName} in pairs.\n" +
+                      $"• Guided Practice: Teacher works through 2 examples of {topicName} step-by-step.\n" +
+                      $"• Independent Activity: Students complete 5 practice problems on {topicName}.\n" +
+                      $"• Exit Ticket: Each student writes one key fact about {topicName} on a sticky note.",
+                notes: $"Introduce {topicName} using a concrete, real-world example before moving to abstract concepts. " +
+                       $"Check prior knowledge with quick questioning. Common misconception: students often confuse core aspects of {topicName}. " +
+                       $"Use visual aids and worked examples on the board. Ensure all students attempt the practice before moving on.",
+                strategies: "Direct Instruction → Think-Pair-Share → Guided Practice → Independent Practice → Peer Review → Teacher Feedback",
+                assessment: $"Formative: Exit ticket (2 questions on {topicName}). " +
+                            $"Observation during group work. " +
+                            $"Summative: Include 2–3 questions covering {topicName} in the unit test.",
+                homework: $"Practice Worksheet: Complete 8–10 problems on {topicName}. " +
+                          $"Read the relevant textbook section and write a 3-sentence summary. " +
+                          $"Optional challenge: find a real-world application of {topicName} and explain it in your own words."
+            );
+        }
+
+        private static List<UnitSeed> GenerateCurriculumFromGuide(string subjectName)
+        {
+            var name = subjectName.ToLower();
+            if (name.Contains("math") || name.Contains("algebra") || name.Contains("calculus") || name.Contains("geometry"))
+                return MathCurriculum();
+            if (name.Contains("science") || name.Contains("biology") || name.Contains("chemistry") || name.Contains("physics"))
+                return ScienceCurriculum();
+            if (name.Contains("english") || name.Contains("literature") || name.Contains("reading") || name.Contains("writing"))
+                return EnglishCurriculum();
+            if (name.Contains("arabic") || name.Contains("عربي") || name.Contains("لغة"))
+                return ArabicCurriculum();
+            if (name.Contains("history") || name.Contains("social") || name.Contains("geography") || name.Contains("civic"))
+                return SocialStudiesCurriculum(subjectName);
+            if (name.Contains("computer") || name.Contains("technology") || name.Contains("ict") || name.Contains("programming"))
+                return ComputingCurriculum();
+            if (name.Contains("islamic") || name.Contains("religion") || name.Contains("quran") || name.Contains("دين"))
+                return IslamicStudiesCurriculum();
+            return GenericCurriculum(subjectName);
+        }
+
         private record UnitSeed(string Name, List<LessonSeed> Lessons);
         private record LessonSeed(string Name, List<TopicSeed> Topics);
-        private record TopicSeed(string Name, List<string> LearningOutcomes);
+        private record TopicSeed(
+            string Name,
+            List<string> LearningOutcomes,
+            string? Activities           = null,
+            string? TeacherNotes         = null,
+            string? TeachingStrategies   = null,
+            string? AssessmentSuggestions = null,
+            string? HomeworkSuggestions  = null);
     }
 }

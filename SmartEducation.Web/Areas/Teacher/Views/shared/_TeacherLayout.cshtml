@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="~/assets/css/demo.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Public Sans', sans-serif; }
@@ -275,14 +276,66 @@
     <script src="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
     <script src="~/assets/vendor/js/menu.js"></script>
     <script src="~/assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script>
     (function () {
+        // Active sidebar
         var path = window.location.pathname;
         document.querySelectorAll('#sidebarMenu .menu-item[data-match]').forEach(function (li) {
             var match = li.getAttribute('data-match');
-            if (path.toLowerCase().startsWith(match.toLowerCase())) {
-                li.classList.add('active');
-            }
+            if (path.toLowerCase().startsWith(match.toLowerCase())) li.classList.add('active');
+        });
+
+        // Bootstrap tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el, { boundary: document.body });
+        });
+
+        // SweetAlert2 confirm intercept
+        function swalConfirm(msg, cb) {
+            Swal.fire({ title: 'Confirm', text: msg, icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#71dd37', cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes', cancelButtonText: 'Cancel'
+            }).then(function (r) { if (r.isConfirmed) cb(); });
+        }
+        document.querySelectorAll('form[onsubmit]').forEach(function (form) {
+            var attr = form.getAttribute('onsubmit') || '';
+            var match = attr.match(/confirm\('([^']+)'\)/);
+            if (!match) return;
+            var msg = match[1];
+            form.removeAttribute('onsubmit');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); var f = this;
+                swalConfirm(msg, function () { f.submit(); });
+            });
+        });
+        document.querySelectorAll('button[onclick], a[onclick]').forEach(function (btn) {
+            var attr = btn.getAttribute('onclick') || '';
+            var match = attr.match(/return confirm\('([^']+)'\)/);
+            if (!match) return;
+            var msg = match[1];
+            btn.removeAttribute('onclick');
+            btn.addEventListener('click', function (e) {
+                e.preventDefault(); var b = this;
+                swalConfirm(msg, function () {
+                    if (b.form) b.form.submit();
+                    else if (b.closest('form')) b.closest('form').submit();
+                });
+            });
+        });
+
+        // TempData toasts
+        document.querySelectorAll('.alert-success').forEach(function (el) {
+            var txt = el.textContent.trim().replace(/×/g, '').trim();
+            if (!txt) return;
+            el.style.display = 'none';
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: txt, showConfirmButton: false, timer: 4000, timerProgressBar: true });
+        });
+        document.querySelectorAll('.alert-danger').forEach(function (el) {
+            var txt = el.textContent.trim().replace(/×/g, '').trim();
+            if (!txt || el.closest('form')) return;
+            el.style.display = 'none';
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: txt, showConfirmButton: false, timer: 5000, timerProgressBar: true });
         });
     })();
     </script>

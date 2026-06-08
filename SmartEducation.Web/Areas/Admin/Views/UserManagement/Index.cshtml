@@ -140,16 +140,17 @@
                         </td>
                         <td class="text-end pe-3">
                             <a asp-action="ResetPassword" asp-route-id="@user.Id"
-                               class="btn btn-sm btn-outline-secondary me-1">
+                               class="btn btn-sm btn-outline-secondary me-1"
+                               data-bs-toggle="tooltip" title="Reset Password">
                                 <i class="bx bx-lock-open me-1"></i>Reset Password
                             </a>
-                            <form asp-action="ToggleActive" method="post" class="d-inline">
+                            <form asp-action="ToggleActive" method="post" class="d-inline"
+                                  onsubmit="return confirm('@(user.IsActive ? "Deactivate" : "Activate") @user.FullName?')">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@user.Id" />
                                 <input type="hidden" name="returnRole" value="@currentRole" />
                                 <button type="submit"
-                                        class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")"
-                                        onclick="return confirm('@(user.IsActive ? "Deactivate" : "Activate") @user.FullName?')">
+                                        class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")">
                                     <i class="bx @(user.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
                                     @(user.IsActive ? "Deactivate" : "Activate")
                                 </button>

@@ -1,44 +1,65 @@
 @model SmartEducation.Application.DTOs.SubjectCurriculumDto
 @{
-    ViewData["Title"] = $"Curriculum: {Model.SubjectName}";
+    ViewData["Title"] = $"{Model.SubjectName} — Curriculum";
     Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+
+    var allLessons  = Model.Units.SelectMany(u => u.Lessons).ToList();
+    var allTopics   = allLessons.SelectMany(l => l.Topics).ToList();
+    var allOutcomes = allTopics.SelectMany(t => t.LearningOutcomes).ToList();
+    var allWithActs = allTopics.Where(t => !string.IsNullOrEmpty(t.Activities)).ToList();
+    var allWithNotes= allTopics.Where(t => !string.IsNullOrEmpty(t.TeacherNotes) || !string.IsNullOrEmpty(t.TeachingStrategies)).ToList();
+    var latestGuide = Model.TeacherGuides.OrderByDescending(g => g.UploadedAt).FirstOrDefault();
 }
 
 <style>
-    .curriculum-tree { font-size: .92rem; }
-    .unit-block { border-left: 4px solid #696cff; }
-    .lesson-block { border-left: 3px solid #71dd37; }
-    .topic-block { border-left: 2px solid #fd7e14; }
-    .outcome-item { border-left: 2px solid #20c997; }
-    .stat-pill { background: #f0f0ff; border-radius: 50px; padding: .25rem .75rem; font-size: .82rem; }
+    .curr-unit   { border-left: 4px solid #696cff; }
+    .curr-lesson { border-left: 3px solid #71dd37; margin-left: 1rem; }
+    .curr-topic  { border-left: 2px solid #fd7e14; margin-left: 2rem; }
+    .outcome-pill{ background:#f0fff9; border:1px solid #b7f5c4; border-radius: 6px; padding:.3rem .7rem; font-size:.82rem; }
+    .activity-block { background:#fff8f0; border:1px solid #ffe0b2; border-radius:8px; padding:1rem; }
+    .notes-block    { background:#f0f8ff; border:1px solid #b3d9ff; border-radius:8px; padding:1rem; }
+    .tab-pane { animation: fadeIn .25s ease; }
+    @@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+    .stat-pill { background:#f0f0ff; border-radius:50px; padding:.2rem .7rem; font-size:.8rem; }
+    .tree-toggle { cursor:pointer; user-select:none; }
+    .tree-toggle:hover .tree-label { color:#696cff !important; }
 </style>
 
 <div class="row mb-4">
     <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
-                <a asp-controller="ClassRoom" asp-action="Index" class="text-muted text-decoration-none">Classes</a>
+                <a asp-controller="ClassRoom" asp-action="Index" class="text-muted text-decoration-none small">Classes</a>
                 <span class="text-muted">/</span>
                 @if (Model.ClassRoomId != Guid.Empty)
                 {
                     <a asp-controller="ClassRoom" asp-action="Manage" asp-route-id="@Model.ClassRoomId"
-                       class="text-muted text-decoration-none">@Model.ClassRoomName</a>
+                       class="text-muted text-decoration-none small">@Model.ClassRoomName</a>
                     <span class="text-muted">/</span>
                 }
-                <span>Curriculum</span>
+                <span class="small fw-semibold">@Model.SubjectName</span>
             </div>
-            <h4 class="fw-bold mb-1"><i class="bx bx-book-reader text-info me-2"></i>@Model.SubjectName — Curriculum</h4>
-            @if (!string.IsNullOrEmpty(Model.Description))
-            {
-                <p class="text-muted mb-0">@Model.Description</p>
-            }
+            <h4 class="fw-bold mb-1">
+                <i class="bx bx-book-reader text-primary me-2"></i>@Model.SubjectName
+                @if (!string.IsNullOrEmpty(Model.AcademicYearName))
+                {
+                    <span class="badge bg-label-secondary fs-6 ms-2">@Model.AcademicYearName</span>
+                }
+            </h4>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-label-primary"><i class="bx bx-buildings me-1"></i>@Model.ClassRoomName</span>
+                <span class="badge bg-label-success">@Model.TotalUnits Units</span>
+                <span class="badge bg-label-info">@Model.TotalLessons Lessons</span>
+                <span class="badge bg-label-warning">@Model.TotalTopics Topics</span>
+                <span class="badge bg-label-secondary">@Model.TotalLearningOutcomes Outcomes</span>
+            </div>
         </div>
         <div class="d-flex gap-2">
-            <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-primary btn-sm">
-                <i class="bx bx-upload me-1"></i> Upload Teacher Guide
+            <a asp-action="Edit" asp-route-id="@Model.SubjectId" class="btn btn-outline-primary btn-sm">
+                <i class="bx bx-edit me-1"></i>Edit
             </a>
-            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-                <i class="bx bx-arrow-back me-1"></i> Back
+            <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-primary btn-sm">
+                <i class="bx bx-upload me-1"></i>Upload New Guide
             </a>
         </div>
     </div>
@@ -46,195 +67,477 @@
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="bx bx-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="bx bx-error-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 
 <!-- Stats Row -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
-            <h3 class="fw-bold text-primary mb-0">@Model.TotalUnits</h3>
+            <h2 class="fw-bold text-primary mb-0">@Model.TotalUnits</h2>
             <small class="text-muted">Units</small>
         </div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
-            <h3 class="fw-bold text-success mb-0">@Model.TotalLessons</h3>
+            <h2 class="fw-bold text-success mb-0">@Model.TotalLessons</h2>
             <small class="text-muted">Lessons</small>
         </div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
-            <h3 class="fw-bold text-warning mb-0">@Model.TotalTopics</h3>
+            <h2 class="fw-bold text-warning mb-0">@Model.TotalTopics</h2>
             <small class="text-muted">Topics</small>
         </div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
-            <h3 class="fw-bold text-info mb-0">@Model.TotalLearningOutcomes</h3>
-            <small class="text-muted">Learning Outcomes</small>
+            <h2 class="fw-bold text-info mb-0">@Model.TotalLearningOutcomes</h2>
+            <small class="text-muted">Outcomes</small>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h2 class="fw-bold text-danger mb-0">@allWithActs.Count</h2>
+            <small class="text-muted">Activities</small>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
+        <div class="card border-0 shadow-sm text-center"><div class="card-body py-3">
+            <h2 class="fw-bold text-secondary mb-0">@allWithNotes.Count</h2>
+            <small class="text-muted">Teacher Notes</small>
         </div></div>
     </div>
 </div>
 
-<!-- Tabs -->
-<ul class="nav nav-tabs mb-3" id="curriculumTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-curriculum">
-        <i class="bx bx-sitemap me-1"></i>Curriculum Tree
-    </a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-guides">
-        <i class="bx bx-file-pdf me-1"></i>Teacher Guides (@Model.TeacherGuides.Count)
-    </a></li>
+<!-- 7-Tab Navigation -->
+<ul class="nav nav-tabs nav-tabs-line mb-0" id="currTabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-overview" role="tab">
+        <i class="bx bx-info-circle me-1"></i>Overview</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-units" role="tab">
+        <i class="bx bx-cube me-1"></i>Units <span class="badge bg-primary ms-1">@Model.TotalUnits</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-lessons" role="tab">
+        <i class="bx bx-book me-1"></i>Lessons <span class="badge bg-success ms-1">@Model.TotalLessons</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-topics" role="tab">
+        <i class="bx bx-tag me-1"></i>Topics <span class="badge bg-warning ms-1">@Model.TotalTopics</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-outcomes" role="tab">
+        <i class="bx bx-check-circle me-1"></i>Outcomes <span class="badge bg-info ms-1">@Model.TotalLearningOutcomes</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-activities" role="tab">
+        <i class="bx bx-run me-1"></i>Activities <span class="badge bg-danger ms-1">@allWithActs.Count</span></a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-notes" role="tab">
+        <i class="bx bx-note me-1"></i>Teacher Notes</a></li>
 </ul>
 
-<div class="tab-content">
-    <!-- Curriculum Tree Tab -->
-    <div class="tab-pane fade show active" id="tab-curriculum">
-        @if (!Model.Units.Any())
-        {
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bx bx-book-open fs-1 text-muted d-block mb-3"></i>
-                    <h5 class="text-muted">No curriculum structure yet</h5>
-                    <p class="text-muted">Upload the Teacher Guide PDF and use AI extraction to automatically populate the curriculum.</p>
-                    <div class="d-flex gap-2 justify-content-center">
-                        <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-warning text-dark">
-                            <i class="bx bx-upload me-1"></i>Upload Guide &amp; Extract with AI
-                        </a>
-                    </div>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="curriculum-tree">
-                @foreach (var unit in Model.Units)
-                {
-                    <div class="card border-0 shadow-sm mb-3 unit-block">
-                        <div class="card-header bg-transparent border-0 d-flex align-items-center gap-2 py-2">
-                            <i class="bx bx-cube text-primary fs-5"></i>
-                            <span class="fw-bold text-primary">Unit: @unit.Name</span>
-                            <span class="stat-pill ms-2">@unit.Lessons.Count lesson(s)</span>
-                        </div>
-                        <div class="card-body pt-0">
-                            @foreach (var lesson in unit.Lessons)
+<div class="tab-content card border-0 shadow-sm border-top-0 rounded-bottom rounded-top-0" style="border-top:none!important">
+    <div class="card-body p-4">
+
+        <!-- ═══ TAB 1: Overview ═══ -->
+        <div class="tab-pane fade show active" id="tab-overview" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <h6 class="fw-bold mb-3"><i class="bx bx-book-open text-primary me-2"></i>Subject Information</h6>
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted ps-0" style="width:140px">Subject Name</td>
+                                <td class="fw-semibold">@Model.SubjectName</td>
+                            </tr>
+                            @if (!string.IsNullOrEmpty(Model.Description))
                             {
-                                <div class="lesson-block p-2 ms-3 mb-2 rounded-end">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <i class="bx bx-book text-success"></i>
-                                        <span class="fw-semibold text-success">Lesson: @lesson.Name</span>
-                                        <span class="stat-pill" style="background:#f0fff0">@lesson.Topics.Count topic(s)</span>
-                                    </div>
-                                    @foreach (var topic in lesson.Topics)
-                                    {
-                                        <div class="topic-block p-2 ms-3 mb-2 rounded-end" style="background:#fffdf8">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <i class="bx bx-tag text-warning"></i>
-                                                <span class="fw-semibold" style="color:#856404">Topic: @topic.Name</span>
-                                                <span class="stat-pill" style="background:#fff3e0">@topic.LearningOutcomes.Count outcome(s)</span>
-                                            </div>
-                                            @if (topic.LearningOutcomes.Any())
-                                            {
-                                                <div class="ms-4 mt-1">
-                                                    @foreach (var lo in topic.LearningOutcomes)
-                                                    {
-                                                        <div class="outcome-item p-1 mb-1 rounded-end small" style="background:#f0fff9;padding-left:8px!important">
-                                                            <i class="bx bx-check-circle text-success me-1"></i>@lo
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
+                                <tr>
+                                    <td class="text-muted ps-0">Description</td>
+                                    <td>@Model.Description</td>
+                                </tr>
                             }
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    </div>
-
-    <!-- Teacher Guides Tab -->
-    <div class="tab-pane fade" id="tab-guides">
-        <div class="d-flex justify-content-end mb-3">
-            <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-primary btn-sm">
-                <i class="bx bx-upload me-1"></i> Upload New Guide
-            </a>
-        </div>
-
-        @if (!Model.TeacherGuides.Any())
-        {
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bx bx-file-pdf fs-1 text-muted d-block mb-3"></i>
-                    <h5 class="text-muted">No Teacher Guides uploaded yet</h5>
-                    <p class="text-muted">Upload the official Teacher Guide PDF for this subject.</p>
-                    <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-primary">
-                        <i class="bx bx-upload me-1"></i> Upload Teacher Guide
-                    </a>
+                            <tr>
+                                <td class="text-muted ps-0">Class</td>
+                                <td>
+                                    <span class="badge bg-label-primary">@Model.ClassRoomName</span>
+                                </td>
+                            </tr>
+                            @if (!string.IsNullOrEmpty(Model.AcademicYearName))
+                            {
+                                <tr>
+                                    <td class="text-muted ps-0">Academic Year</td>
+                                    <td><span class="badge bg-label-secondary">@Model.AcademicYearName</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        }
-        else
-        {
-            <div class="row g-3">
-                @foreach (var guide in Model.TeacherGuides)
-                {
-                    <div class="col-md-6 col-xl-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                                         style="width:50px;height:50px;background:#fde8e8">
-                                        <i class="bx bx-file-pdf text-danger fs-4"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-1">@guide.FileName</h6>
-                                        @if (!string.IsNullOrEmpty(guide.Description))
-                                        {
-                                            <p class="small text-muted mb-1">@guide.Description</p>
-                                        }
-                                        <small class="text-muted">Uploaded: @guide.UploadedAt.ToString("MMM dd, yyyy")</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer bg-transparent border-0 d-flex gap-2 flex-wrap">
-                                <a href="@guide.FilePath" target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1">
-                                    <i class="bx bx-show me-1"></i> View PDF
-                                </a>
-                                @if (!guide.IsAnalyzed)
+                <div class="col-lg-6">
+                    <h6 class="fw-bold mb-3"><i class="bx bx-file-pdf text-danger me-2"></i>Teacher Guide</h6>
+                    @if (latestGuide != null)
+                    {
+                        <div class="d-flex align-items-start gap-3 p-3 rounded-3 mb-3" style="background:#fff8f0">
+                            <i class="bx bx-file-pdf text-danger fs-3 mt-1"></i>
+                            <div>
+                                <div class="fw-semibold">@latestGuide.FileName</div>
+                                @if (!string.IsNullOrEmpty(latestGuide.Description))
                                 {
-                                    <form asp-action="ExtractCurriculum" method="post"
-                                          onsubmit="return confirm('Extract curriculum structure from this guide? This will create Units, Lessons, Topics and Learning Outcomes.')">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="guideId" value="@guide.Id" />
-                                        <input type="hidden" name="subjectId" value="@Model.SubjectId" />
-                                        <button type="submit" class="btn btn-sm btn-warning text-dark">
-                                            <i class="bx bx-brain me-1"></i>Extract with AI
-                                        </button>
-                                    </form>
+                                    <small class="text-muted d-block">@latestGuide.Description</small>
+                                }
+                                <small class="text-muted">Uploaded @latestGuide.UploadedAt.ToString("MMM dd, yyyy")</small>
+                                @if (latestGuide.IsAnalyzed)
+                                {
+                                    <div><span class="badge bg-success mt-1"><i class="bx bx-check me-1"></i>Curriculum Extracted</span></div>
+                                    @if (!string.IsNullOrEmpty(latestGuide.AnalysisNotes))
+                                    {
+                                        <small class="text-muted d-block mt-1">@latestGuide.AnalysisNotes</small>
+                                    }
                                 }
                                 else
                                 {
-                                    <span class="btn btn-sm btn-success disabled">
-                                        <i class="bx bx-check me-1"></i>Extracted
-                                    </span>
+                                    <div class="mt-2">
+                                        <form asp-action="ExtractCurriculum" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="guideId" value="@latestGuide.Id" />
+                                            <input type="hidden" name="subjectId" value="@Model.SubjectId" />
+                                            <button type="submit" class="btn btn-warning btn-sm">
+                                                <i class="bx bx-brain me-1"></i>Extract Curriculum
+                                            </button>
+                                        </form>
+                                    </div>
                                 }
-                                <form asp-action="DeleteGuide" method="post"
-                                      onsubmit="return confirm('Delete this guide?')">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="guideId" value="@guide.Id" />
-                                    <input type="hidden" name="subjectId" value="@Model.SubjectId" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bx bx-trash"></i>
-                                    </button>
-                                </form>
                             </div>
                         </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-3 text-muted">
+                            <i class="bx bx-file-pdf fs-2 d-block mb-2"></i>
+                            <p class="mb-2">No Teacher Guide uploaded yet.</p>
+                            <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="btn btn-primary btn-sm">
+                                <i class="bx bx-upload me-1"></i>Upload Teacher Guide
+                            </a>
+                        </div>
+                    }
+                    @if (Model.TeacherGuides.Count > 1)
+                    {
+                        <a data-bs-toggle="tab" href="#tab-guides" class="small text-primary">
+                            View all @Model.TeacherGuides.Count guides →
+                        </a>
+                    }
+                </div>
+            </div>
+
+            @if (!Model.Units.Any() && latestGuide == null)
+            {
+                <div class="alert alert-warning mt-4 mb-0">
+                    <i class="bx bx-info-circle me-2"></i>
+                    <strong>No curriculum yet.</strong>
+                    Upload the Teacher Guide PDF to automatically extract Units, Lessons, Topics, and Learning Outcomes.
+                    <a asp-action="UploadGuide" asp-route-id="@Model.SubjectId" class="alert-link">Upload now →</a>
+                </div>
+            }
+        </div>
+
+        <!-- ═══ TAB 2: Units ═══ -->
+        <div class="tab-pane fade" id="tab-units" role="tabpanel">
+            @if (!Model.Units.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bx bx-cube fs-1 d-block mb-3"></i>
+                    <h5>No units extracted yet</h5>
+                    <p>Upload a Teacher Guide PDF to extract the curriculum structure.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @{ int uNum = 1; }
+                    @foreach (var unit in Model.Units)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card border-0 h-100" style="background:#f8f9ff;border-left:4px solid #696cff!important">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                             style="width:30px;height:30px;background:#696cff;font-size:.8rem;flex-shrink:0">@uNum</div>
+                                        <h6 class="fw-bold mb-0">@unit.Name</h6>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <span class="stat-pill"><i class="bx bx-book text-success me-1"></i>@unit.Lessons.Count lessons</span>
+                                        <span class="stat-pill"><i class="bx bx-tag text-warning me-1"></i>@unit.Lessons.Sum(l => l.Topics.Count) topics</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        uNum++;
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- ═══ TAB 3: Lessons ═══ -->
+        <div class="tab-pane fade" id="tab-lessons" role="tabpanel">
+            @if (!Model.Units.Any())
+            {
+                <div class="text-center py-5 text-muted"><i class="bx bx-book fs-1 d-block mb-3"></i><h5>No lessons yet</h5></div>
+            }
+            else
+            {
+                @foreach (var unit in Model.Units)
+                {
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bx bx-cube text-primary fs-5"></i>
+                            <h6 class="fw-bold text-primary mb-0">@unit.Name</h6>
+                            <span class="stat-pill">@unit.Lessons.Count lesson(s)</span>
+                        </div>
+                        @if (!unit.Lessons.Any())
+                        {
+                            <p class="text-muted small ms-4">No lessons in this unit.</p>
+                        }
+                        else
+                        {
+                            <div class="row g-2 ms-2">
+                                @{ int lNum = 1; }
+                                @foreach (var lesson in unit.Lessons)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center gap-2 p-3 rounded-3 curr-lesson"
+                                             style="background:#f8fff8">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                                 style="width:26px;height:26px;background:#71dd37;font-size:.75rem;flex-shrink:0">@lNum</div>
+                                            <div>
+                                                <div class="fw-semibold small">@lesson.Name</div>
+                                                <small class="text-muted">@lesson.Topics.Count topic(s)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    lNum++;
+                                }
+                            </div>
+                        }
                     </div>
                 }
-            </div>
-        }
+            }
+        </div>
+
+        <!-- ═══ TAB 4: Topics (accordion by lesson) ═══ -->
+        <div class="tab-pane fade" id="tab-topics" role="tabpanel">
+            @if (!allTopics.Any())
+            {
+                <div class="text-center py-5 text-muted"><i class="bx bx-tag fs-1 d-block mb-3"></i><h5>No topics yet</h5></div>
+            }
+            else
+            {
+                var acc = "topicsAccordion";
+                <div class="accordion" id="@acc">
+                    @foreach (var unit in Model.Units)
+                    {
+                        foreach (var lesson in unit.Lessons)
+                        {
+                            if (!lesson.Topics.Any()) continue;
+                            var colId = $"lesson_{lesson.Id:N}";
+                            <div class="accordion-item border-0 mb-2 rounded-3 overflow-hidden shadow-sm">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed fw-semibold" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#@colId">
+                                        <i class="bx bx-book text-success me-2"></i>
+                                        @lesson.Name
+                                        <span class="stat-pill ms-2">@lesson.Topics.Count topic(s)</span>
+                                        <small class="text-muted ms-2">— @unit.Name</small>
+                                    </button>
+                                </h2>
+                                <div id="@colId" class="accordion-collapse collapse">
+                                    <div class="accordion-body pt-2">
+                                        <div class="row g-2">
+                                            @foreach (var topic in lesson.Topics)
+                                            {
+                                                <div class="col-md-6">
+                                                    <div class="p-3 rounded-3 curr-topic" style="background:#fffdf8">
+                                                        <div class="fw-semibold small"><i class="bx bx-tag text-warning me-1"></i>@topic.Name</div>
+                                                        @if (topic.LearningOutcomes.Any())
+                                                        {
+                                                            <div class="mt-1">
+                                                                <small class="text-muted">@topic.LearningOutcomes.Count outcome(s)</small>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- ═══ TAB 5: Learning Outcomes ═══ -->
+        <div class="tab-pane fade" id="tab-outcomes" role="tabpanel">
+            @if (!allOutcomes.Any())
+            {
+                <div class="text-center py-5 text-muted"><i class="bx bx-check-circle fs-1 d-block mb-3"></i><h5>No learning outcomes yet</h5></div>
+            }
+            else
+            {
+                @foreach (var unit in Model.Units)
+                {
+                    foreach (var lesson in unit.Lessons)
+                    {
+                        foreach (var topic in lesson.Topics)
+                        {
+                            if (!topic.LearningOutcomes.Any()) continue;
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bx bx-cube text-primary"></i>
+                                    <small class="text-muted">@unit.Name</small>
+                                    <span class="text-muted">›</span>
+                                    <i class="bx bx-book text-success"></i>
+                                    <small class="text-muted">@lesson.Name</small>
+                                    <span class="text-muted">›</span>
+                                    <i class="bx bx-tag text-warning"></i>
+                                    <span class="fw-semibold small">@topic.Name</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 ms-3">
+                                    @foreach (var outcome in topic.LearningOutcomes)
+                                    {
+                                        <div class="outcome-pill d-flex align-items-start gap-2">
+                                            <i class="bx bx-check-circle text-success mt-1" style="font-size:.85rem;flex-shrink:0"></i>
+                                            <span>@outcome</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            }
+        </div>
+
+        <!-- ═══ TAB 6: Activities ═══ -->
+        <div class="tab-pane fade" id="tab-activities" role="tabpanel">
+            @if (!allWithActs.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bx bx-run fs-1 d-block mb-3"></i>
+                    <h5>No activities extracted</h5>
+                    <p>Activities will appear here after curriculum extraction from the Teacher Guide.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var unit in Model.Units)
+                {
+                    var unitTopicsWithActs = unit.Lessons.SelectMany(l => l.Topics)
+                        .Where(t => !string.IsNullOrEmpty(t.Activities)).ToList();
+                    if (!unitTopicsWithActs.Any()) continue;
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="bx bx-cube me-2"></i>@unit.Name
+                    </h6>
+                    foreach (var lesson in unit.Lessons)
+                    {
+                        foreach (var topic in lesson.Topics)
+                        {
+                            if (string.IsNullOrEmpty(topic.Activities)) continue;
+                            <div class="activity-block mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bx bx-run text-warning fs-5"></i>
+                                    <div>
+                                        <span class="fw-semibold">@topic.Name</span>
+                                        <small class="text-muted ms-2">@lesson.Name</small>
+                                    </div>
+                                </div>
+                                <div class="small" style="white-space:pre-line">@topic.Activities</div>
+                                @if (!string.IsNullOrEmpty(topic.HomeworkSuggestions))
+                                {
+                                    <div class="mt-2 pt-2 border-top">
+                                        <small class="fw-semibold text-muted"><i class="bx bx-home me-1"></i>Homework:</small>
+                                        <div class="small text-muted" style="white-space:pre-line">@topic.HomeworkSuggestions</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                }
+            }
+        </div>
+
+        <!-- ═══ TAB 7: Teacher Notes ═══ -->
+        <div class="tab-pane fade" id="tab-notes" role="tabpanel">
+            @if (!allWithNotes.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bx bx-note fs-1 d-block mb-3"></i>
+                    <h5>No teacher notes extracted</h5>
+                    <p>Notes and strategies will appear here after extraction from the Teacher Guide.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var unit in Model.Units)
+                {
+                    var unitWithNotes = unit.Lessons.SelectMany(l => l.Topics)
+                        .Where(t => !string.IsNullOrEmpty(t.TeacherNotes) || !string.IsNullOrEmpty(t.TeachingStrategies)).ToList();
+                    if (!unitWithNotes.Any()) continue;
+                    <h6 class="fw-bold text-primary mb-3"><i class="bx bx-cube me-2"></i>@unit.Name</h6>
+                    foreach (var lesson in unit.Lessons)
+                    {
+                        foreach (var topic in lesson.Topics)
+                        {
+                            var hasNotes = !string.IsNullOrEmpty(topic.TeacherNotes);
+                            var hasStrat = !string.IsNullOrEmpty(topic.TeachingStrategies);
+                            var hasAssess= !string.IsNullOrEmpty(topic.AssessmentSuggestions);
+                            if (!hasNotes && !hasStrat && !hasAssess) continue;
+                            <div class="notes-block mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="bx bx-note text-info fs-5"></i>
+                                    <div>
+                                        <span class="fw-semibold">@topic.Name</span>
+                                        <small class="text-muted ms-2">@lesson.Name</small>
+                                    </div>
+                                </div>
+                                @if (hasNotes)
+                                {
+                                    <div class="mb-3">
+                                        <div class="fw-semibold small text-muted mb-1"><i class="bx bx-bulb me-1"></i>Teaching Notes</div>
+                                        <div class="small" style="white-space:pre-line">@topic.TeacherNotes</div>
+                                    </div>
+                                }
+                                @if (hasStrat)
+                                {
+                                    <div class="mb-3">
+                                        <div class="fw-semibold small text-muted mb-1"><i class="bx bx-git-branch me-1"></i>Teaching Strategy</div>
+                                        <div class="small">
+                                            @foreach (var step in (topic.TeachingStrategies ?? "").Split('→'))
+                                            {
+                                                <span class="badge bg-label-primary me-1 mb-1">@step.Trim()</span>
+                                                if (step != (topic.TeachingStrategies ?? "").Split('→').Last())
+                                                {
+                                                    <i class="bx bx-right-arrow-alt text-muted me-1"></i>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                @if (hasAssess)
+                                {
+                                    <div>
+                                        <div class="fw-semibold small text-muted mb-1"><i class="bx bx-clipboard me-1"></i>Assessment Suggestions</div>
+                                        <div class="small" style="white-space:pre-line">@topic.AssessmentSuggestions</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                }
+            }
+        </div>
+
     </div>
 </div>
