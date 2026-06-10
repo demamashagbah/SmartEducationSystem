@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartEducation.Application.Constants;
 using SmartEducation.Application.DTOs;
 using SmartEducation.Application.Interfaces.Services;
+using SmartEducation.Domain.Entities;
+using SmartEducation.Persistence.Contexts;
 using SmartEducation.Web.Areas.Admin.Models;
 
 namespace SmartEducation.Web.Areas.Admin.Contollers
@@ -18,6 +21,9 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
         private readonly ISubjectService _subjectService;
         private readonly ITeacherAssignmentService _teacherAssignmentService;
         private readonly IAcademicYearService _academicYearService;
+        private readonly IUserService _userService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _dbContext;
 
         public ClassRoomController(
             IClassRoomService classRoomService,
@@ -25,7 +31,10 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             IAdminStudentService studentService,
             ISubjectService subjectService,
             ITeacherAssignmentService teacherAssignmentService,
-            IAcademicYearService academicYearService)
+            IAcademicYearService academicYearService,
+            IUserService userService,
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext dbContext)
         {
             _classRoomService = classRoomService;
             _gradeService = gradeService;
@@ -33,6 +42,9 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             _subjectService = subjectService;
             _teacherAssignmentService = teacherAssignmentService;
             _academicYearService = academicYearService;
+            _userService = userService;
+            _userManager = userManager;
+            _dbContext = dbContext;
         }
 
         // ── Class CRUD ──────────────────────────────────────────────────────
@@ -211,7 +223,148 @@ namespace SmartEducation.Web.Areas.Admin.Contollers
             return RedirectToAction(nameof(Manage), new { id = classRoomId });
         }
 
+        // ── Add New Student (create + immediately assign to class) ─────────
+
+        [HttpGet]
+        public async Task<IActionResult> AddStudent(Guid classRoomId)
+        {
+            var classRoom = await _classRoomService.GetByIdAsync(classRoomId);
+            if (classRoom == null) return NotFound();
+
+            return View(new StudentViewModel
+            {
+                ClassRoomId   = classRoomId,
+                ClassRoomName = classRoom.Name,
+                EnrollmentDate = DateTime.Today,
+                AcademicYearOptions = await GetAcademicYearOptions()
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddStudent(StudentViewModel model)
+        {
+            // Remove validation for fields not required when linking an existing parent
+            if (model.LinkedParentProfileId.HasValue)
+            {
+                ModelState.Remove(nameof(model.ParentName));
+                ModelState.Remove(nameof(model.ParentPhone));
+                ModelState.Remove(nameof(model.ParentEmail));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.AcademicYearOptions = await GetAcademicYearOptions();
+                var cr = await _classRoomService.GetByIdAsync(model.ClassRoomId);
+                model.ClassRoomName = cr?.Name ?? "";
+                return View(model);
+            }
+
+            var (success, errors) = await _userService.CreateFullUserAsync(new CreateUserFullDto
+            {
+                FirstName      = model.FirstName,
+                LastName       = model.LastName,
+                Username       = model.Username,
+                Email          = model.Email,
+                Gender         = model.Gender,
+                DateOfBirth    = model.DateOfBirth,
+                Role           = Roles.Student,
+                Password       = model.Password ?? "Student@123",
+                StudentNumber  = model.StudentNumber,
+                NationalNumber = model.NationalNumber,
+                AcademicYearId = model.AcademicYearId,
+                EnrollmentDate = model.EnrollmentDate,
+                ParentName     = model.LinkedParentProfileId.HasValue ? (model.LinkedParentName ?? "") : model.ParentName,
+                ParentPhone    = model.LinkedParentProfileId.HasValue ? "" : model.ParentPhone,
+                ParentEmail    = model.LinkedParentProfileId.HasValue ? "" : model.ParentEmail,
+                Address        = model.Address,
+                EmergencyContact = model.EmergencyContact
+            });
+
+            if (!success)
+            {
+                foreach (var e in errors) ModelState.AddModelError("", e);
+                model.AcademicYearOptions = await GetAcademicYearOptions();
+                var cr2 = await _classRoomService.GetByIdAsync(model.ClassRoomId);
+                model.ClassRoomName = cr2?.Name ?? "";
+                return View(model);
+            }
+
+            // Assign to class
+            var newUser = await _userManager.FindByEmailAsync(model.Email);
+            if (newUser != null)
+            {
+                var allProfiles = await _studentService.GetAllAsync();
+                var sp = allProfiles.FirstOrDefault(s => s.UserId == newUser.Id);
+                if (sp != null)
+                {
+                    await _studentService.AssignToClassAsync(sp.ProfileId, model.ClassRoomId);
+
+                    // Link to existing parent if selected
+                    if (model.LinkedParentProfileId.HasValue)
+                    {
+                        var alreadyLinked = _dbContext.ParentStudents
+                            .Any(ps => ps.ParentId == model.LinkedParentProfileId.Value && ps.StudentId == sp.ProfileId);
+                        if (!alreadyLinked)
+                        {
+                            _dbContext.ParentStudents.Add(new ParentStudent
+                            {
+                                ParentId  = model.LinkedParentProfileId.Value,
+                                StudentId = sp.ProfileId
+                            });
+                            await _dbContext.SaveChangesAsync();
+                        }
+                    }
+                }
+            }
+
+            TempData["Success"] = $"Student {model.FirstName} {model.LastName} added successfully.";
+            return RedirectToAction(nameof(Manage), new { id = model.ClassRoomId });
+        }
+
+        // ── AJAX: search existing parent accounts ───────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> SearchParents(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q)) return Json(Array.Empty<object>());
+
+            var allParents = await _userManager.GetUsersInRoleAsync(Roles.Parent);
+            var query = q.ToLower();
+
+            var matched = allParents
+                .Where(u =>
+                    $"{u.FirstName} {u.LastName}".ToLower().Contains(query) ||
+                    (u.Email ?? "").ToLower().Contains(query) ||
+                    (u.PhoneNumber ?? "").Contains(query))
+                .Take(10)
+                .ToList();
+
+            var result = new List<object>();
+            foreach (var u in matched)
+            {
+                var profiles = _dbContext.ParentProfiles.Where(p => p.UserId == u.Id).ToList();
+                var profile  = profiles.FirstOrDefault();
+                if (profile == null) continue;
+                result.Add(new
+                {
+                    profileId = profile.Id,
+                    userId    = u.Id,
+                    name      = $"{u.FirstName} {u.LastName}".Trim(),
+                    email     = u.Email ?? "",
+                    phone     = u.PhoneNumber ?? ""
+                });
+            }
+            return Json(result);
+        }
+
         // ── Helpers ────────────────────────────────────────────────────────
+
+        private async Task<IEnumerable<SelectListItem>> GetAcademicYearOptions()
+        {
+            var years = await _academicYearService.GetAllAsync();
+            return years.Select(y => new SelectListItem(y.Name, y.Id.ToString()));
+        }
 
         private async Task<IEnumerable<SelectListItem>> GetGradeOptions()
         {

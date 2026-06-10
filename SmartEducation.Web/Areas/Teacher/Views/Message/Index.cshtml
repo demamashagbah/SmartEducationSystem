@@ -1,89 +1,1315 @@
-@model IEnumerable<SmartEducation.Application.DTOs.MessageDto>
 @{
-    ViewData["Title"] = "Inbox";
-    Layout = "~/Areas/Teacher/Views/shared/_TeacherLayout.cshtml";
+    ViewData["Title"] = "Messages";
+    Layout = "~/Areas/Teacher/Views/Shared/_TeacherLayout.cshtml";
+    var myId = ViewBag.CurrentUserId?.ToString() ?? "";
+    var openWith = ViewBag.OpenWith?.ToString() ?? "";
 }
 
-<div class="row mb-4">
-    <div class="col-12 d-flex align-items-center justify-content-between">
-        <div>
-            <h4 class="fw-bold mb-1">Messages</h4>
-            <p class="text-muted mb-0">Communicate with students, parents, and administrators.</p>
+@section Styles {
+<style>
+/* ── Full-height chat override ────────────────────────────────── */
+.content-wrapper { overflow: hidden !important; }
+.content-wrapper > .container-xxl {
+    padding: 0 !important;
+    max-width: 100% !important;
+    height: 100%;
+}
+.container-p-y { padding-top: 0 !important; padding-bottom: 0 !important; }
+
+/* ── Chat application shell ───────────────────────────────────── */
+.chat-app {
+    display: flex;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+    background: #f4f5fb;
+    font-family: 'Public Sans', sans-serif;
+}
+
+/* ── LEFT SIDEBAR ─────────────────────────────────────────────── */
+.chat-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid #e8eaf0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sidebar-head {
+    padding: 1rem 1.1rem .75rem;
+    border-bottom: 1px solid #f0f1f6;
+    flex-shrink: 0;
+}
+.sidebar-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .7rem;
+}
+.sidebar-title { font-size: 1.1rem; font-weight: 700; color: #2b2d42; margin: 0; }
+.btn-new-msg {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    border: none;
+    background: #696cff;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background .2s, transform .15s;
+    flex-shrink: 0;
+}
+.btn-new-msg:hover { background: #5f61e6; transform: scale(1.07); }
+.search-wrap {
+    position: relative;
+}
+.search-wrap input {
+    width: 100%;
+    padding: .45rem .9rem .45rem 2.2rem;
+    border: 1.5px solid #e8eaf0;
+    border-radius: 8px;
+    font-size: .82rem;
+    background: #f8f9ff;
+    outline: none;
+    transition: border-color .2s;
+}
+.search-wrap input:focus { border-color: #696cff; background: #fff; }
+.search-wrap .si {
+    position: absolute;
+    left: .65rem; top: 50%;
+    transform: translateY(-50%);
+    color: #b0b3cc;
+    font-size: 1rem;
+    pointer-events: none;
+}
+.conv-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.conv-list::-webkit-scrollbar { width: 4px; }
+.conv-list::-webkit-scrollbar-thumb { background: #e0e0f0; border-radius: 4px; }
+.conv-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1.1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f5f5fc;
+    transition: background .15s;
+    position: relative;
+}
+.conv-item:hover { background: #f8f9ff; }
+.conv-item.active { background: #ededff; }
+.conv-item.unread .conv-name { font-weight: 700; color: #2b2d42; }
+.conv-item.unread .conv-preview { color: #5a5c72; }
+.conv-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+.conv-body { flex: 1; min-width: 0; }
+.conv-row1 { display: flex; align-items: center; justify-content: space-between; }
+.conv-name { font-size: .875rem; font-weight: 600; color: #2b2d42; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.conv-time { font-size: .7rem; color: #a8aabc; white-space: nowrap; flex-shrink: 0; }
+.conv-row2 { display: flex; align-items: center; justify-content: space-between; margin-top: .15rem; }
+.conv-preview { font-size: .78rem; color: #a8aabc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.unread-badge {
+    min-width: 18px; height: 18px;
+    background: #696cff;
+    color: #fff;
+    border-radius: 50px;
+    font-size: .65rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+.conv-role-badge {
+    font-size: .62rem;
+    padding: .1rem .35rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+.role-student { background: #e8fce8; color: #28a745; }
+.role-parent  { background: #e8f4fd; color: #007bff; }
+.role-teacher { background: #f0eeff; color: #696cff; }
+.empty-convs {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #a8aabc;
+}
+.empty-convs i { font-size: 2.5rem; display: block; margin-bottom: .75rem; }
+
+/* ── CENTER CHAT ──────────────────────────────────────────────── */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+.chat-welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #a8aabc;
+    text-align: center;
+    padding: 2rem;
+}
+.chat-welcome i { font-size: 3.5rem; margin-bottom: 1rem; color: #d0d2e0; }
+.chat-welcome h5 { color: #6c757d; font-weight: 600; margin-bottom: .5rem; }
+.chat-welcome p { font-size: .875rem; max-width: 300px; }
+
+/* Chat header */
+.chat-header {
+    background: #fff;
+    border-bottom: 1px solid #e8eaf0;
+    padding: .7rem 1.1rem;
+    display: none;
+    align-items: center;
+    gap: .75rem;
+    flex-shrink: 0;
+}
+.ch-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .82rem; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+}
+.ch-info { flex: 1; min-width: 0; }
+.ch-name { font-size: .95rem; font-weight: 700; color: #2b2d42; }
+.ch-sub  { font-size: .75rem; color: #a8aabc; }
+.ch-actions { display: flex; gap: .4rem; }
+.ch-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e8eaf0;
+    background: #fff;
+    color: #6c757d;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all .15s;
+}
+.ch-btn:hover { background: #f0f1f8; color: #696cff; border-color: #696cff; }
+
+/* Messages area */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+    display: none;
+    flex-direction: column;
+    gap: .5rem;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #d8d9ee; border-radius: 4px; }
+.msg-group { display: flex; flex-direction: column; gap: .25rem; }
+.msg-group.out { align-items: flex-end; }
+.msg-group.in  { align-items: flex-start; }
+.msg-bubble {
+    max-width: 65%;
+    padding: .6rem .9rem;
+    border-radius: 14px;
+    font-size: .875rem;
+    line-height: 1.5;
+    position: relative;
+    word-break: break-word;
+}
+.msg-group.out  .msg-bubble { background: #696cff; color: #fff; border-bottom-right-radius: 4px; }
+.msg-group.in   .msg-bubble { background: #fff; color: #2b2d42; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.msg-meta {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .68rem;
+    color: #a8aabc;
+    padding: 0 .3rem;
+}
+.msg-group.out .msg-meta { justify-content: flex-end; }
+.msg-read-tick { color: #696cff; }
+.date-sep {
+    text-align: center;
+    font-size: .72rem;
+    color: #a8aabc;
+    margin: .5rem 0;
+}
+.date-sep span {
+    background: #eaeaf8;
+    padding: .2rem .75rem;
+    border-radius: 50px;
+}
+
+/* Input area */
+.chat-input-area {
+    background: #fff;
+    border-top: 1px solid #e8eaf0;
+    padding: .75rem 1.1rem;
+    display: none;
+    flex-direction: column;
+    gap: .5rem;
+    flex-shrink: 0;
+}
+.input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: .5rem;
+}
+#msgInput {
+    flex: 1;
+    resize: none;
+    border: 1.5px solid #e8eaf0;
+    border-radius: 12px;
+    padding: .6rem .9rem;
+    font-size: .875rem;
+    font-family: 'Public Sans', sans-serif;
+    outline: none;
+    min-height: 40px;
+    max-height: 120px;
+    line-height: 1.45;
+    transition: border-color .2s;
+    background: #f8f9ff;
+}
+#msgInput:focus { border-color: #696cff; background: #fff; }
+.input-action-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1.5px solid #e8eaf0;
+    background: #fff;
+    color: #a8aabc;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all .15s;
+    flex-shrink: 0;
+}
+.input-action-btn:hover { border-color: #696cff; color: #696cff; background: #f0f1ff; }
+.btn-send {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    border: none;
+    background: #696cff;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background .2s, transform .15s;
+    flex-shrink: 0;
+}
+.btn-send:hover { background: #5f61e6; transform: scale(1.07); }
+.templates-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+.tpl-chip {
+    font-size: .72rem;
+    padding: .2rem .65rem;
+    border: 1px solid #e8eaf0;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #696cff;
+    background: #f0f1ff;
+    transition: all .15s;
+    white-space: nowrap;
+}
+.tpl-chip:hover { background: #696cff; color: #fff; border-color: #696cff; }
+#templatesBar { display: none; }
+
+/* ── RIGHT CONTEXT PANEL ──────────────────────────────────────── */
+.chat-context {
+    width: 270px;
+    flex-shrink: 0;
+    background: #fff;
+    border-left: 1px solid #e8eaf0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.chat-context::-webkit-scrollbar { width: 4px; }
+.chat-context::-webkit-scrollbar-thumb { background: #e0e0f0; border-radius: 4px; }
+.ctx-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #a8aabc;
+}
+.ctx-empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; color: #d0d2e0; }
+.ctx-head {
+    padding: .85rem 1rem .6rem;
+    border-bottom: 1px solid #f0f1f6;
+    flex-shrink: 0;
+    font-size: .75rem;
+    font-weight: 700;
+    color: #a8aabc;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+.ctx-section { padding: .8rem 1rem; border-bottom: 1px solid #f5f5fc; }
+.ctx-student-name { font-size: .95rem; font-weight: 700; color: #2b2d42; margin-bottom: .15rem; }
+.ctx-student-meta { font-size: .75rem; color: #a8aabc; }
+.perf-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .3rem .75rem;
+    border-radius: 50px;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-top: .5rem;
+}
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem;
+}
+.stat-box {
+    background: #f8f9ff;
+    border: 1px solid #f0f1f8;
+    border-radius: 10px;
+    padding: .5rem .65rem;
+    text-align: center;
+}
+.stat-val { font-size: 1rem; font-weight: 800; color: #2b2d42; }
+.stat-lbl { font-size: .65rem; color: #a8aabc; margin-top: .1rem; }
+.prog-row { margin-bottom: .55rem; }
+.prog-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: .73rem;
+    color: #6c757d;
+    margin-bottom: .25rem;
+}
+.prog-bar-wrap {
+    height: 6px;
+    background: #f0f1f8;
+    border-radius: 50px;
+    overflow: hidden;
+}
+.prog-bar-fill {
+    height: 100%;
+    border-radius: 50px;
+    transition: width .4s ease;
+}
+.alert-chip {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    padding: .35rem .6rem;
+    font-size: .73rem;
+    color: #8a6d3b;
+    margin-bottom: .35rem;
+}
+.ctx-actions { padding: .8rem 1rem; }
+.ctx-action-btn {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+    padding: .45rem .7rem;
+    border: 1px solid #e8eaf0;
+    border-radius: 8px;
+    background: #fff;
+    color: #6c757d;
+    font-size: .78rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .15s;
+    margin-bottom: .35rem;
+}
+.ctx-action-btn:hover { border-color: #696cff; color: #696cff; background: #f0f1ff; }
+.ctx-action-btn i { font-size: .95rem; }
+
+/* ── NEW MESSAGE MODAL ────────────────────────────────────────── */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+}
+.step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700;
+    background: #e8eaf0;
+    color: #a8aabc;
+    transition: all .25s;
+}
+.step-dot.active { background: #696cff; color: #fff; }
+.step-dot.done   { background: #71dd37; color: #fff; }
+.step-line {
+    height: 2px; width: 28px;
+    background: #e8eaf0;
+    transition: background .25s;
+}
+.step-line.done { background: #71dd37; }
+.class-card {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .7rem .9rem;
+    border: 1.5px solid #e8eaf0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: .5rem;
+}
+.class-card:hover, .class-card.selected { border-color: #696cff; background: #f0f1ff; }
+.class-card .cc-icon {
+    width: 36px; height: 36px;
+    background: #f0f1ff;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #696cff; font-size: 1.1rem;
+}
+.class-card .cc-name { font-size: .9rem; font-weight: 600; color: #2b2d42; }
+.class-card .cc-grade { font-size: .75rem; color: #a8aabc; }
+.student-row {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .55rem .7rem;
+    border: 1.5px solid #e8eaf0;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: .4rem;
+}
+.student-row:hover, .student-row.selected { border-color: #696cff; background: #f0f1ff; }
+.student-row .sr-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: #696cff;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+    flex-shrink: 0;
+}
+.student-row .sr-name { font-size: .875rem; font-weight: 600; color: #2b2d42; }
+.student-row .sr-num  { font-size: .72rem; color: #a8aabc; }
+.recip-card {
+    border: 1.5px solid #e8eaf0;
+    border-radius: 10px;
+    padding: .75rem;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+    flex: 1;
+}
+.recip-card:hover, .recip-card.selected { border-color: #696cff; background: #f0f1ff; }
+.recip-card i { font-size: 1.6rem; color: #696cff; display: block; margin-bottom: .35rem; }
+.recip-card .rc-label { font-size: .82rem; font-weight: 600; color: #2b2d42; }
+.recip-card .rc-sub   { font-size: .7rem;  color: #a8aabc; }
+
+/* ── RESPONSIVE ───────────────────────────────────────────────── */
+@@media (max-width: 1100px) {
+    .chat-context { width: 240px; }
+}
+@@media (max-width: 900px) {
+    .chat-context { display: none; }
+}
+@@media (max-width: 640px) {
+    .chat-sidebar { width: 260px; }
+}
+</style>
+}
+
+<!-- CSRF for AJAX POSTs -->
+@Html.AntiForgeryToken()
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!--  Chat Application                                                -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="chat-app" id="chatApp">
+
+    <!-- ─── LEFT: Conversations Sidebar ─────────────────────────── -->
+    <div class="chat-sidebar">
+
+        <div class="sidebar-head">
+            <div class="sidebar-head-row">
+                <h6 class="sidebar-title">Messages</h6>
+                <button class="btn-new-msg" title="New Message" data-bs-toggle="modal" data-bs-target="#newMsgModal" onclick="openNewMsgModal()">
+                    <i class="bx bx-edit-alt"></i>
+                </button>
+            </div>
+            <div class="search-wrap">
+                <i class="bx bx-search si"></i>
+                <input id="searchInput" type="text" placeholder="Search conversations…" autocomplete="off">
+            </div>
         </div>
-        <a asp-action="Compose" class="btn btn-primary">
-            <i class="bx bx-send me-1"></i> Compose
-        </a>
+
+        <div class="conv-list" id="convList">
+            <div class="empty-convs" id="convEmpty" style="display:none">
+                <i class="bx bx-chat"></i>
+                <p class="mb-2 fw-semibold" style="color:#6c757d">No conversations yet</p>
+                <small>Click the edit icon above to start a new conversation.</small>
+            </div>
+        </div>
+
     </div>
+
+    <!-- ─── CENTER: Active Chat ──────────────────────────────────── -->
+    <div class="chat-main">
+
+        <!-- Welcome state -->
+        <div class="chat-welcome" id="chatWelcome">
+            <i class="bx bx-chat"></i>
+            <h5>Your Messages</h5>
+            <p class="mb-3">Select a conversation or start a new one to communicate with students and parents.</p>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newMsgModal" onclick="openNewMsgModal()">
+                <i class="bx bx-edit-alt me-1"></i>New Conversation
+            </button>
+        </div>
+
+        <!-- Chat header -->
+        <div class="chat-header" id="chatHeader">
+            <div class="ch-avatar" id="chAvatar"></div>
+            <div class="ch-info">
+                <div class="ch-name" id="chName"></div>
+                <div class="ch-sub" id="chSub"></div>
+            </div>
+            <div class="ch-actions">
+                <button class="ch-btn" title="Toggle templates" onclick="toggleTemplates()">
+                    <i class="bx bx-lightning"></i>
+                </button>
+                <button class="ch-btn" title="Refresh" onclick="refreshMessages()">
+                    <i class="bx bx-refresh"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <!-- Input area -->
+        <div class="chat-input-area" id="chatInputArea">
+            <div id="templatesBar" class="templates-bar mb-1">
+                <span class="tpl-chip" onclick="useTemplate(this)">Your child was absent today.</span>
+                <span class="tpl-chip" onclick="useTemplate(this)">Please review the assigned homework.</span>
+                <span class="tpl-chip" onclick="useTemplate(this)">Exam scheduled for next week.</span>
+                <span class="tpl-chip" onclick="useTemplate(this)">Student performance requires attention.</span>
+                <span class="tpl-chip" onclick="useTemplate(this)">Assignment submission is overdue.</span>
+            </div>
+            <div class="input-row">
+                <button class="input-action-btn" title="Attachment (coming soon)" onclick="showAttachInfo()">
+                    <i class="bx bx-paperclip"></i>
+                </button>
+                <textarea id="msgInput" rows="1" placeholder="Type a message…"></textarea>
+                <button class="input-action-btn" title="Quick Templates" onclick="toggleTemplates()">
+                    <i class="bx bx-lightning"></i>
+                </button>
+                <button class="btn-send" id="sendBtn" title="Send">
+                    <i class="bx bx-send"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── RIGHT: Academic Context Panel ────────────────────────── -->
+    <div class="chat-context" id="chatContext">
+        <div class="ctx-empty" id="ctxEmpty">
+            <i class="bx bx-user-circle"></i>
+            <p class="mb-0" style="font-size:.82rem">Select a conversation to view student academic context.</p>
+        </div>
+    </div>
+
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-}
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!--  New Message Modal (4 Steps)                                     -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="newMsgModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+            <div class="modal-header border-0 pb-0 pt-3 px-4">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0" id="modalTitle">New Message</h5>
+                    <p class="text-muted mb-0" style="font-size:.78rem" id="modalSubtitle">Step 1 of 3 — Select a class</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-2 pb-3">
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-transparent border-0 d-flex gap-2">
-        <a asp-action="Index" class="btn btn-primary btn-sm"><i class="bx bx-inbox me-1"></i>Inbox</a>
-        <a asp-action="Sent" class="btn btn-outline-secondary btn-sm"><i class="bx bx-send me-1"></i>Sent</a>
-    </div>
+                <!-- Step indicator -->
+                <div class="step-indicator">
+                    <div class="step-dot active" id="sd1">1</div>
+                    <div class="step-line" id="sl1"></div>
+                    <div class="step-dot" id="sd2">2</div>
+                    <div class="step-line" id="sl2"></div>
+                    <div class="step-dot" id="sd3">3</div>
+                </div>
 
-    @if (!Model.Any())
-    {
-        <div class="card-body text-center py-5">
-            <i class="bx bx-inbox fs-1 text-muted d-block mb-3"></i>
-            <h5 class="text-muted">Your inbox is empty</h5>
-            <p class="text-muted">No messages yet. Compose a message to get started.</p>
-            <a asp-action="Compose" class="btn btn-primary"><i class="bx bx-send me-1"></i>Compose Message</a>
-        </div>
-    }
-    else
-    {
-        <div class="list-group list-group-flush">
-            @foreach (var msg in Model)
-            {
-                <div class="list-group-item list-group-item-action px-4 py-3 @(!msg.IsRead ? "fw-semibold" : "")">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center flex-shrink-0"
-                             style="width:40px;height:40px;background:#696cff;">
-                            @msg.SenderName.Substring(0,1)
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="@(!msg.IsRead ? "text-dark fw-bold" : "text-muted")">
-                                    @msg.SenderName
-                                    @if (!string.IsNullOrEmpty(msg.SenderRole))
-                                    {
-                                        <span class="badge bg-label-secondary ms-1 small">@msg.SenderRole</span>
-                                    }
-                                </span>
-                                <small class="text-muted">@msg.SentAt.ToString("MMM dd, HH:mm")</small>
-                            </div>
-                            <div class="mb-1">
-                                @if (!msg.IsRead)
-                                {
-                                    <span class="badge bg-primary me-1" style="font-size:.65rem">NEW</span>
-                                }
-                                <a asp-action="Read" asp-route-id="@msg.Id" class="text-dark text-decoration-none">
-                                    @msg.Subject
-                                </a>
-                            </div>
-                            <small class="text-muted">
-                                @(msg.Body.Length > 80 ? msg.Body.Substring(0, 80) + "..." : msg.Body)
-                            </small>
-                        </div>
-                        <div class="d-flex flex-column gap-1">
-                            <a asp-action="Read" asp-route-id="@msg.Id" class="btn btn-sm btn-outline-primary">
-                                <i class="bx bx-show"></i>
-                            </a>
-                            <form asp-action="Delete" asp-route-id="@msg.Id" method="post"
-                                  onsubmit="return confirm('Delete this message?')">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bx bx-trash"></i></button>
-                            </form>
-                        </div>
+                <!-- Step 1: Select Class -->
+                <div id="step1">
+                    <div id="classList" style="max-height:300px;overflow-y:auto"></div>
+                    <div id="classLoading" class="text-center py-3 text-muted" style="display:none">
+                        <div class="spinner-border spinner-border-sm"></div> Loading classes…
+                    </div>
+                    <div id="classEmpty" class="text-center py-3 text-muted" style="display:none">
+                        <i class="bx bx-buildings d-block fs-3 mb-2"></i>No classes assigned.
                     </div>
                 </div>
-            }
+
+                <!-- Step 2: Select Student -->
+                <div id="step2" style="display:none">
+                    <div class="search-wrap mb-3">
+                        <i class="bx bx-search si"></i>
+                        <input id="studentSearch" type="text" class="form-control ps-5" placeholder="Search by name or student number…" oninput="filterStudents(this.value)">
+                    </div>
+                    <div id="studentList" style="max-height:260px;overflow-y:auto"></div>
+                    <div id="studentLoading" class="text-center py-3 text-muted" style="display:none">
+                        <div class="spinner-border spinner-border-sm"></div> Loading students…
+                    </div>
+                </div>
+
+                <!-- Step 3: Choose Recipient -->
+                <div id="step3" style="display:none">
+                    <p class="text-muted mb-3" style="font-size:.82rem">Who do you want to message regarding <strong id="selectedStudentName2"></strong>?</p>
+                    <div class="d-flex gap-2">
+                        <div class="recip-card selected" id="rcStudent" onclick="selectRecipient('student')">
+                            <i class="bx bx-user-circle"></i>
+                            <div class="rc-label">Student</div>
+                            <div class="rc-sub">Direct message</div>
+                        </div>
+                        <div class="recip-card" id="rcParent" onclick="selectRecipient('parent')">
+                            <i class="bx bx-user-pin"></i>
+                            <div class="rc-label">Parent</div>
+                            <div class="rc-sub" id="rcParentSub">Loading…</div>
+                        </div>
+                        <div class="recip-card" id="rcBoth" onclick="selectRecipient('both')">
+                            <i class="bx bx-group"></i>
+                            <div class="rc-label">Both</div>
+                            <div class="rc-sub">Student + Parent</div>
+                        </div>
+                    </div>
+                    <div id="parentNotFound" class="alert alert-warning mt-3 mb-0 py-2" style="display:none;font-size:.78rem">
+                        <i class="bx bx-info-circle me-1"></i> No parent account linked to this student.
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-3 gap-2">
+                <button class="btn btn-outline-secondary btn-sm" id="btnBack" onclick="modalBack()" style="display:none">
+                    <i class="bx bx-arrow-back me-1"></i>Back
+                </button>
+                <button class="btn btn-primary btn-sm ms-auto" id="btnNext" onclick="modalNext()" disabled>
+                    Next <i class="bx bx-right-arrow-alt ms-1"></i>
+                </button>
+                <button class="btn btn-success btn-sm ms-auto" id="btnStart" onclick="modalStart()" style="display:none">
+                    <i class="bx bx-chat me-1"></i>Start Chat
+                </button>
+            </div>
         </div>
-    }
+    </div>
 </div>
+
+@section Scripts {
+<script>
+/* ════════════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════════════ */
+const MY_ID = '@myId';
+let activeConv = null;       // { userId, name, role, initials, color, studentProfileId, className }
+let allConvs   = [];
+let pollTimer  = null;
+
+const API = {
+    getConvs:     '@Url.Action("GetConversations","Message")',
+    getMsgs:      '@Url.Action("GetMessages","Message")',
+    send:         '@Url.Action("Send","Message")',
+    markRead:     '@Url.Action("MarkRead","Message")',
+    studentCtx:   '@Url.Action("StudentContext","Message")',
+    getContact:   '@Url.Action("GetContact","Message")',
+    getMyClasses: '@Url.Action("GetMyClasses","Message")',
+    getStudents:  '@Url.Action("GetStudentsForClass","Message")',
+    getParent:    '@Url.Action("GetParentForStudent","Message")',
+    searchConts:  '@Url.Action("SearchContacts","Message")',
+};
+
+/* ════════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════════ */
+$(function () {
+    $.ajaxSetup({
+        headers: { 'RequestVerificationToken': $('[name="__RequestVerificationToken"]').val() }
+    });
+
+    loadConversations();
+    startPoll();
+
+    const openWithId = '@openWith';
+    if (openWithId) openConversation(openWithId);
+
+    $('#searchInput').on('input', function () { filterConvs(this.value); });
+
+    $('#msgInput').on('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }).on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    $('#sendBtn').on('click', sendMessage);
+});
+
+/* ════════════════════════════════════════════════════════════════
+   CONVERSATIONS LIST
+════════════════════════════════════════════════════════════════ */
+async function loadConversations() {
+    try {
+        const convs = await $.getJSON(API.getConvs);
+        allConvs = convs;
+        renderConvList(convs);
+    } catch (e) { console.error('loadConversations:', e); }
+}
+
+function renderConvList(convs) {
+    const $list = $('#convList');
+    $list.empty();
+
+    if (!convs || convs.length === 0) {
+        $list.append('<div class="empty-convs"><i class="bx bx-chat"></i><p class="mb-2 fw-semibold" style="color:#6c757d">No conversations yet</p><small>Click the edit icon above to start chatting.</small></div>');
+        return;
+    }
+
+    convs.forEach(c => {
+        const initials = (c.otherUserInitials || c.otherUserName.slice(0,2)).toUpperCase();
+        const unreadHtml = c.unreadCount > 0
+            ? `<span class="unread-badge">${c.unreadCount}</span>` : '';
+        const roleCls = (c.otherUserRole||'').toLowerCase() === 'parent' ? 'role-parent' :
+                        (c.otherUserRole||'').toLowerCase() === 'student' ? 'role-student' : 'role-teacher';
+        const time = formatConvTime(c.lastMessageAt);
+        const preview = (c.lastMessageIsFromMe ? '✓ ' : '') + (c.lastMessage || '');
+        const isActive = activeConv && activeConv.userId === c.otherUserId;
+        const isUnread = c.unreadCount > 0;
+
+        const html = `
+          <div class="conv-item ${isActive ? 'active' : ''} ${isUnread ? 'unread' : ''}"
+               data-uid="${c.otherUserId}" data-color="${c.avatarColor}"
+               onclick="openConversation('${c.otherUserId}','${c.avatarColor}')">
+            <div class="conv-avatar" style="background:${c.avatarColor}">${esc(initials)}</div>
+            <div class="conv-body">
+              <div class="conv-row1">
+                <span class="conv-name">${esc(c.otherUserName)}</span>
+                <span class="conv-time">${esc(time)}</span>
+              </div>
+              <div class="conv-row2">
+                <span class="conv-preview">${esc(preview)}</span>
+                ${unreadHtml}
+              </div>
+            </div>
+          </div>`;
+        $list.append(html);
+    });
+}
+
+function filterConvs(q) {
+    if (!q) { renderConvList(allConvs); return; }
+    const query = q.toLowerCase();
+    const filtered = allConvs.filter(c =>
+        c.otherUserName.toLowerCase().includes(query) ||
+        (c.linkedStudentName || '').toLowerCase().includes(query) ||
+        (c.linkedStudentClass || '').toLowerCase().includes(query)
+    );
+    renderConvList(filtered);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   OPEN CONVERSATION
+════════════════════════════════════════════════════════════════ */
+async function openConversation(userId, color) {
+    if (!color) {
+        const existing = allConvs.find(c => c.otherUserId === userId);
+        color = existing?.avatarColor || '#696cff';
+    }
+
+    // Fetch contact info
+    let contact;
+    try {
+        contact = await $.getJSON(API.getContact + '?userId=' + userId);
+    } catch (e) { return; }
+
+    const initials = (contact.initials || contact.fullName.slice(0,2)).toUpperCase();
+
+    activeConv = {
+        userId,
+        name:             contact.fullName,
+        role:             contact.role || '',
+        initials,
+        color:            color,
+        studentProfileId: contact.studentProfileId,
+        studentNumber:    contact.studentNumber || '',
+        className:        contact.className || '',
+        parentUserId:     contact.parentUserId,
+        email:            contact.email || ''
+    };
+
+    // Update sidebar active state
+    $('.conv-item').removeClass('active');
+    $(`.conv-item[data-uid="${userId}"]`).addClass('active');
+
+    // Show chat UI
+    $('#chatWelcome').hide();
+    $('#chatHeader').css('display', 'flex');
+    $('#chatMessages').css('display', 'flex');
+    $('#chatInputArea').css('display', 'flex');
+
+    // Populate header
+    $('#chAvatar').text(initials).css('background', color);
+    $('#chName').text(contact.fullName);
+
+    let subText = contact.role || '';
+    if (contact.className)     subText += (subText ? ' · ' : '') + contact.className;
+    if (contact.studentNumber) subText += (subText ? ' · ' : '') + '#' + contact.studentNumber;
+    $('#chSub').text(subText);
+
+    // Load messages & context
+    await loadMessages(userId);
+    loadStudentContext(activeConv.studentProfileId);
+
+    // Focus input
+    $('#msgInput').focus();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MESSAGES
+════════════════════════════════════════════════════════════════ */
+async function loadMessages(otherId) {
+    const $msgs = $('#chatMessages');
+    $msgs.empty();
+    try {
+        const messages = await $.getJSON(API.getMsgs + '?otherId=' + otherId);
+        if (messages.length === 0) {
+            $msgs.append('<div class="text-center text-muted py-4" style="font-size:.82rem">No messages yet. Say hello!</div>');
+        } else {
+            let lastDate = '';
+            messages.forEach(m => {
+                const d = new Date(m.sentAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+                if (d !== lastDate) {
+                    $msgs.append(`<div class="date-sep"><span>${esc(d)}</span></div>`);
+                    lastDate = d;
+                }
+                $msgs.append(buildBubble(m));
+            });
+        }
+        scrollToBottom();
+
+        // Update unread badges in sidebar
+        allConvs = allConvs.map(c => c.otherUserId === otherId ? { ...c, unreadCount: 0 } : c);
+        $(`.conv-item[data-uid="${otherId}"]`).find('.unread-badge').remove();
+        $(`.conv-item[data-uid="${otherId}"]`).removeClass('unread');
+    } catch (e) { console.error('loadMessages:', e); }
+}
+
+function buildBubble(m) {
+    const dir = m.isFromMe ? 'out' : 'in';
+    const tick = m.isFromMe
+        ? `<i class="bx bx-check-double msg-read-tick" style="${m.isRead ? 'color:#71dd37' : 'color:#a8aabc'}"></i>`
+        : '';
+    return `
+      <div class="msg-group ${dir}" data-mid="${m.id}">
+        <div class="msg-bubble">${esc(m.body)}</div>
+        <div class="msg-meta">
+          <span>${esc(m.formattedTime)}</span>
+          ${tick}
+        </div>
+      </div>`;
+}
+
+function appendMessage(m) {
+    const $msgs = $('#chatMessages');
+    // Remove "no messages" placeholder
+    $msgs.find('.text-muted').remove();
+    $msgs.append(buildBubble(m));
+    scrollToBottom();
+
+    // Update sidebar preview
+    allConvs = allConvs.map(c => c.otherUserId === activeConv.userId
+        ? { ...c, lastMessage: m.body, lastMessageAt: m.sentAt, lastMessageIsFromMe: true }
+        : c);
+    renderConvList(allConvs);
+    $(`.conv-item[data-uid="${activeConv.userId}"]`).addClass('active');
+}
+
+function scrollToBottom() {
+    const el = document.getElementById('chatMessages');
+    if (el) el.scrollTop = el.scrollHeight;
+}
+
+function refreshMessages() {
+    if (activeConv) loadMessages(activeConv.userId);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SEND MESSAGE
+════════════════════════════════════════════════════════════════ */
+async function sendMessage() {
+    if (!activeConv) return;
+    const body = $('#msgInput').val().trim();
+    if (!body) return;
+
+    $('#msgInput').val('').css('height', 'auto');
+
+    try {
+        const msg = await $.ajax({
+            url:         API.send,
+            method:      'POST',
+            contentType: 'application/json',
+            data:        JSON.stringify({ receiverId: activeConv.userId, body })
+        });
+        appendMessage(msg);
+    } catch (e) {
+        console.error('send:', e);
+        Swal.fire({ icon:'error', title:'Send Failed', text:'Could not send the message.', confirmButtonColor:'#696cff' });
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   STUDENT ACADEMIC CONTEXT
+════════════════════════════════════════════════════════════════ */
+async function loadStudentContext(profileId) {
+    const $ctx = $('#chatContext');
+
+    if (!profileId) {
+        $ctx.html('<div class="ctx-empty"><i class="bx bx-user-circle"></i><p style="font-size:.82rem" class="mb-0">No academic data available for this contact.</p></div>');
+        return;
+    }
+
+    $ctx.html('<div class="ctx-empty"><div class="spinner-border spinner-border-sm text-primary"></div><p class="mt-2 mb-0" style="font-size:.8rem">Loading…</p></div>');
+
+    try {
+        const ctx = await $.getJSON(API.studentCtx + '?studentProfileId=' + profileId);
+        renderContext(ctx);
+    } catch (e) {
+        $ctx.html('<div class="ctx-empty"><i class="bx bx-error-circle text-warning" style="font-size:2rem"></i><p class="mt-2 mb-0" style="font-size:.8rem">Could not load context.</p></div>');
+    }
+}
+
+function renderContext(c) {
+    const perfBg  = c.performanceColor + '20';
+    const alerts  = (c.alerts || []).map(a => `<div class="alert-chip">${esc(a)}</div>`).join('');
+    const attPct  = c.attendanceRate;
+    const asnPct  = c.assignmentCompletionRate;
+    const attColor= attPct >= 90 ? '#71dd37' : attPct >= 75 ? '#fd7e14' : '#e74c3c';
+    const asnColor= asnPct >= 80 ? '#71dd37' : asnPct >= 60 ? '#fd7e14' : '#e74c3c';
+
+    const html = `
+      <div class="ctx-head">Student Context</div>
+
+      <div class="ctx-section">
+        <div class="ctx-student-name">${esc(c.fullName)}</div>
+        <div class="ctx-student-meta">#${esc(c.studentNumber)} · ${esc(c.className)}</div>
+        <div class="perf-badge" style="background:${perfBg};color:${c.performanceColor}">
+          ${esc(c.performanceEmoji)} ${esc(c.performanceLevel)}
+        </div>
+      </div>
+
+      <div class="ctx-section">
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-val" style="color:${attColor}">${c.attendanceRate}%</div>
+            <div class="stat-lbl">Attendance</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" style="color:${c.absenceCount>5?'#e74c3c':'#2b2d42'}">${c.absenceCount}</div>
+            <div class="stat-lbl">Absences</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${c.averageGrade}%</div>
+            <div class="stat-lbl">Avg Grade</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${c.pendingAssignments}</div>
+            <div class="stat-lbl">Pending</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctx-section">
+        ${c.latestExamTitle !== '—' ? `<div class="mb-2" style="font-size:.73rem;color:#6c757d">Latest Exam: <strong>${esc(c.latestExamTitle)}</strong> — ${c.latestExamGrade}/${c.latestExamTotal}</div>` : ''}
+        <div class="prog-row">
+          <div class="prog-label"><span>Attendance</span><span>${c.attendanceRate}%</span></div>
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${c.attendanceRate}%;background:${attColor}"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Assignments</span><span>${c.assignmentCompletionRate}%</span></div>
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${c.assignmentCompletionRate}%;background:${asnColor}"></div></div>
+        </div>
+      </div>
+
+      ${alerts ? `<div class="ctx-section">${alerts}</div>` : ''}
+
+      <div class="ctx-actions">
+        <div style="font-size:.7rem;font-weight:700;color:#a8aabc;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Quick Actions</div>
+        <a href="/Teacher/Students" class="ctx-action-btn"><i class="bx bx-user-circle"></i>View Profile</a>
+        <a href="/Teacher/Attendance" class="ctx-action-btn"><i class="bx bx-calendar-check"></i>Attendance</a>
+        <a href="/Teacher/Exam" class="ctx-action-btn"><i class="bx bx-file-blank"></i>Exams</a>
+        <a href="/Teacher/Assignment" class="ctx-action-btn"><i class="bx bx-task"></i>Assignments</a>
+        <a href="/Teacher/StudentAnalytics" class="ctx-action-btn"><i class="bx bx-bar-chart-alt-2"></i>Analytics</a>
+      </div>`;
+
+    $('#chatContext').html(html);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   QUICK TEMPLATES
+════════════════════════════════════════════════════════════════ */
+function toggleTemplates() {
+    const $bar = $('#templatesBar');
+    $bar.toggle();
+}
+function useTemplate(el) {
+    const txt = $(el).text();
+    const $inp = $('#msgInput');
+    const cur = $inp.val();
+    $inp.val(cur ? cur + ' ' + txt : txt).focus();
+    $inp.css('height', 'auto').css('height', Math.min($inp[0].scrollHeight, 120) + 'px');
+    $('#templatesBar').hide();
+}
+function showAttachInfo() {
+    Swal && Swal.fire({ icon:'info', title:'Attachments', text:'File attachment support is coming soon.', confirmButtonColor:'#696cff', toast:false });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   POLLING
+════════════════════════════════════════════════════════════════ */
+function startPoll() {
+    pollTimer = setInterval(async () => {
+        try {
+            const convs = await $.getJSON(API.getConvs);
+            const prevTotUnread = allConvs.reduce((s, c) => s + (c.unreadCount || 0), 0);
+            const newTotUnread  = convs.reduce((s, c) => s + (c.unreadCount || 0), 0);
+            allConvs = convs;
+
+            // Re-render sidebar preserving active state
+            renderConvList(convs);
+            if (activeConv) $(`.conv-item[data-uid="${activeConv.userId}"]`).addClass('active');
+
+            // If active conversation got new messages
+            if (activeConv) {
+                const activeConvData = convs.find(c => c.otherUserId === activeConv.userId);
+                if (activeConvData && activeConvData.unreadCount > 0) {
+                    await loadMessages(activeConv.userId);
+                }
+            }
+        } catch (e) {}
+    }, 5000);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   NEW MESSAGE MODAL (MULTI-STEP)
+════════════════════════════════════════════════════════════════ */
+let nmStep   = 1;
+let nmClass  = null;   // { id, name, gradeName }
+let nmStudent = null;  // { studentProfileId, userId, name, studentNumber, parentEmail, parentName }
+let nmParent  = null;  // { found, userId, parentName } | null
+let nmRecip   = 'student'; // 'student' | 'parent' | 'both'
+let allStudents = [];
+
+function openNewMsgModal() {
+    nmStep = 1; nmClass = null; nmStudent = null; nmParent = null; nmRecip = 'student';
+    showStep(1);
+    loadClasses();
+}
+
+async function loadClasses() {
+    $('#classList').empty();
+    $('#classLoading').show();
+    $('#classEmpty').hide();
+    try {
+        const classes = await $.getJSON(API.getMyClasses);
+        $('#classLoading').hide();
+        if (!classes || classes.length === 0) { $('#classEmpty').show(); return; }
+        classes.forEach(c => {
+            $('#classList').append(`
+              <div class="class-card" onclick="selectClass(this,'${c.id}','${esc(c.name)}','${esc(c.gradeName||'')}')">
+                <div class="cc-icon"><i class="bx bx-buildings"></i></div>
+                <div><div class="cc-name">${esc(c.name)}</div><div class="cc-grade">${esc(c.gradeName||'')}</div></div>
+              </div>`);
+        });
+    } catch (e) { $('#classLoading').hide(); }
+}
+
+function selectClass(el, id, name, gradeName) {
+    nmClass = { id, name, gradeName };
+    $('.class-card').removeClass('selected');
+    $(el).addClass('selected');
+    $('#btnNext').prop('disabled', false);
+}
+
+async function loadStudentsForClass(classId) {
+    $('#studentList').empty();
+    $('#studentLoading').show();
+    allStudents = [];
+    try {
+        const students = await $.getJSON(API.getStudents + '?classId=' + classId);
+        $('#studentLoading').hide();
+        allStudents = students;
+        renderStudentList(students);
+    } catch (e) { $('#studentLoading').hide(); }
+}
+
+function renderStudentList(students) {
+    const $list = $('#studentList');
+    $list.empty();
+    if (!students || students.length === 0) {
+        $list.html('<p class="text-center text-muted py-3 mb-0" style="font-size:.82rem">No students found.</p>');
+        return;
+    }
+    students.forEach(s => {
+        const ini = s.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+        $list.append(`
+          <div class="student-row" onclick="selectStudent(this,'${s.studentProfileId}','${s.userId}','${esc(s.name)}','${esc(s.studentNumber||'')}','${esc(s.parentEmail||'')}','${esc(s.parentName||'')}')">
+            <div class="sr-avatar">${esc(ini)}</div>
+            <div>
+              <div class="sr-name">${esc(s.name)}</div>
+              <div class="sr-num">#${esc(s.studentNumber||'')} · ${esc(s.parentName ? 'Parent: '+s.parentName : 'No parent')}</div>
+            </div>
+          </div>`);
+    });
+}
+
+function filterStudents(q) {
+    if (!q) { renderStudentList(allStudents); return; }
+    const query = q.toLowerCase();
+    renderStudentList(allStudents.filter(s =>
+        s.name.toLowerCase().includes(query) || (s.studentNumber||'').toLowerCase().includes(query)
+    ));
+}
+
+function selectStudent(el, spId, userId, name, num, parentEmail, parentName) {
+    nmStudent = { studentProfileId: spId, userId, name, studentNumber: num, parentEmail, parentName };
+    $('.student-row').removeClass('selected');
+    $(el).addClass('selected');
+    $('#btnNext').prop('disabled', false);
+}
+
+async function loadParentInfo(studentProfileId) {
+    try {
+        const p = await $.getJSON(API.getParent + '?studentProfileId=' + studentProfileId);
+        nmParent = p;
+        if (p.found) {
+            $('#rcParentSub').text(p.parentName || 'Parent');
+            $('#rcParent').removeClass('opacity-50');
+            $('#parentNotFound').hide();
+        } else {
+            $('#rcParentSub').text('Not registered');
+            $('#rcParent').addClass('opacity-50');
+            $('#parentNotFound').show();
+            if (nmRecip === 'parent' || nmRecip === 'both') { nmRecip = 'student'; selectRecipient('student'); }
+        }
+    } catch (e) { nmParent = null; }
+}
+
+function selectRecipient(mode) {
+    if ((mode === 'parent' || mode === 'both') && (!nmParent || !nmParent.found)) return;
+    nmRecip = mode;
+    ['student','parent','both'].forEach(m => $(`#rc${m.charAt(0).toUpperCase()+m.slice(1)}`).removeClass('selected'));
+    $(`#rc${mode.charAt(0).toUpperCase()+mode.slice(1)}`).addClass('selected');
+    $('#btnStart').prop('disabled', false);
+}
+
+function showStep(step) {
+    nmStep = step;
+    ['step1','step2','step3'].forEach((id,i) => {
+        $(`#${id}`).toggle(i+1 === step);
+    });
+    // Step indicator
+    for (let i = 1; i <= 3; i++) {
+        const $dot = $(`#sd${i}`);
+        $dot.removeClass('active done');
+        if (i < step) $dot.addClass('done').text('✓');
+        else if (i === step) $dot.addClass('active').text(i);
+        else $dot.text(i);
+    }
+    for (let i = 1; i <= 2; i++) {
+        $(`#sl${i}`).toggleClass('done', i < step);
+    }
+    // Buttons
+    $('#btnBack').toggle(step > 1);
+    $('#btnNext').toggle(step < 3).prop('disabled', true);
+    $('#btnStart').toggle(step === 3).prop('disabled', false);
+
+    // Labels
+    const labels = ['Select a class', 'Select a student', 'Choose recipient'];
+    const subs   = ['Step 1 of 3 — Select a class', 'Step 2 of 3 — Select a student', 'Step 3 of 3 — Choose recipient'];
+    $('#modalTitle').text('New Message');
+    $('#modalSubtitle').text(subs[step - 1]);
+
+    if (step === 1) $('#btnNext').prop('disabled', !nmClass);
+    if (step === 2) { $('#btnNext').prop('disabled', !nmStudent); $('#studentSearch').val(''); if (nmClass) loadStudentsForClass(nmClass.id); }
+    if (step === 3) {
+        nmRecip = 'student';
+        $('#rcStudent').addClass('selected');
+        $('#rcParent,#rcBoth').removeClass('selected');
+        $('#selectedStudentName2').text(nmStudent?.name || '');
+        if (nmStudent) loadParentInfo(nmStudent.studentProfileId);
+    }
+}
+
+function modalNext() {
+    if (nmStep < 3) showStep(nmStep + 1);
+}
+function modalBack() {
+    if (nmStep > 1) showStep(nmStep - 1);
+}
+
+async function modalStart() {
+    if (!nmStudent) return;
+
+    const targets = [];
+    if (nmRecip === 'student' || nmRecip === 'both') targets.push({ userId: nmStudent.userId, color: '#696cff' });
+    if ((nmRecip === 'parent' || nmRecip === 'both') && nmParent?.found) targets.push({ userId: nmParent.userId, color: '#20c997' });
+
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('newMsgModal'))?.hide();
+
+    if (targets.length > 0) {
+        await openConversation(targets[0].userId, targets[0].color);
+        // Refresh conversations list
+        loadConversations();
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════════════ */
+function esc(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatConvTime(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const yesterday = new Date(now); yesterday.setDate(yesterday.getDate()-1);
+    const isYesterday = d.toDateString() === yesterday.toDateString();
+    if (isToday) return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+    if (isYesterday) return 'Yesterday';
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+</script>
+}

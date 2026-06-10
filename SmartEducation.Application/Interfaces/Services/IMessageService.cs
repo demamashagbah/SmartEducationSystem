@@ -4,6 +4,7 @@ namespace SmartEducation.Application.Interfaces.Services
 {
     public interface IMessageService
     {
+        // Legacy methods
         Task<IEnumerable<MessageDto>> GetInboxAsync(Guid userId);
         Task<IEnumerable<MessageDto>> GetSentAsync(Guid userId);
         Task<MessageDto?> GetByIdAsync(Guid messageId, Guid userId);
@@ -11,5 +12,11 @@ namespace SmartEducation.Application.Interfaces.Services
         Task<MessageDto> SendAsync(Guid senderId, SendMessageDto dto);
         Task MarkAsReadAsync(Guid messageId, Guid userId);
         Task DeleteAsync(Guid messageId, Guid userId);
+
+        // Conversation (WhatsApp-style) methods
+        Task<IEnumerable<ConversationDto>> GetConversationsAsync(Guid userId);
+        Task<IEnumerable<ConversationMessageDto>> GetConversationAsync(Guid userId, Guid otherId);
+        Task<ConversationMessageDto> SendChatAsync(Guid senderId, Guid receiverId, string body);
+        Task MarkConversationReadAsync(Guid userId, Guid otherId);
     }
 }

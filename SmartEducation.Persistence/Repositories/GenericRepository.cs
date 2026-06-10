@@ -3,6 +3,7 @@ using SmartEducation.Application.Interfaces;
 using SmartEducation.Persistence.Contexts;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace SmartEducation.Persistence.Repositories
@@ -33,6 +34,14 @@ namespace SmartEducation.Persistence.Repositories
                 .AsNoTracking()
                 .Where(e => EF.Property<bool>(e, "IsDeleted") == false)
                 .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            IQueryable<T> query = _context.Set<T>().AsNoTracking();
+            if (typeof(SmartEducation.Domain.Common.BaseEntity).IsAssignableFrom(typeof(T)))
+                query = query.Where(e => EF.Property<bool>(e, "IsDeleted") == false);
+            return await query.Where(predicate).ToListAsync();
         }
 
         public async Task<T> AddAsync(T entity)

@@ -1,0 +1,518 @@
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Areas/Parent/Views/Shared/_ParentLayout.cshtml";
+    var myId     = ViewBag.CurrentUserId?.ToString() ?? "";
+    var openWith = ViewBag.OpenWith?.ToString() ?? "";
+}
+
+@section Styles {
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@@11/dist/sweetalert2.min.css">
+<style>
+.content-wrapper { overflow: hidden !important; }
+.content-wrapper > .container-xxl {
+    padding: 0 !important;
+    max-width: 100% !important;
+    height: 100%;
+}
+.container-p-y { padding-top: 0 !important; padding-bottom: 0 !important; }
+
+.chat-app {
+    display: flex;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+    background: #f4f5fb;
+    font-family: 'Public Sans', sans-serif;
+}
+
+/* ── LEFT SIDEBAR ── */
+.chat-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid #e8eaf0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sidebar-head { padding: 1rem 1.1rem .75rem; border-bottom: 1px solid #f0f1f6; flex-shrink: 0; }
+.sidebar-head-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: .7rem; }
+.sidebar-title { font-size: 1.1rem; font-weight: 700; color: #2b2d42; margin: 0; }
+.btn-new-msg {
+    width: 32px; height: 32px; border-radius: 9px; border: none;
+    background: #0d6efd; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; transition: background .2s, transform .15s;
+}
+.btn-new-msg:hover { background: #0b5ed7; transform: scale(1.07); }
+.search-wrap { position: relative; }
+.search-wrap input {
+    width: 100%; padding: .45rem .9rem .45rem 2.2rem;
+    border: 1.5px solid #e8eaf0; border-radius: 8px;
+    font-size: .82rem; background: #f8f9ff; outline: none; transition: border-color .2s;
+}
+.search-wrap input:focus { border-color: #0d6efd; background: #fff; }
+.search-wrap .si { position: absolute; left: .65rem; top: 50%; transform: translateY(-50%); color: #b0b3cc; font-size: 1rem; pointer-events: none; }
+.conv-list { flex: 1; overflow-y: auto; }
+.conv-list::-webkit-scrollbar { width: 4px; }
+.conv-list::-webkit-scrollbar-thumb { background: #e0e0f0; border-radius: 4px; }
+.conv-item {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1.1rem; cursor: pointer;
+    border-bottom: 1px solid #f5f5fc; transition: background .15s;
+}
+.conv-item:hover { background: #f8f9ff; }
+.conv-item.active { background: #e8f0fe; }
+.conv-item.unread .conv-name { font-weight: 700; color: #2b2d42; }
+.conv-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.conv-body { flex: 1; min-width: 0; }
+.conv-row1 { display: flex; align-items: center; justify-content: space-between; }
+.conv-name { font-size: .875rem; font-weight: 600; color: #2b2d42; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.conv-time { font-size: .7rem; color: #a8aabc; white-space: nowrap; flex-shrink: 0; }
+.conv-row2 { display: flex; align-items: center; justify-content: space-between; margin-top: .15rem; }
+.conv-preview { font-size: .78rem; color: #a8aabc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.unread-badge { min-width: 18px; height: 18px; background: #0d6efd; color: #fff; border-radius: 50px; font-size: .65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+/* ── CENTER CHAT ── */
+.chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.chat-welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #a8aabc; text-align: center; padding: 2rem; }
+.chat-welcome i { font-size: 3.5rem; margin-bottom: 1rem; color: #d0d2e0; }
+.chat-welcome h5 { color: #6c757d; font-weight: 600; margin-bottom: .5rem; }
+.chat-header { background: #fff; border-bottom: 1px solid #e8eaf0; padding: .7rem 1.1rem; display: none; align-items: center; gap: .75rem; flex-shrink: 0; }
+.ch-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.ch-info { flex: 1; min-width: 0; }
+.ch-name { font-size: .95rem; font-weight: 700; color: #2b2d42; }
+.ch-sub  { font-size: .75rem; color: #a8aabc; }
+.ch-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e8eaf0; background: #fff; color: #6c757d; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: all .15s; }
+.ch-btn:hover { background: #f0f1f8; color: #0d6efd; border-color: #0d6efd; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; display: none; flex-direction: column; gap: .5rem; }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #d8d9ee; border-radius: 4px; }
+.msg-group { display: flex; flex-direction: column; gap: .25rem; }
+.msg-group.out { align-items: flex-end; }
+.msg-group.in  { align-items: flex-start; }
+.msg-bubble { max-width: 65%; padding: .6rem .9rem; border-radius: 14px; font-size: .875rem; line-height: 1.5; word-break: break-word; }
+.msg-group.out .msg-bubble { background: #0d6efd; color: #fff; border-bottom-right-radius: 4px; }
+.msg-group.in  .msg-bubble { background: #fff; color: #2b2d42; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.msg-meta { display: flex; align-items: center; gap: .35rem; font-size: .68rem; color: #a8aabc; padding: 0 .3rem; }
+.msg-group.out .msg-meta { justify-content: flex-end; }
+.date-sep { text-align: center; font-size: .72rem; color: #a8aabc; margin: .5rem 0; }
+.date-sep span { background: #eaeaf8; padding: .2rem .75rem; border-radius: 50px; }
+.chat-input-area { background: #fff; border-top: 1px solid #e8eaf0; padding: .75rem 1.1rem; display: none; flex-direction: column; gap: .5rem; flex-shrink: 0; }
+.input-row { display: flex; align-items: flex-end; gap: .5rem; }
+#msgInput { flex: 1; resize: none; border: 1.5px solid #e8eaf0; border-radius: 12px; padding: .6rem .9rem; font-size: .875rem; font-family: 'Public Sans', sans-serif; outline: none; min-height: 40px; max-height: 120px; line-height: 1.45; transition: border-color .2s; background: #f8f9ff; }
+#msgInput:focus { border-color: #0d6efd; background: #fff; }
+.btn-send { width: 38px; height: 38px; border-radius: 10px; border: none; background: #0d6efd; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; transition: background .2s, transform .15s; }
+.btn-send:hover { background: #0b5ed7; transform: scale(1.07); }
+
+/* ── RIGHT CONTEXT ── */
+.chat-context { width: 270px; flex-shrink: 0; background: #fff; border-left: 1px solid #e8eaf0; overflow-y: auto; display: flex; flex-direction: column; }
+.chat-context::-webkit-scrollbar { width: 4px; }
+.chat-context::-webkit-scrollbar-thumb { background: #e0e0f0; border-radius: 4px; }
+.ctx-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem 1rem; color: #a8aabc; }
+.ctx-empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; color: #d0d2e0; }
+.ctx-head { padding: .85rem 1rem .6rem; border-bottom: 1px solid #f0f1f6; font-size: .75rem; font-weight: 700; color: #a8aabc; text-transform: uppercase; letter-spacing: .06em; }
+.ctx-section { padding: .8rem 1rem; border-bottom: 1px solid #f5f5fc; }
+.ctx-student-name { font-size: .95rem; font-weight: 700; color: #2b2d42; margin-bottom: .15rem; }
+.ctx-student-meta { font-size: .75rem; color: #a8aabc; }
+.perf-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .75rem; border-radius: 50px; font-size: .78rem; font-weight: 700; margin-top: .5rem; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.stat-box { background: #f8f9ff; border: 1px solid #f0f1f8; border-radius: 10px; padding: .5rem .65rem; text-align: center; }
+.stat-val { font-size: 1rem; font-weight: 800; color: #2b2d42; }
+.stat-lbl { font-size: .65rem; color: #a8aabc; margin-top: .1rem; }
+.prog-row { margin-bottom: .55rem; }
+.prog-label { display: flex; justify-content: space-between; font-size: .73rem; color: #6c757d; margin-bottom: .25rem; }
+.prog-bar-wrap { height: 6px; background: #f0f1f8; border-radius: 50px; overflow: hidden; }
+.prog-bar-fill { height: 100%; border-radius: 50px; transition: width .4s ease; }
+.alert-chip { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: .35rem .6rem; font-size: .73rem; color: #8a6d3b; margin-bottom: .35rem; }
+
+/* ── TEACHER MODAL ── */
+.teacher-card { display: flex; align-items: center; gap: .7rem; padding: .65rem .9rem; border: 1.5px solid #e8eaf0; border-radius: 10px; cursor: pointer; transition: all .15s; margin-bottom: .45rem; }
+.teacher-card:hover, .teacher-card.selected { border-color: #0d6efd; background: #e8f0fe; }
+.teacher-card .tc-av { width: 38px; height: 38px; border-radius: 50%; background: #0d6efd; color: #fff; display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 700; flex-shrink: 0; }
+.teacher-card .tc-name { font-size: .88rem; font-weight: 600; color: #2b2d42; }
+.teacher-card .tc-sub  { font-size: .72rem; color: #a8aabc; }
+
+@@media (max-width: 900px) { .chat-context { display: none; } }
+@@media (max-width: 640px) { .chat-sidebar { width: 260px; } }
+</style>
+}
+
+@Html.AntiForgeryToken()
+
+<div class="chat-app">
+
+    <!-- ─── LEFT: Conversations Sidebar ─── -->
+    <div class="chat-sidebar">
+        <div class="sidebar-head">
+            <div class="sidebar-head-row">
+                <h6 class="sidebar-title">Messages</h6>
+                <button class="btn-new-msg" title="Message a Teacher"
+                        data-bs-toggle="modal" data-bs-target="#teacherModal" onclick="openTeacherModal()">
+                    <i class="bx bx-edit-alt"></i>
+                </button>
+            </div>
+            <div class="search-wrap">
+                <i class="bx bx-search si"></i>
+                <input id="searchInput" type="text" placeholder="Search conversations…" autocomplete="off">
+            </div>
+        </div>
+        <div class="conv-list" id="convList"></div>
+    </div>
+
+    <!-- ─── CENTER: Active Chat ─── -->
+    <div class="chat-main">
+        <div class="chat-welcome" id="chatWelcome">
+            <i class="bx bx-chat"></i>
+            <h5>Connect with Teachers</h5>
+            <p class="mb-3">Select a conversation or message a teacher to discuss your child's progress.</p>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#teacherModal" onclick="openTeacherModal()">
+                <i class="bx bx-edit-alt me-1"></i>Message a Teacher
+            </button>
+        </div>
+
+        <div class="chat-header" id="chatHeader">
+            <div class="ch-avatar" id="chAvatar"></div>
+            <div class="ch-info">
+                <div class="ch-name" id="chName"></div>
+                <div class="ch-sub" id="chSub"></div>
+            </div>
+            <div class="d-flex gap-1">
+                <button class="ch-btn" onclick="refreshMessages()" title="Refresh"><i class="bx bx-refresh"></i></button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input-area" id="chatInputArea">
+            <div class="input-row">
+                <textarea id="msgInput" rows="1" placeholder="Type a message to the teacher…"></textarea>
+                <button class="btn-send" id="sendBtn" title="Send"><i class="bx bx-send"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── RIGHT: Child Context Panel ─── -->
+    <div class="chat-context" id="chatContext">
+        <div class="ctx-empty" id="ctxEmpty">
+            <i class="bx bx-child"></i>
+            <p style="font-size:.82rem" class="mb-0">Your child's academic summary will appear here.</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Teacher Selection Modal -->
+<div class="modal fade" id="teacherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+            <div class="modal-header border-0 pb-0 pt-3 px-4">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">Message a Teacher</h5>
+                    <p class="text-muted mb-0" style="font-size:.78rem">Select your child's teacher to start a conversation</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <div id="teacherList" style="max-height:320px;overflow-y:auto"></div>
+                <div id="teacherLoading" class="text-center py-3 text-muted" style="display:none">
+                    <div class="spinner-border spinner-border-sm"></div> Loading teachers…
+                </div>
+                <div id="teacherEmpty" class="text-center py-3 text-muted" style="display:none">
+                    <i class="bx bx-user d-block fs-3 mb-2"></i>No teachers found for your child's class.
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-3">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary btn-sm ms-auto" id="btnStartChat" onclick="startTeacherChat()" disabled>
+                    <i class="bx bx-chat me-1"></i>Start Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@@11"></script>
+<script>
+const MY_ID = '@myId';
+let activeConv  = null;
+let allConvs    = [];
+let selTeacher  = null;
+let pollTimer   = null;
+
+const API = {
+    getConvs:    '@Url.Action("GetConversations","Message")',
+    getMsgs:     '@Url.Action("GetMessages","Message")',
+    send:        '@Url.Action("Send","Message")',
+    getContact:  '@Url.Action("GetContact","Message")',
+    getTeachers: '@Url.Action("GetMyTeachers","Message")',
+    childCtx:    '@Url.Action("GetChildContext","Message")',
+};
+
+$(function () {
+    $.ajaxSetup({ headers: { 'RequestVerificationToken': $('[name="__RequestVerificationToken"]').val() } });
+    loadConversations();
+    loadChildContext();
+    startPoll();
+
+    const openWithId = '@openWith';
+    if (openWithId) openConversation(openWithId);
+
+    $('#searchInput').on('input', function () { filterConvs(this.value); });
+    $('#msgInput').on('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }).on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    $('#sendBtn').on('click', sendMessage);
+});
+
+/* Conversations */
+async function loadConversations() {
+    try {
+        const convs = await $.getJSON(API.getConvs);
+        allConvs = convs;
+        renderConvList(convs);
+    } catch (e) {}
+}
+
+function renderConvList(convs) {
+    const $list = $('#convList');
+    $list.empty();
+    if (!convs || convs.length === 0) {
+        $list.html('<div style="text-align:center;padding:2.5rem 1rem;color:#a8aabc"><i class="bx bx-chat d-block" style="font-size:2.5rem;margin-bottom:.75rem"></i><p class="mb-0" style="font-size:.82rem">No messages yet. Message a teacher to get started.</p></div>');
+        return;
+    }
+    convs.forEach(c => {
+        const initials = (c.otherUserInitials || c.otherUserName.slice(0,2)).toUpperCase();
+        const unreadHtml = c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : '';
+        const time = formatTime(c.lastMessageAt);
+        const isActive = activeConv && activeConv.userId === c.otherUserId;
+        $list.append(`
+          <div class="conv-item ${isActive ? 'active' : ''} ${c.unreadCount > 0 ? 'unread' : ''}"
+               data-uid="${c.otherUserId}"
+               onclick="openConversation('${c.otherUserId}','${c.avatarColor}')">
+            <div class="conv-avatar" style="background:${c.avatarColor}">${esc(initials)}</div>
+            <div class="conv-body">
+              <div class="conv-row1">
+                <span class="conv-name">${esc(c.otherUserName)}</span>
+                <span class="conv-time">${esc(time)}</span>
+              </div>
+              <div class="conv-row2">
+                <span class="conv-preview">${esc((c.lastMessageIsFromMe ? '✓ ' : '') + (c.lastMessage || ''))}</span>
+                ${unreadHtml}
+              </div>
+            </div>
+          </div>`);
+    });
+}
+
+function filterConvs(q) {
+    if (!q) { renderConvList(allConvs); return; }
+    const ql = q.toLowerCase();
+    renderConvList(allConvs.filter(c => c.otherUserName.toLowerCase().includes(ql)));
+}
+
+/* Open conversation */
+async function openConversation(userId, color) {
+    if (!color) { const e = allConvs.find(c => c.otherUserId === userId); color = e?.avatarColor || '#0d6efd'; }
+    let contact;
+    try { contact = await $.getJSON(API.getContact + '?userId=' + userId); } catch (e) { return; }
+
+    const initials = (contact.initials || contact.fullName.slice(0,2)).toUpperCase();
+    activeConv = { userId, name: contact.fullName, role: contact.role || '', initials, color, specialization: contact.specialization || '' };
+
+    $('.conv-item').removeClass('active');
+    $(`.conv-item[data-uid="${userId}"]`).addClass('active');
+
+    $('#chatWelcome').hide();
+    $('#chatHeader').css('display','flex');
+    $('#chatMessages').css('display','flex');
+    $('#chatInputArea').css('display','flex');
+
+    $('#chAvatar').text(initials).css('background', color);
+    $('#chName').text(contact.fullName);
+    $('#chSub').text((contact.specialization || 'Teacher') + (contact.role ? ' · ' + contact.role : ''));
+
+    await loadMessages(userId);
+    $('#msgInput').focus();
+}
+
+/* Messages */
+async function loadMessages(otherId) {
+    const $msgs = $('#chatMessages');
+    $msgs.empty();
+    try {
+        const messages = await $.getJSON(API.getMsgs + '?otherId=' + otherId);
+        if (messages.length === 0) {
+            $msgs.html('<div class="text-center text-muted py-4" style="font-size:.82rem">Start your conversation here.</div>');
+        } else {
+            let lastDate = '';
+            messages.forEach(m => {
+                const d = new Date(m.sentAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                if (d !== lastDate) { $msgs.append(`<div class="date-sep"><span>${esc(d)}</span></div>`); lastDate = d; }
+                $msgs.append(buildBubble(m));
+            });
+        }
+        scrollToBottom();
+        allConvs = allConvs.map(c => c.otherUserId === otherId ? {...c, unreadCount: 0} : c);
+        $(`.conv-item[data-uid="${otherId}"]`).find('.unread-badge').remove().end().removeClass('unread');
+    } catch (e) {}
+}
+
+function buildBubble(m) {
+    const dir = m.isFromMe ? 'out' : 'in';
+    const tick = m.isFromMe ? `<i class="bx bx-check-double" style="color:${m.isRead ? '#71dd37' : '#a8aabc'}"></i>` : '';
+    return `<div class="msg-group ${dir}" data-mid="${m.id}">
+      <div class="msg-bubble">${esc(m.body)}</div>
+      <div class="msg-meta"><span>${esc(m.formattedTime)}</span>${tick}</div>
+    </div>`;
+}
+
+function scrollToBottom() { const el = document.getElementById('chatMessages'); if (el) el.scrollTop = el.scrollHeight; }
+function refreshMessages() { if (activeConv) loadMessages(activeConv.userId); }
+
+/* Send */
+async function sendMessage() {
+    if (!activeConv) return;
+    const body = $('#msgInput').val().trim();
+    if (!body) return;
+    $('#msgInput').val('').css('height','auto');
+    try {
+        const msg = await $.ajax({ url: API.send, method: 'POST', contentType: 'application/json', data: JSON.stringify({ receiverId: activeConv.userId, body }) });
+        $('#chatMessages').find('.text-muted').remove();
+        $('#chatMessages').append(buildBubble(msg));
+        scrollToBottom();
+        allConvs = allConvs.map(c => c.otherUserId === activeConv.userId ? {...c, lastMessage: msg.body, lastMessageAt: msg.sentAt, lastMessageIsFromMe: true} : c);
+        renderConvList(allConvs);
+        $(`.conv-item[data-uid="${activeConv.userId}"]`).addClass('active');
+    } catch (e) {
+        Swal.fire({ icon:'error', title:'Send Failed', text:'Could not send the message.', confirmButtonColor:'#0d6efd' });
+    }
+}
+
+/* Child context — always loaded on page open */
+async function loadChildContext() {
+    $('#chatContext').html('<div class="ctx-empty"><div class="spinner-border spinner-border-sm text-primary"></div><p class="mt-2 mb-0" style="font-size:.8rem">Loading…</p></div>');
+    try {
+        const resp = await $.getJSON(API.childCtx);
+        // New shape: { hasData: bool, context?: {...}, message?: string }
+        if (!resp.hasData) {
+            $('#chatContext').html(`
+              <div class="ctx-empty">
+                <i class="bx bx-child" style="font-size:2.5rem;color:#d0d2e0;display:block;margin-bottom:.75rem"></i>
+                <p style="font-size:.82rem;color:#a8aabc;margin:0">${esc(resp.message || 'No linked student found.')}</p>
+              </div>`);
+            return;
+        }
+        renderContext(resp.context);
+    } catch (e) {
+        $('#chatContext').html('<div class="ctx-empty"><i class="bx bx-error-circle" style="font-size:2rem;color:#fd7e14;display:block;margin-bottom:.5rem"></i><p style="font-size:.8rem;color:#a8aabc;margin:0">Could not load academic data.</p></div>');
+    }
+}
+
+function renderContext(c) {
+    if (!c) return;
+    const perfBg   = (c.performanceColor || '#6c757d') + '20';
+    const attColor = c.attendanceRate >= 90 ? '#71dd37' : c.attendanceRate >= 75 ? '#fd7e14' : '#e74c3c';
+    const asnColor = c.assignmentCompletionRate >= 80 ? '#71dd37' : c.assignmentCompletionRate >= 60 ? '#fd7e14' : '#e74c3c';
+    const alerts   = (c.alerts || []).map(a => `<div class="alert-chip">${esc(a)}</div>`).join('');
+    $('#chatContext').html(`
+      <div class="ctx-head">My Child's Progress</div>
+      <div class="ctx-section">
+        <div class="ctx-student-name">${esc(c.fullName)}</div>
+        <div class="ctx-student-meta">#${esc(c.studentNumber)} · ${esc(c.className)}</div>
+        <div class="perf-badge" style="background:${perfBg};color:${c.performanceColor}">${esc(c.performanceEmoji)} ${esc(c.performanceLevel)}</div>
+      </div>
+      <div class="ctx-section">
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-val" style="color:${attColor}">${c.attendanceRate}%</div><div class="stat-lbl">Attendance</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:${c.absenceCount>5?'#e74c3c':'#2b2d42'}">${c.absenceCount}</div><div class="stat-lbl">Absences</div></div>
+          <div class="stat-box"><div class="stat-val">${c.averageGrade}%</div><div class="stat-lbl">Avg Grade</div></div>
+          <div class="stat-box"><div class="stat-val" style="color:${c.pendingAssignments>0?'#fd7e14':'#71dd37'}">${c.pendingAssignments}</div><div class="stat-lbl">Pending</div></div>
+        </div>
+      </div>
+      <div class="ctx-section">
+        ${c.latestExamTitle && c.latestExamTitle !== '—' ? `<div class="mb-2" style="font-size:.73rem;color:#6c757d">Latest: <strong>${esc(c.latestExamTitle)}</strong> — ${c.latestExamGrade}/${c.latestExamTotal}</div>` : ''}
+        <div class="prog-row">
+          <div class="prog-label"><span>Attendance</span><span>${c.attendanceRate}%</span></div>
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${Math.min(c.attendanceRate,100)}%;background:${attColor}"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-label"><span>Assignments</span><span>${c.assignmentCompletionRate}%</span></div>
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${Math.min(c.assignmentCompletionRate,100)}%;background:${asnColor}"></div></div>
+        </div>
+      </div>
+      ${alerts ? `<div class="ctx-section">${alerts}</div>` : ''}
+    `);
+}
+
+/* Teacher modal */
+async function openTeacherModal() {
+    selTeacher = null;
+    $('#btnStartChat').prop('disabled', true);
+    $('#teacherList').empty();
+    $('#teacherLoading').show();
+    $('#teacherEmpty').hide();
+    try {
+        const teachers = await $.getJSON(API.getTeachers);
+        $('#teacherLoading').hide();
+        if (!teachers || teachers.length === 0) { $('#teacherEmpty').show(); return; }
+        teachers.forEach(t => {
+            const ini = t.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+            $('#teacherList').append(`
+              <div class="teacher-card" onclick="selectTeacher(this,'${t.userId}','${esc(t.name)}','${esc(t.specialization||'Teacher')}')">
+                <div class="tc-av">${esc(ini)}</div>
+                <div><div class="tc-name">${esc(t.name)}</div><div class="tc-sub">${esc(t.specialization||'Teacher')} · ${esc(t.className||'')}</div></div>
+              </div>`);
+        });
+    } catch (e) { $('#teacherLoading').hide(); }
+}
+
+function selectTeacher(el, userId, name, spec) {
+    selTeacher = { userId, name, specialization: spec };
+    $('.teacher-card').removeClass('selected');
+    $(el).addClass('selected');
+    $('#btnStartChat').prop('disabled', false);
+}
+
+async function startTeacherChat() {
+    if (!selTeacher) return;
+    bootstrap.Modal.getInstance(document.getElementById('teacherModal'))?.hide();
+    await openConversation(selTeacher.userId, '#0d6efd');
+    loadConversations();
+}
+
+/* Polling */
+function startPoll() {
+    pollTimer = setInterval(async () => {
+        try {
+            const convs = await $.getJSON(API.getConvs);
+            allConvs = convs;
+            renderConvList(convs);
+            if (activeConv) {
+                $(`.conv-item[data-uid="${activeConv.userId}"]`).addClass('active');
+                const a = convs.find(c => c.otherUserId === activeConv.userId);
+                if (a && a.unreadCount > 0) await loadMessages(activeConv.userId);
+            }
+        } catch (e) {}
+    }, 5000);
+}
+
+function formatTime(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr), now = new Date();
+    const yest = new Date(now); yest.setDate(yest.getDate()-1);
+    if (d.toDateString()===now.toDateString()) return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+    if (d.toDateString()===yest.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function esc(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+}

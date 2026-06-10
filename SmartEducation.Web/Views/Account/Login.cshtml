@@ -1,6 +1,11 @@
 @model LoginViewModel
 @{
     Layout = null;
+    var hasErrors = ViewData.ModelState.Values.SelectMany(v => v.Errors).Any();
+    var firstError = ViewData.ModelState.Values
+        .SelectMany(v => v.Errors)
+        .Select(e => e.ErrorMessage)
+        .FirstOrDefault() ?? "Invalid credentials. Please try again.";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -8,504 +13,860 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign In — SmartEdu Nexus</title>
-    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
-    <link rel="stylesheet" href="~/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" />
-    <link rel="stylesheet" href="~/assets/css/demo.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@@11/dist/sweetalert2.min.css">
+
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
 
-        /* ── Layout ── */
-        .login-wrapper { display: flex; height: 100vh; }
+        :root {
+            --indigo:        #4f46e5;
+            --indigo-dark:   #3730a3;
+            --indigo-light:  #818cf8;
+            --cyan:          #06b6d4;
+            --cyan-light:    #67e8f9;
+            --violet:        #8b5cf6;
+            --green:         #10b981;
+            --amber:         #f59e0b;
+            --danger:        #ef4444;
+            --dark-900:      #0f172a;
+            --dark-800:      #1e1b4b;
+            --dark-700:      #2d2280;
+            --white:         #ffffff;
+            --slate-50:      #f8faff;
+            --slate-100:     #f1f5f9;
+            --slate-200:     #e2e8f0;
+            --slate-400:     #94a3b8;
+            --slate-600:     #475569;
+            --slate-800:     #1e293b;
+        }
 
-        /* ── Left Panel — Form ── */
-        .login-left {
-            width: 50%;
+        html, body {
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ════════════════════════════════
+           PAGE LAYOUT
+        ════════════════════════════════ */
+        .page-wrap {
+            display: flex;
+            height: 100vh;
+            min-height: 560px;
+        }
+
+        /* ════════════════════════════════
+           LEFT — FORM PANEL  (40%)
+        ════════════════════════════════ */
+        .form-panel {
+            width: 40%;
+            min-width: 360px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 3rem 4rem;
-            background: #fff;
+            padding: 2.5rem 3.5rem;
+            background: var(--white);
             position: relative;
             overflow-y: auto;
+            z-index: 2;
+            box-shadow: 8px 0 48px rgba(15,23,42,.08);
         }
-        .login-left::before {
+
+        /* top accent bar */
+        .form-panel::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #696cff, #9b59b6, #e74c3c);
+            height: 3px;
+            background: linear-gradient(90deg, var(--indigo), var(--violet), var(--cyan));
         }
-        .login-form-inner { width: 100%; max-width: 420px; }
 
-        .brand-mark {
-            width: 52px; height: 52px;
-            background: linear-gradient(135deg, #696cff, #5f61e6);
+        .form-inner { width: 100%; max-width: 360px; }
+
+        /* — Logo — */
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            margin-bottom: 2.25rem;
+        }
+        .logo-hex {
+            width: 46px; height: 46px;
+            background: linear-gradient(135deg, var(--indigo), var(--cyan));
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 8px 24px rgba(105,108,255,.35);
+            flex-shrink: 0;
+            box-shadow: 0 6px 20px rgba(79,70,229,.35);
         }
-        .login-title { font-size: 1.9rem; font-weight: 800; color: #2b2d42; line-height: 1.2; }
-        .login-subtitle { color: #6c757d; font-size: .93rem; margin-top: .5rem; line-height: 1.6; }
+        .logo-hex i { font-size: 1.5rem; color: #fff; }
+        .logo-copy { line-height: 1.15; }
+        .logo-copy .brand-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            letter-spacing: -.02em;
+        }
+        .logo-copy .brand-tag {
+            font-size: .68rem;
+            color: var(--indigo);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+        }
 
-        .form-label { font-weight: 600; font-size: .85rem; color: #3d3d4e; margin-bottom: .4rem; }
+        /* — Heading — */
+        .form-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--slate-800);
+            line-height: 1.15;
+            margin-bottom: .35rem;
+        }
+        .form-subtitle {
+            font-size: .85rem;
+            color: var(--slate-400);
+            line-height: 1.65;
+            margin-bottom: 2rem;
+        }
 
-        .input-wrap {
+        /* — Field — */
+        .field { margin-bottom: 1.2rem; }
+        .field-label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--slate-600);
+            margin-bottom: .38rem;
+            letter-spacing: .03em;
+        }
+        .input-shell {
             position: relative;
             display: flex;
             align-items: center;
-            background: #f8f9ff;
-            border: 1.5px solid #e8eaf6;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: border-color .2s, box-shadow .2s;
+            background: var(--slate-50);
+            border: 1.5px solid var(--slate-200);
+            border-radius: 11px;
+            transition: border-color .2s, box-shadow .2s, background .2s;
         }
-        .input-wrap:focus-within {
-            border-color: #696cff;
-            box-shadow: 0 0 0 3px rgba(105,108,255,.12);
-            background: #fff;
+        .input-shell:focus-within {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+            background: var(--white);
         }
-        .input-wrap .input-icon {
-            padding: 0 1rem;
-            color: #9fa3c8;
-            font-size: 1.1rem;
+        .input-shell .fi {
+            padding: 0 .85rem;
+            color: var(--slate-200);
+            font-size: 1.05rem;
             flex-shrink: 0;
+            transition: color .2s;
+            pointer-events: none;
         }
-        .input-wrap input {
+        .input-shell:focus-within .fi { color: var(--indigo); }
+        .input-shell input {
             flex: 1;
             border: none;
             background: transparent;
-            padding: .8rem .5rem .8rem 0;
-            font-size: .93rem;
-            color: #2b2d42;
+            padding: .78rem .4rem .78rem 0;
+            font-size: .875rem;
+            font-family: 'Poppins', sans-serif;
+            color: var(--slate-800);
             outline: none;
         }
-        .input-wrap input::placeholder { color: #b0b3cc; }
-        .input-wrap .eye-btn {
-            padding: 0 1rem;
+        .input-shell input::placeholder { color: var(--slate-200); }
+        .eye-btn {
+            padding: 0 .85rem;
             background: none;
             border: none;
             cursor: pointer;
-            color: #9fa3c8;
-            font-size: 1.1rem;
+            color: var(--slate-200);
+            font-size: 1.05rem;
             transition: color .2s;
+            display: flex;
+            align-items: center;
         }
-        .input-wrap .eye-btn:hover { color: #696cff; }
+        .eye-btn:hover { color: var(--indigo); }
 
-        .remember-row { display: flex; align-items: center; justify-content: space-between; }
-        .custom-check { display: flex; align-items: center; gap: .5rem; cursor: pointer; }
-        .custom-check input[type="checkbox"] { width: 16px; height: 16px; accent-color: #696cff; cursor: pointer; }
-        .custom-check span { font-size: .85rem; color: #6c757d; }
-
-        .btn-signin {
-            width: 100%;
-            padding: .9rem;
-            background: linear-gradient(135deg, #696cff 0%, #5f61e6 100%);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
+        /* — Options row — */
+        .options-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.6rem;
+        }
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
             cursor: pointer;
-            transition: all .25s;
-            box-shadow: 0 8px 20px rgba(105,108,255,.35);
+        }
+        .check-label input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--indigo);
+            cursor: pointer;
+        }
+        .check-label span {
+            font-size: .8rem;
+            color: var(--slate-600);
+            font-weight: 500;
+        }
+        .forgot-link {
+            font-size: .8rem;
+            color: var(--indigo);
+            text-decoration: none;
+            font-weight: 600;
+            transition: opacity .2s;
+        }
+        .forgot-link:hover { opacity: .7; }
+
+        /* — Sign In button — */
+        .btn-submit {
+            width: 100%;
+            padding: .88rem 1.5rem;
+            background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 100%);
+            border: none;
+            border-radius: 11px;
+            color: var(--white);
+            font-family: 'Poppins', sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+            box-shadow: 0 8px 24px rgba(79,70,229,.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: .6rem;
+            gap: .55rem;
+            margin-bottom: 1.75rem;
         }
-        .btn-signin:hover {
+        .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(105,108,255,.5);
+            box-shadow: 0 14px 32px rgba(79,70,229,.55);
         }
-        .btn-signin:active { transform: translateY(0); }
+        .btn-submit:active { transform: translateY(0); }
 
-        .divider { display: flex; align-items: center; gap: .8rem; color: #b0b3cc; font-size: .82rem; }
-        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e8eaf6; }
-
-        .demo-box {
-            background: linear-gradient(135deg, #f8f9ff, #fff);
-            border: 1px solid #e8eaf6;
-            border-radius: 12px;
-            padding: 1rem 1.2rem;
+        /* loading state */
+        .spinner-ring {
+            width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .65s linear infinite;
+            display: none;
         }
-        .demo-box .demo-label { font-size: .75rem; font-weight: 700; color: #696cff; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
-        .demo-box .demo-cred { font-size: .82rem; color: #6c757d; font-family: 'Courier New', monospace; }
+        .btn-submit.loading .btn-label { display: none; }
+        .btn-submit.loading .spinner-ring { display: block; }
+        @@keyframes spin { to { transform: rotate(360deg); } }
 
-        .back-link { font-size: .85rem; color: #9fa3c8; text-decoration: none; display: flex; align-items: center; gap: .4rem; transition: color .2s; }
-        .back-link:hover { color: #696cff; }
-
-        .validation-error {
-            background: #fde8e8;
-            border: 1px solid #f5c2c7;
-            border-radius: 10px;
-            padding: .7rem 1rem;
-            font-size: .85rem;
-            color: #c0392b;
+        /* — Back home — */
+        .back-home {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            font-size: .8rem;
+            color: var(--slate-400);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color .2s;
         }
+        .back-home:hover { color: var(--indigo); }
 
-        /* ── Right Panel — Illustration ── */
-        .login-right {
-            width: 50%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 45%, #0f3460 100%);
+        /* ════════════════════════════════
+           RIGHT — ILLUSTRATION PANEL (60%)
+        ════════════════════════════════ */
+        .illus-panel {
+            flex: 1;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 3rem;
+            padding: 2.5rem 2rem;
+            background: linear-gradient(140deg, var(--dark-900) 0%, var(--dark-800) 55%, var(--dark-700) 100%);
         }
-        .login-right::before {
+
+        /* ambient glow */
+        .illus-panel::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse at 70% 30%, rgba(105,108,255,.25) 0%, transparent 60%),
-                        radial-gradient(ellipse at 30% 80%, rgba(113,221,55,.12) 0%, transparent 50%);
-        }
-        .login-right .content { position: relative; z-index: 2; text-align: center; max-width: 480px; }
-        .login-right h2 { color: #fff; font-size: 1.9rem; font-weight: 800; line-height: 1.2; }
-        .login-right h2 span {
-            background: linear-gradient(135deg, #696cff, #a78bfa);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .login-right p { color: rgba(255,255,255,.65); font-size: .95rem; line-height: 1.7; margin-top: .8rem; }
-
-        /* ── SVG Illustration ── */
-        .illus-wrap {
-            position: relative;
-            width: 420px;
-            height: 340px;
-            margin: 2rem auto 2.5rem;
+            background:
+                radial-gradient(ellipse 700px 550px at 85% 15%, rgba(79,70,229,.18) 0%, transparent 65%),
+                radial-gradient(ellipse 450px 400px at 15% 85%, rgba(6,182,212,.12) 0%, transparent 60%),
+                radial-gradient(ellipse 350px 300px at 55% 75%, rgba(139,92,246,.1) 0%, transparent 55%);
+            pointer-events: none;
         }
 
-        /* Floating badges */
-        .badge-float {
+        /* dot grid */
+        .dot-grid {
             position: absolute;
-            background: rgba(255,255,255,.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,.2);
-            border-radius: 14px;
-            padding: .6rem 1rem;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.055) 1px, transparent 1px);
+            background-size: 26px 26px;
+            pointer-events: none;
+        }
+
+        /* decorative blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .blob-a {
+            width: 420px; height: 420px;
+            top: -120px; right: -100px;
+            background: radial-gradient(circle, rgba(79,70,229,.14) 0%, transparent 70%);
+            animation: blobDrift 9s ease-in-out infinite;
+        }
+        .blob-b {
+            width: 300px; height: 300px;
+            bottom: -90px; left: -70px;
+            background: radial-gradient(circle, rgba(6,182,212,.11) 0%, transparent 70%);
+            animation: blobDrift 11s ease-in-out infinite reverse;
+        }
+        .blob-c {
+            width: 200px; height: 200px;
+            top: 38%; left: 4%;
+            background: radial-gradient(circle, rgba(139,92,246,.09) 0%, transparent 70%);
+            animation: blobDrift 8s ease-in-out infinite 2s;
+        }
+        @@keyframes blobDrift {
+            0%,100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(18px,-14px) scale(1.04); }
+            66%      { transform: translate(-12px,18px) scale(.96); }
+        }
+
+        /* content */
+        .illus-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 580px;
+            text-align: center;
+        }
+
+        .illus-title {
+            font-size: 1.95rem;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.2;
+            margin-bottom: .5rem;
+        }
+        .illus-title .glow-text {
+            background: linear-gradient(135deg, var(--indigo-light), var(--cyan-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .illus-sub {
+            font-size: .875rem;
+            color: rgba(255,255,255,.5);
+            line-height: 1.75;
+            max-width: 440px;
+            margin: 0 auto 1.75rem;
+        }
+
+        /* ── Scene container ── */
+        .scene-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
+            height: 290px;
+            margin: 0 auto 1.75rem;
+        }
+        .scene-svg { width: 100%; height: 100%; }
+
+        /* ── Floating info badges ── */
+        .info-badge {
+            position: absolute;
             display: flex;
             align-items: center;
-            gap: .6rem;
-            animation: floatAnim 3.5s ease-in-out infinite;
+            gap: .55rem;
+            background: rgba(255,255,255,.08);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 14px;
+            padding: .55rem .85rem;
         }
-        .badge-float.b1 { top: 0; right: 0; animation-delay: 0s; }
-        .badge-float.b2 { bottom: 20px; left: 0; animation-delay: .7s; }
-        .badge-float.b3 { top: 100px; left: -20px; animation-delay: 1.4s; }
-        .badge-float .bicon { font-size: 1.3rem; }
-        .badge-float .btxt { font-size: .78rem; }
-        .badge-float .btxt strong { display: block; color: #fff; font-weight: 700; }
-        .badge-float .btxt span { color: rgba(255,255,255,.6); }
-        @@keyframes floatAnim { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .ib-ai    { top: -8px;   right: 0;    animation: ibFloat 4.2s ease-in-out infinite; }
+        .ib-score { bottom: 8px; left: -4px;  animation: ibFloat 4.8s ease-in-out infinite .9s; }
+        .ib-up    { top: 85px;   left: -16px; animation: ibFloat 4s ease-in-out infinite 1.7s; }
+        @@keyframes ibFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
 
-        /* Features strip */
-        .features-strip {
+        .ib-icon {
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .95rem;
+            flex-shrink: 0;
+        }
+        .ib-text strong { display: block; font-size: .75rem; color: #fff; font-weight: 700; }
+        .ib-text span   { font-size: .68rem; color: rgba(255,255,255,.5); }
+
+        /* ── Feature chips ── */
+        .chips-row {
             display: flex;
-            gap: 1.5rem;
+            align-items: center;
             justify-content: center;
+            gap: .7rem;
             flex-wrap: wrap;
         }
-        .feature-chip {
+        .chip {
             display: flex;
             align-items: center;
-            gap: .5rem;
-            background: rgba(255,255,255,.08);
-            border: 1px solid rgba(255,255,255,.12);
+            gap: .38rem;
+            padding: .32rem .85rem;
+            background: rgba(255,255,255,.065);
+            border: 1px solid rgba(255,255,255,.1);
             border-radius: 50px;
-            padding: .4rem 1rem;
-            font-size: .8rem;
-            color: rgba(255,255,255,.8);
+            font-size: .75rem;
+            color: rgba(255,255,255,.72);
+            font-weight: 500;
+            transition: background .2s, border-color .2s;
         }
-        .feature-chip i { font-size: 1rem; }
+        .chip:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); }
+        .chip i { font-size: .9rem; }
 
-        /* Responsive */
-        @@media (max-width: 900px) {
-            .login-right { display: none; }
-            .login-left { width: 100%; padding: 2rem 1.5rem; }
+        /* ════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════ */
+        @@media (max-width: 1100px) {
+            .form-panel { width: 42%; padding: 2rem 2.5rem; }
+        }
+        @@media (max-width: 800px) {
+            html, body { overflow: auto; }
+            .page-wrap { flex-direction: column; height: auto; min-height: 100dvh; }
+            .illus-panel { order: -1; width: 100%; padding: 2rem 1.25rem; min-height: 300px; }
+            .form-panel { width: 100%; min-width: unset; box-shadow: none; padding: 2rem 1.5rem; }
+            .illus-title { font-size: 1.5rem; }
+            .scene-wrap { height: 210px; }
+        }
+        @@media (max-width: 440px) {
+            .form-panel { padding: 1.5rem 1.1rem; }
+            .form-title { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
-<div class="login-wrapper">
 
-    <!-- ─────────────────── LEFT: Form ─────────────────── -->
-    <div class="login-left">
-        <div class="login-form-inner">
+<div class="page-wrap">
 
-            <!-- Brand -->
-            <div class="brand-mark">
-                <i class="bx bx-graduation" style="color:#fff;font-size:1.6rem"></i>
-            </div>
-            <div class="mb-1" style="font-size:.8rem;font-weight:700;color:#696cff;letter-spacing:.06em;text-transform:uppercase">SmartEdu Nexus</div>
-            <h1 class="login-title">Welcome Back</h1>
-            <p class="login-subtitle">Sign in to access your Smart Education Dashboard.</p>
+    <!-- ══════════════════════════════════════
+         LEFT — FORM PANEL
+    ══════════════════════════════════════ -->
+    <div class="form-panel">
+        <div class="form-inner">
 
-            <!-- Validation Errors -->
-            @{
-                var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors).ToList();
-            }
-            @if (errors.Any())
-            {
-                <div class="validation-error mt-4">
-                    <i class="bx bx-error-circle me-2"></i>
-                    @foreach (var e in errors)
-                    {
-                        <div>@e.ErrorMessage</div>
-                    }
+            <!-- Logo -->
+            <div class="logo-wrap">
+                <div class="logo-hex">
+                    <i class='bx bxs-graduation'></i>
                 </div>
-            }
+                <div class="logo-copy">
+                    <div class="brand-name">SmartEdu Nexus</div>
+                    <div class="brand-tag">Intelligent Learning Platform</div>
+                </div>
+            </div>
+
+            <!-- Heading -->
+            <h1 class="form-title">Welcome Back</h1>
+            <p class="form-subtitle">Sign in to access your Smart Educational Ecosystem</p>
 
             <!-- Form -->
-            <form asp-action="Login" method="post" class="mt-4" novalidate>
+            <form asp-action="Login" method="post" id="loginForm" novalidate>
                 @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label class="form-label">Email Address</label>
-                    <div class="input-wrap">
-                        <i class="bx bx-envelope input-icon"></i>
-                        <input asp-for="Email" type="email"
-                               placeholder="admin@smarteducation.com"
+                <!-- Email -->
+                <div class="field">
+                    <label class="field-label" for="Email">Email Address</label>
+                    <div class="input-shell">
+                        <i class='bx bx-envelope fi'></i>
+                        <input asp-for="Email" type="email" id="Email"
+                               placeholder="your@email.com"
                                autocomplete="email" />
                     </div>
-                    <span asp-validation-for="Email" class="text-danger" style="font-size:.8rem"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <div class="input-wrap">
-                        <i class="bx bx-lock input-icon"></i>
-                        <input asp-for="Password" type="password"
-                               id="pwdInput" placeholder="••••••••"
+                <!-- Password -->
+                <div class="field">
+                    <label class="field-label" for="Password">Password</label>
+                    <div class="input-shell">
+                        <i class='bx bx-lock-alt fi'></i>
+                        <input asp-for="Password" type="password" id="Password"
+                               placeholder="••••••••"
                                autocomplete="current-password" />
-                        <button type="button" class="eye-btn" onclick="togglePwd()">
-                            <i class="bx bx-show" id="eyeIcon"></i>
+                        <button type="button" class="eye-btn" onclick="togglePwd()" aria-label="Toggle password">
+                            <i class='bx bx-show' id="eyeIcon"></i>
                         </button>
                     </div>
-                    <span asp-validation-for="Password" class="text-danger" style="font-size:.8rem"></span>
                 </div>
 
-                <div class="remember-row mb-4">
-                    <label class="custom-check">
+                <!-- Options -->
+                <div class="options-row">
+                    <label class="check-label">
                         <input type="checkbox" name="rememberMe" />
                         <span>Remember me</span>
                     </label>
-                    <a href="#" style="font-size:.85rem;color:#696cff;text-decoration:none;font-weight:600;">
-                        Forgot password?
-                    </a>
+                    <a href="#" class="forgot-link">Forgot password?</a>
                 </div>
 
-                <button type="submit" class="btn-signin mb-4">
-                    <i class="bx bx-log-in" style="font-size:1.1rem"></i>
-                    Sign In to Dashboard
+                <!-- Submit -->
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span class="btn-label">
+                        <i class='bx bx-log-in-circle'></i>
+                        Sign In
+                    </span>
+                    <div class="spinner-ring"></div>
                 </button>
 
-                <div class="divider mb-4">or</div>
-
-                <!-- Demo credentials -->
-                <div class="demo-box mb-4">
-                    <div class="demo-label">Demo Credentials</div>
-                    <div class="demo-cred d-flex align-items-center gap-2 mb-1">
-                        <i class="bx bx-user text-primary"></i>
-                        admin@smarteducation.com
-                    </div>
-                    <div class="demo-cred d-flex align-items-center gap-2">
-                        <i class="bx bx-lock text-primary"></i>
-                        Admin@123
-                    </div>
-                </div>
             </form>
 
-            <div class="text-center">
-                <a asp-controller="Home" asp-action="Index" class="back-link justify-content-center">
-                    <i class="bx bx-arrow-back"></i>Back to Home
-                </a>
-            </div>
+            <a asp-controller="Home" asp-action="Index" class="back-home">
+                <i class='bx bx-arrow-back'></i> Back to Home
+            </a>
 
         </div>
     </div>
 
-    <!-- ─────────────────── RIGHT: Illustration ─────────────────── -->
-    <div class="login-right">
-        <div class="content">
-            <h2>AI-Powered<br><span>Educational Ecosystem</span></h2>
-            <p>Empowering teachers, inspiring students, and connecting every stakeholder in one intelligent platform.</p>
+    <!-- ══════════════════════════════════════
+         RIGHT — ILLUSTRATION PANEL
+    ══════════════════════════════════════ -->
+    <div class="illus-panel">
+        <div class="dot-grid"></div>
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="blob blob-c"></div>
 
-            <!-- Illustration -->
-            <div class="illus-wrap">
-                <!-- Main dashboard card -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280"
-                     style="width:100%;height:100%;filter:drop-shadow(0 20px 40px rgba(0,0,0,.4))">
+        <div class="illus-content">
+
+            <h2 class="illus-title">
+                AI-Powered<br>
+                <span class="glow-text">Educational Ecosystem</span>
+            </h2>
+            <p class="illus-sub">
+                Empowering educators with smart tools, inspiring students through personalized learning,
+                and uniting every stakeholder in one intelligent platform.
+            </p>
+
+            <!-- ── Illustration scene ── -->
+            <div class="scene-wrap">
+
+                <svg class="scene-svg" viewBox="0 0 540 285" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
-                            <stop offset="100%" stop-color="rgba(255,255,255,0.06)"/>
+                        <linearGradient id="gCard" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%"   stop-color="rgba(255,255,255,.11)"/>
+                            <stop offset="100%" stop-color="rgba(255,255,255,.04)"/>
                         </linearGradient>
-                        <linearGradient id="bar1" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#696cff"/>
-                            <stop offset="100%" stop-color="#9b59b6"/>
+                        <linearGradient id="gIndigo" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#6366f1"/>
+                            <stop offset="100%" stop-color="#4f46e5"/>
                         </linearGradient>
-                        <linearGradient id="bar2" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#71dd37"/>
-                            <stop offset="100%" stop-color="#28a745"/>
+                        <linearGradient id="gCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#06b6d4"/>
+                            <stop offset="100%" stop-color="#0284c7"/>
                         </linearGradient>
-                        <linearGradient id="progress1" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#696cff"/>
-                            <stop offset="100%" stop-color="#71dd37"/>
+                        <linearGradient id="gGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#10b981"/>
+                            <stop offset="100%" stop-color="#059669"/>
                         </linearGradient>
-                        <clipPath id="cardClip">
-                            <rect rx="20" width="380" height="260"/>
-                        </clipPath>
+                        <linearGradient id="gViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#a78bfa"/>
+                            <stop offset="100%" stop-color="#8b5cf6"/>
+                        </linearGradient>
+                        <linearGradient id="gAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fbbf24"/>
+                            <stop offset="100%" stop-color="#f59e0b"/>
+                        </linearGradient>
+                        <linearGradient id="gBar1" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#4f46e5"/>
+                            <stop offset="100%" stop-color="#818cf8"/>
+                        </linearGradient>
+                        <linearGradient id="gBar2" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#06b6d4"/>
+                            <stop offset="100%" stop-color="#67e8f9"/>
+                        </linearGradient>
+                        <linearGradient id="gBar3" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#10b981"/>
+                            <stop offset="100%" stop-color="#6ee7b7"/>
+                        </linearGradient>
+                        <linearGradient id="gProgress" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%"   stop-color="#6366f1"/>
+                            <stop offset="50%"  stop-color="#06b6d4"/>
+                            <stop offset="100%" stop-color="#10b981"/>
+                        </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="shadow">
+                            <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="rgba(0,0,0,.45)"/>
+                        </filter>
                     </defs>
 
-                    <!-- Main card bg -->
-                    <rect x="20" y="10" width="380" height="260" rx="20"
-                          fill="url(#cardBg)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                    <!-- ── Background rings ── -->
+                    <circle cx="270" cy="142" r="200" fill="none" stroke="rgba(99,102,241,.06)" stroke-width="1.2"/>
+                    <circle cx="270" cy="142" r="168" fill="none" stroke="rgba(99,102,241,.05)" stroke-width="1"/>
 
-                    <!-- Header bar -->
-                    <rect x="20" y="10" width="380" height="50" rx="20" fill="rgba(255,255,255,0.08)"/>
-                    <rect x="20" y="40" width="380" height="20" fill="rgba(255,255,255,0.08)"/>
+                    <!-- ── Main dashboard card ── -->
+                    <rect x="108" y="14" width="324" height="210" rx="18"
+                          fill="url(#gCard)" stroke="rgba(255,255,255,.12)" stroke-width="1"
+                          filter="url(#shadow)"/>
 
-                    <!-- Header dots -->
-                    <circle cx="46" cy="35" r="5" fill="#e74c3c"/>
-                    <circle cx="62" cy="35" r="5" fill="#fd7e14"/>
-                    <circle cx="78" cy="35" r="5" fill="#71dd37"/>
+                    <!-- card header -->
+                    <rect x="108" y="14" width="324" height="44" rx="18" fill="rgba(255,255,255,.07)"/>
+                    <rect x="108" y="40" width="324" height="18" fill="rgba(255,255,255,.07)"/>
+                    <!-- window dots -->
+                    <circle cx="130" cy="36" r="4.5" fill="#ef4444" opacity=".75"/>
+                    <circle cx="146" cy="36" r="4.5" fill="#f59e0b" opacity=".75"/>
+                    <circle cx="162" cy="36" r="4.5" fill="#10b981" opacity=".75"/>
+                    <!-- title bar -->
+                    <rect x="178" y="32" width="92" height="8" rx="4" fill="rgba(255,255,255,.22)"/>
+                    <!-- online pill -->
+                    <circle cx="393" cy="36" r="3.5" fill="#10b981"/>
+                    <rect x="400" y="32" width="22" height="8" rx="4" fill="rgba(16,185,129,.35)"/>
 
-                    <!-- Header text -->
-                    <rect x="100" y="30" width="100" height="10" rx="5" fill="rgba(255,255,255,0.3)"/>
-                    <rect x="340" y="28" width="44" height="14" rx="7" fill="rgba(113,221,55,0.3)"/>
-                    <circle cx="348" cy="35" r="3" fill="#71dd37"/>
-                    <rect x="355" y="31" width="24" height="8" rx="4" fill="rgba(113,221,55,0.5)"/>
+                    <!-- ── Stat cards row ── -->
+                    <!-- Stat 1: Students -->
+                    <rect x="120" y="68" width="68" height="52" rx="10"
+                          fill="rgba(99,102,241,.18)" stroke="rgba(99,102,241,.28)" stroke-width=".8"/>
+                    <rect x="129" y="76" width="14" height="14" rx="4" fill="url(#gIndigo)" opacity=".9"/>
+                    <rect x="129" y="95" width="48" height="8"  rx="4" fill="rgba(255,255,255,.45)"/>
+                    <rect x="129" y="107" width="32" height="5" rx="2.5" fill="rgba(255,255,255,.18)"/>
 
-                    <!-- Stats row -->
-                    <!-- Stat 1 -->
-                    <rect x="36" y="72" width="80" height="60" rx="12" fill="rgba(105,108,255,0.2)" stroke="rgba(105,108,255,0.3)" stroke-width="1"/>
-                    <circle cx="56" cy="90" r="8" fill="rgba(105,108,255,0.4)"/>
-                    <rect x="70" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
-                    <rect x="44" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
-                    <rect x="44" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+                    <!-- Stat 2: Lessons -->
+                    <rect x="198" y="68" width="68" height="52" rx="10"
+                          fill="rgba(6,182,212,.13)" stroke="rgba(6,182,212,.23)" stroke-width=".8"/>
+                    <rect x="207" y="76" width="14" height="14" rx="4" fill="url(#gCyan)" opacity=".9"/>
+                    <rect x="207" y="95" width="48" height="8"  rx="4" fill="rgba(255,255,255,.45)"/>
+                    <rect x="207" y="107" width="32" height="5" rx="2.5" fill="rgba(255,255,255,.18)"/>
 
-                    <!-- Stat 2 -->
-                    <rect x="126" y="72" width="80" height="60" rx="12" fill="rgba(113,221,55,0.15)" stroke="rgba(113,221,55,0.25)" stroke-width="1"/>
-                    <circle cx="146" cy="90" r="8" fill="rgba(113,221,55,0.4)"/>
-                    <rect x="160" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
-                    <rect x="134" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
-                    <rect x="134" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+                    <!-- Stat 3: Score -->
+                    <rect x="276" y="68" width="68" height="52" rx="10"
+                          fill="rgba(16,185,129,.13)" stroke="rgba(16,185,129,.23)" stroke-width=".8"/>
+                    <rect x="285" y="76" width="14" height="14" rx="4" fill="url(#gGreen)" opacity=".9"/>
+                    <rect x="285" y="95" width="48" height="8"  rx="4" fill="rgba(255,255,255,.45)"/>
+                    <rect x="285" y="107" width="32" height="5" rx="2.5" fill="rgba(255,255,255,.18)"/>
 
-                    <!-- Stat 3 -->
-                    <rect x="216" y="72" width="80" height="60" rx="12" fill="rgba(253,126,20,0.15)" stroke="rgba(253,126,20,0.25)" stroke-width="1"/>
-                    <circle cx="236" cy="90" r="8" fill="rgba(253,126,20,0.4)"/>
-                    <rect x="250" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
-                    <rect x="224" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
-                    <rect x="224" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+                    <!-- Stat 4: AI -->
+                    <rect x="354" y="68" width="66" height="52" rx="10"
+                          fill="rgba(167,139,250,.12)" stroke="rgba(167,139,250,.22)" stroke-width=".8"/>
+                    <rect x="363" y="76" width="14" height="14" rx="4" fill="url(#gViolet)" opacity=".9"/>
+                    <rect x="363" y="95" width="42" height="8"  rx="4" fill="rgba(255,255,255,.45)"/>
+                    <rect x="363" y="107" width="28" height="5" rx="2.5" fill="rgba(255,255,255,.18)"/>
 
-                    <!-- Stat 4 -->
-                    <rect x="306" y="72" width="80" height="60" rx="12" fill="rgba(231,76,60,0.15)" stroke="rgba(231,76,60,0.25)" stroke-width="1"/>
-                    <circle cx="326" cy="90" r="8" fill="rgba(231,76,60,0.4)"/>
-                    <rect x="340" y="86" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
-                    <rect x="314" y="104" width="56" height="12" rx="6" fill="rgba(255,255,255,0.5)"/>
-                    <rect x="314" y="120" width="40" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
-
-                    <!-- Chart bars -->
-                    <g transform="translate(36, 145)">
-                        @{ var barData = new[] { 60, 85, 45, 95, 70, 80, 55, 90, 65, 75 }; }
-                        @for (int b = 0; b < barData.Length; b++)
-                        {
-                            var bh = barData[b] * 0.65;
-                            var bx = b * 22;
-                            var by = 65 - bh;
-                            <rect x="@bx" y="@by" width="15" height="@bh" rx="4" fill="url(#bar@((b%2==0)?1:2))" opacity="0.8"/>
-                        }
+                    <!-- ── Bar chart ── -->
+                    <g transform="translate(120, 132)">
+                        <rect x="0"   y="38" width="11" height="28" rx="3" fill="url(#gBar1)" opacity=".85"/>
+                        <rect x="16"  y="20" width="11" height="46" rx="3" fill="url(#gBar2)" opacity=".85"/>
+                        <rect x="32"  y="30" width="11" height="36" rx="3" fill="url(#gBar3)" opacity=".85"/>
+                        <rect x="48"  y="10" width="11" height="56" rx="3" fill="url(#gBar1)" opacity=".85"/>
+                        <rect x="64"  y="24" width="11" height="42" rx="3" fill="url(#gBar2)" opacity=".85"/>
+                        <rect x="80"  y="15" width="11" height="51" rx="3" fill="url(#gBar3)" opacity=".85"/>
+                        <rect x="96"  y="33" width="11" height="33" rx="3" fill="url(#gBar1)" opacity=".85"/>
                     </g>
 
-                    <!-- Progress bars -->
-                    <rect x="260" y="150" width="130" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
-                    <rect x="260" y="150" width="107" height="8" rx="4" fill="url(#progress1)"/>
-                    <rect x="260" y="155" width="80" height="6" rx="3" fill="rgba(255,255,255,0.08)"/>
+                    <!-- ── Progress bars ── -->
+                    <rect x="298" y="136" width="64" height="5" rx="2.5" fill="rgba(255,255,255,.22)"/>
+                    <!-- row 1 -->
+                    <rect x="298" y="147" width="118" height="7" rx="3.5" fill="rgba(255,255,255,.07)"/>
+                    <rect x="298" y="147" width="94"  height="7" rx="3.5" fill="url(#gProgress)"/>
+                    <rect x="298" y="157" width="42" height="4" rx="2" fill="rgba(255,255,255,.14)"/>
+                    <!-- row 2 -->
+                    <rect x="298" y="163" width="118" height="7" rx="3.5" fill="rgba(255,255,255,.07)"/>
+                    <rect x="298" y="163" width="108" height="7" rx="3.5" fill="url(#gBar1)" opacity=".7"/>
+                    <rect x="298" y="173" width="52" height="4" rx="2" fill="rgba(255,255,255,.14)"/>
+                    <!-- row 3 -->
+                    <rect x="298" y="179" width="118" height="7" rx="3.5" fill="rgba(255,255,255,.07)"/>
+                    <rect x="298" y="179" width="70"  height="7" rx="3.5" fill="url(#gBar2)" opacity=".7"/>
+                    <rect x="298" y="189" width="38" height="4" rx="2" fill="rgba(255,255,255,.14)"/>
 
-                    <rect x="260" y="168" width="130" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
-                    <rect x="260" y="168" width="120" height="8" rx="4" fill="url(#bar1)" opacity="0.8"/>
+                    <!-- ── Bottom items ── -->
+                    <rect x="120" y="207" width="148" height="12" rx="6"
+                          fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
+                    <circle cx="132" cy="213" r="4.5" fill="rgba(99,102,241,.6)"/>
+                    <rect x="141" y="209.5" width="60" height="4" rx="2" fill="rgba(255,255,255,.25)"/>
+                    <rect x="141" y="215.5" width="42" height="3" rx="1.5" fill="rgba(255,255,255,.12)"/>
 
-                    <rect x="260" y="186" width="130" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
-                    <rect x="260" y="186" width="85" height="8" rx="4" fill="url(#bar2)" opacity="0.8"/>
+                    <rect x="278" y="207" width="144" height="12" rx="6"
+                          fill="rgba(6,182,212,.05)" stroke="rgba(6,182,212,.14)" stroke-width=".8"/>
+                    <circle cx="290" cy="213" r="4.5" fill="rgba(6,182,212,.6)"/>
+                    <rect x="299" y="209.5" width="50" height="4" rx="2" fill="rgba(255,255,255,.25)"/>
+                    <rect x="299" y="215.5" width="36" height="3" rx="1.5" fill="rgba(255,255,255,.12)"/>
 
-                    <!-- Labels -->
-                    <rect x="260" y="145" width="50" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
-                    <rect x="260" y="163" width="40" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
-                    <rect x="260" y="181" width="55" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+                    <!-- ── Neural network motif (left) ── -->
+                    <circle cx="44"  cy="78"  r="5"   fill="rgba(99,102,241,.65)"   filter="url(#glow)"/>
+                    <circle cx="20"  cy="112" r="4"   fill="rgba(6,182,212,.55)"    filter="url(#glow)"/>
+                    <circle cx="58"  cy="140" r="3.5" fill="rgba(167,139,250,.55)"  filter="url(#glow)"/>
+                    <circle cx="72"  cy="102" r="3"   fill="rgba(99,102,241,.4)"/>
+                    <circle cx="28"  cy="158" r="2.5" fill="rgba(6,182,212,.4)"/>
+                    <circle cx="60"  cy="58"  r="2.5" fill="rgba(16,185,129,.4)"/>
+                    <line x1="44"  y1="78"  x2="20"  y2="112" stroke="rgba(99,102,241,.18)" stroke-width="1"/>
+                    <line x1="20"  y1="112" x2="58"  y2="140" stroke="rgba(6,182,212,.18)"  stroke-width="1"/>
+                    <line x1="58"  y1="140" x2="72"  y2="102" stroke="rgba(167,139,250,.15)" stroke-width="1"/>
+                    <line x1="72"  y1="102" x2="44"  y2="78"  stroke="rgba(99,102,241,.15)" stroke-width="1"/>
+                    <line x1="28"  y1="158" x2="58"  y2="140" stroke="rgba(6,182,212,.15)"  stroke-width="1"/>
+                    <line x1="60"  y1="58"  x2="44"  y2="78"  stroke="rgba(16,185,129,.15)" stroke-width="1"/>
 
-                    <!-- Bottom row -->
-                    <rect x="36" y="220" width="180" height="32" rx="10" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                    <circle cx="56" cy="236" r="8" fill="rgba(105,108,255,0.5)"/>
-                    <rect x="70" y="231" width="80" height="7" rx="3.5" fill="rgba(255,255,255,0.3)"/>
-                    <rect x="70" y="241" width="55" height="5" rx="2.5" fill="rgba(255,255,255,0.15)"/>
+                    <!-- ── Neural network motif (right) ── -->
+                    <circle cx="496" cy="72"  r="5"   fill="rgba(16,185,129,.65)"   filter="url(#glow)"/>
+                    <circle cx="518" cy="108" r="4"   fill="rgba(99,102,241,.55)"   filter="url(#glow)"/>
+                    <circle cx="480" cy="130" r="3.5" fill="rgba(6,182,212,.5)"     filter="url(#glow)"/>
+                    <circle cx="504" cy="152" r="3"   fill="rgba(167,139,250,.4)"/>
+                    <circle cx="470" cy="88"  r="2.5" fill="rgba(16,185,129,.4)"/>
+                    <line x1="496" y1="72"  x2="518" y2="108" stroke="rgba(16,185,129,.18)" stroke-width="1"/>
+                    <line x1="518" y1="108" x2="480" y2="130" stroke="rgba(99,102,241,.18)" stroke-width="1"/>
+                    <line x1="480" y1="130" x2="504" y2="152" stroke="rgba(6,182,212,.15)"  stroke-width="1"/>
+                    <line x1="470" y1="88"  x2="496" y2="72"  stroke="rgba(16,185,129,.15)" stroke-width="1"/>
 
-                    <rect x="226" y="220" width="160" height="32" rx="10" fill="rgba(113,221,55,0.1)" stroke="rgba(113,221,55,0.2)" stroke-width="1"/>
-                    <circle cx="246" cy="236" r="8" fill="rgba(113,221,55,0.5)"/>
-                    <rect x="260" y="231" width="60" height="7" rx="3.5" fill="rgba(255,255,255,0.3)"/>
-                    <rect x="260" y="241" width="45" height="5" rx="2.5" fill="rgba(255,255,255,0.15)"/>
+                    <!-- ── Student & Teacher Avatars ── -->
+                    <!-- student 1 -->
+                    <circle cx="156" cy="256" r="20" fill="rgba(99,102,241,.18)" stroke="rgba(99,102,241,.4)" stroke-width="1.5"/>
+                    <circle cx="156" cy="249" r="8"  fill="rgba(99,102,241,.55)"/>
+                    <path d="M140 268 Q156 261 172 268" fill="rgba(99,102,241,.32)"/>
+                    <!-- student 2 -->
+                    <circle cx="208" cy="260" r="18" fill="rgba(6,182,212,.18)" stroke="rgba(6,182,212,.4)" stroke-width="1.5"/>
+                    <circle cx="208" cy="254" r="7"  fill="rgba(6,182,212,.55)"/>
+                    <path d="M194 271 Q208 264 222 271" fill="rgba(6,182,212,.3)"/>
+                    <!-- student 3 -->
+                    <circle cx="256" cy="263" r="17" fill="rgba(16,185,129,.18)" stroke="rgba(16,185,129,.4)" stroke-width="1.5"/>
+                    <circle cx="256" cy="257" r="7"  fill="rgba(16,185,129,.55)"/>
+                    <path d="M243 274 Q256 267 269 274" fill="rgba(16,185,129,.3)"/>
+                    <!-- student 4 -->
+                    <circle cx="302" cy="260" r="18" fill="rgba(245,158,11,.18)" stroke="rgba(245,158,11,.4)" stroke-width="1.5"/>
+                    <circle cx="302" cy="253" r="7"  fill="rgba(245,158,11,.55)"/>
+                    <path d="M288 271 Q302 264 316 271" fill="rgba(245,158,11,.3)"/>
+                    <!-- teacher (larger, violet, cap) -->
+                    <circle cx="368" cy="254" r="24" fill="rgba(167,139,250,.2)" stroke="rgba(167,139,250,.55)" stroke-width="2"/>
+                    <circle cx="368" cy="246" r="10" fill="rgba(167,139,250,.65)"/>
+                    <path d="M348 268 Q368 258 388 268" fill="rgba(167,139,250,.4)"/>
+                    <!-- graduation cap -->
+                    <rect x="360" y="232" width="16" height="3" rx="1.5" fill="rgba(255,255,255,.75)"/>
+                    <polygon points="368,226 376,232 368,235 360,232" fill="rgba(255,255,255,.85)"/>
+
+                    <!-- dashed connector lines card → avatars -->
+                    <line x1="160" y1="236" x2="200" y2="224" stroke="rgba(99,102,241,.14)" stroke-width="1" stroke-dasharray="3,3"/>
+                    <line x1="256" y1="246" x2="256" y2="224" stroke="rgba(16,185,129,.14)" stroke-width="1" stroke-dasharray="3,3"/>
+                    <line x1="368" y1="230" x2="348" y2="224" stroke="rgba(167,139,250,.14)" stroke-width="1" stroke-dasharray="3,3"/>
+
+                    <!-- ── Decorative icons ── -->
+                    <!-- lightbulb (top-left area) -->
+                    <circle cx="78" cy="168" r="12" fill="rgba(251,191,36,.1)" stroke="rgba(251,191,36,.2)" stroke-width="1"/>
+                    <circle cx="78" cy="168" r="5"  fill="rgba(251,191,36,.5)" filter="url(#glow)"/>
+                    <!-- book icon right -->
+                    <rect x="458" y="172" width="20" height="14" rx="2" fill="rgba(16,185,129,.12)" stroke="rgba(16,185,129,.22)" stroke-width=".8"/>
+                    <line x1="468" y1="172" x2="468" y2="186" stroke="rgba(16,185,129,.35)" stroke-width="1"/>
+                    <rect x="461" y="176" width="5"  height="1.5" rx=".75" fill="rgba(255,255,255,.3)"/>
+                    <rect x="461" y="180" width="5"  height="1.5" rx=".75" fill="rgba(255,255,255,.3)"/>
+                    <rect x="471" y="176" width="5"  height="1.5" rx=".75" fill="rgba(255,255,255,.3)"/>
+                    <rect x="471" y="180" width="5"  height="1.5" rx=".75" fill="rgba(255,255,255,.3)"/>
                 </svg>
 
-                <!-- Floating badges -->
-                <div class="badge-float b1">
-                    <i class="bx bx-brain bicon" style="color:#a78bfa"></i>
-                    <div class="btxt">
-                        <strong>AI Insight</strong>
-                        <span>3 at-risk students</span>
+                <!-- floating badges -->
+                <div class="info-badge ib-ai">
+                    <div class="ib-icon" style="background:rgba(167,139,250,.2)">
+                        <i class='bx bx-brain' style="color:#c4b5fd"></i>
+                    </div>
+                    <div class="ib-text">
+                        <strong>AI Curriculum</strong>
+                        <span>Unit 4 generated</span>
                     </div>
                 </div>
-                <div class="badge-float b2">
-                    <i class="bx bx-check-circle bicon" style="color:#71dd37"></i>
-                    <div class="btxt">
-                        <strong>Plan Generated</strong>
-                        <span>Unit 3 — 12 lessons</span>
+
+                <div class="info-badge ib-score">
+                    <div class="ib-icon" style="background:rgba(16,185,129,.18)">
+                        <i class='bx bx-award' style="color:#6ee7b7"></i>
+                    </div>
+                    <div class="ib-text">
+                        <strong>95% Pass Rate</strong>
+                        <span>Class 10-B · Math</span>
                     </div>
                 </div>
-                <div class="badge-float b3">
-                    <i class="bx bx-trending-up bicon" style="color:#fd7e14"></i>
-                    <div class="btxt">
-                        <strong>92% Attendance</strong>
-                        <span>This week</span>
+
+                <div class="info-badge ib-up">
+                    <div class="ib-icon" style="background:rgba(6,182,212,.18)">
+                        <i class='bx bx-trending-up' style="color:#67e8f9"></i>
+                    </div>
+                    <div class="ib-text">
+                        <strong>Attendance Up</strong>
+                        <span>+8% this month</span>
                     </div>
                 </div>
-            </div>
+
+            </div><!-- /scene-wrap -->
 
             <!-- Feature chips -->
-            <div class="features-strip">
-                <div class="feature-chip"><i class="bx bx-brain" style="color:#a78bfa"></i>AI-Powered</div>
-                <div class="feature-chip"><i class="bx bx-bar-chart-alt-2" style="color:#71dd37"></i>Analytics</div>
-                <div class="feature-chip"><i class="bx bx-shield-check" style="color:#696cff"></i>Secure</div>
-                <div class="feature-chip"><i class="bx bx-devices" style="color:#fd7e14"></i>Multi-Role</div>
+            <div class="chips-row">
+                <div class="chip"><i class='bx bx-brain'          style="color:#c4b5fd"></i>AI-Powered</div>
+                <div class="chip"><i class='bx bx-bar-chart-alt-2' style="color:#67e8f9"></i>Analytics</div>
+                <div class="chip"><i class='bx bxs-graduation'     style="color:#6ee7b7"></i>Multi-Role</div>
+                <div class="chip"><i class='bx bx-shield-check'   style="color:#818cf8"></i>Secure</div>
             </div>
-        </div>
 
-        <!-- Decorative circles -->
-        <div style="position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(105,108,255,.08);pointer-events:none"></div>
-        <div style="position:absolute;bottom:-100px;left:-60px;width:250px;height:250px;border-radius:50%;background:rgba(113,221,55,.06);pointer-events:none"></div>
-    </div>
+        </div><!-- /illus-content -->
+    </div><!-- /illus-panel -->
 
-</div>
+</div><!-- /page-wrap -->
 
+<!-- Scripts -->
 <script src="~/assets/vendor/libs/jquery/jquery.js"></script>
-<script src="~/assets/vendor/js/bootstrap.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@@11/dist/sweetalert2.min.js"></script>
+
 <script>
-function togglePwd() {
-    const i = document.getElementById('pwdInput');
-    const e = document.getElementById('eyeIcon');
-    if (i.type === 'password') {
-        i.type = 'text';
-        e.classList.replace('bx-show', 'bx-hide');
-    } else {
-        i.type = 'password';
-        e.classList.replace('bx-hide', 'bx-show');
+    function togglePwd() {
+        var inp = document.getElementById('Password');
+        var ico = document.getElementById('eyeIcon');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            ico.className = 'bx bx-hide';
+        } else {
+            inp.type = 'password';
+            ico.className = 'bx bx-show';
+        }
     }
-}
+
+    document.getElementById('loginForm').addEventListener('submit', function () {
+        var email = document.getElementById('Email').value.trim();
+        var pwd   = document.getElementById('Password').value.trim();
+        if (email && pwd) {
+            document.getElementById('submitBtn').classList.add('loading');
+        }
+    });
+
+    @if (hasErrors)
+    {
+        <text>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Sign In Failed',
+                text: @Json.Serialize(firstError),
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#4f46e5',
+                background: '#1e1b4b',
+                color: '#e2e8f0',
+                iconColor: '#ef4444',
+                borderRadius: '16px',
+                customClass: {
+                    popup:         'swal-edu',
+                    confirmButton: 'swal-edu-btn'
+                }
+            });
+        });
+        </text>
+    }
 </script>
+
+<style>
+    .swal-edu         { border: 1px solid rgba(255,255,255,.1) !important; border-radius: 16px !important; }
+    .swal-edu-btn     { font-family: 'Poppins', sans-serif !important; font-weight: 600 !important; padding: .6rem 1.8rem !important; border-radius: 9px !important; }
+</style>
+
 </body>
 </html>

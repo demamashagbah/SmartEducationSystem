@@ -36,6 +36,10 @@ namespace SmartEducation.Web.Areas.Admin.Models
         public string? Address { get; set; }
         public string? EmergencyContact { get; set; }
 
+        // Parent linking (optional: link to existing parent account)
+        public Guid? LinkedParentProfileId { get; set; }
+        public string? LinkedParentName { get; set; }
+
         // Dropdowns
         public IEnumerable<SelectListItem> AcademicYearOptions { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> ClassRoomOptions { get; set; } = new List<SelectListItem>();

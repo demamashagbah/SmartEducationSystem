@@ -32,8 +32,9 @@ namespace SmartEducation.Web.Areas.Parent.Controllers
 
             if (parentProfile != null)
             {
-                var parentStudents = await _unitOfWork.StudentProfiles.GetAllAsync();
-                ViewBag.ChildrenCount = 0;
+                var children = await _unitOfWork.StudentProfiles.FindAsync(
+                    s => s.ParentStudents.Any(ps => ps.ParentId == parentProfile.Id));
+                ViewBag.ChildrenCount = children.Count;
             }
             else
             {

@@ -69,9 +69,14 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
         <h5 class="mb-0 fw-bold"><i class="bx bx-group me-2 text-primary"></i>Students</h5>
-        <a asp-action="AssignStudents" asp-route-id="@classRoom?.Id" class="btn btn-primary">
-            <i class="bx bx-user-plus me-1"></i> Assign Students
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="AddStudent" asp-route-classRoomId="@classRoom?.Id" class="btn btn-success btn-sm">
+                <i class="bx bx-user-plus me-1"></i>New Student
+            </a>
+            <a asp-action="AssignStudents" asp-route-id="@classRoom?.Id" class="btn btn-primary btn-sm">
+                <i class="bx bx-link me-1"></i>Assign Existing
+            </a>
+        </div>
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -122,24 +127,29 @@
                             @if (s.IsActive) { <span class="badge bg-label-success">Active</span> }
                             else { <span class="badge bg-label-danger">Inactive</span> }
                         </td>
-                        <td class="text-end pe-3">
-                            <a asp-controller="Student" asp-action="Details" asp-route-id="@s.ProfileId"
-                               class="btn btn-sm btn-outline-info me-1">
-                                <i class="bx bx-show me-1"></i>View Details
-                            </a>
-                            <a asp-action="TransferStudent" asp-route-profileId="@s.ProfileId"
-                               class="btn btn-sm btn-outline-warning me-1">
-                                <i class="bx bx-transfer me-1"></i>Transfer
-                            </a>
-                            <form asp-action="RemoveStudent" method="post" class="d-inline"
-                                  onsubmit="return confirm('Remove @s.FullName from this class?')">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="profileId" value="@s.ProfileId" />
-                                <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bx bx-user-minus me-1"></i>Remove
-                                </button>
-                            </form>
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <a asp-controller="Student" asp-action="Details" asp-route-id="@s.ProfileId"
+                                   class="btn-action btn-action-view"
+                                   data-bs-toggle="tooltip" title="View Details">
+                                    <i class="bx bx-show"></i><span>View</span>
+                                </a>
+                                <a asp-action="TransferStudent" asp-route-profileId="@s.ProfileId"
+                                   class="btn-action btn-action-transfer"
+                                   data-bs-toggle="tooltip" title="Transfer to Another Class">
+                                    <i class="bx bx-transfer"></i><span>Transfer</span>
+                                </a>
+                                <form asp-action="RemoveStudent" method="post" class="d-inline"
+                                      onsubmit="return confirm('Remove @s.FullName from this class?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="profileId" value="@s.ProfileId" />
+                                    <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
+                                    <button type="submit" class="btn-action btn-action-delete"
+                                            data-bs-toggle="tooltip" title="Remove from Class">
+                                        <i class="bx bx-user-minus"></i><span>Remove</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -176,28 +186,34 @@
                         <td class="text-muted small">@subj++</td>
                         <td><span class="fw-semibold">@s.Name</span></td>
                         <td><small class="text-muted">@(s.Description ?? "—")</small></td>
-                        <td class="text-end pe-3">
-                            <a asp-controller="Subject" asp-action="Details" asp-route-id="@s.Id"
-                               class="btn btn-sm btn-outline-info me-1">
-                                <i class="bx bx-book-content me-1"></i>Curriculum
-                            </a>
-                            <a asp-controller="Subject" asp-action="UploadGuide" asp-route-id="@s.Id"
-                               class="btn btn-sm btn-outline-warning me-1">
-                                <i class="bx bx-upload me-1"></i>Teacher Guide
-                            </a>
-                            <a asp-controller="Subject" asp-action="Edit" asp-route-id="@s.Id"
-                               class="btn btn-sm btn-outline-primary me-1">
-                                <i class="bx bx-edit me-1"></i>Edit
-                            </a>
-                            <form asp-action="RemoveSubject" method="post" class="d-inline"
-                                  onsubmit="return confirm('Remove subject @s.Name?')">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="subjectId" value="@s.Id" />
-                                <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bx bx-trash me-1"></i>Remove
-                                </button>
-                            </form>
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <a asp-controller="Subject" asp-action="Details" asp-route-id="@s.Id"
+                                   class="btn-action btn-action-curriculum"
+                                   data-bs-toggle="tooltip" title="View Curriculum">
+                                    <i class="bx bx-book-content"></i><span>Curriculum</span>
+                                </a>
+                                <a asp-controller="Subject" asp-action="UploadGuide" asp-route-id="@s.Id"
+                                   class="btn-action btn-action-upload"
+                                   data-bs-toggle="tooltip" title="Upload Teacher Guide">
+                                    <i class="bx bx-upload"></i><span>Guide</span>
+                                </a>
+                                <a asp-controller="Subject" asp-action="Edit" asp-route-id="@s.Id"
+                                   class="btn-action btn-action-edit"
+                                   data-bs-toggle="tooltip" title="Edit Subject">
+                                    <i class="bx bx-edit-alt"></i><span>Edit</span>
+                                </a>
+                                <form asp-action="RemoveSubject" method="post" class="d-inline"
+                                      onsubmit="return confirm('Remove subject @s.Name?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="subjectId" value="@s.Id" />
+                                    <input type="hidden" name="classRoomId" value="@classRoom?.Id" />
+                                    <button type="submit" class="btn-action btn-action-delete"
+                                            data-bs-toggle="tooltip" title="Remove Subject">
+                                        <i class="bx bx-trash"></i><span>Remove</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -237,23 +253,28 @@
                         <td><span class="badge bg-label-success">@a.SubjectName</span></td>
                         <td>@(string.IsNullOrEmpty(a.AcademicYearName) ? "—" : a.AcademicYearName)</td>
                         <td>@if (a.IsActive) { <span class="badge bg-label-success">Active</span> } else { <span class="badge bg-label-secondary">Inactive</span> }</td>
-                        <td class="text-end pe-3">
-                            <form asp-controller="TeacherAssignment" asp-action="ToggleActive" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@a.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1">
-                                    <i class="bx @(a.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
-                                    @(a.IsActive ? "Deactivate" : "Activate")
-                                </button>
-                            </form>
-                            <form asp-controller="TeacherAssignment" asp-action="Remove" method="post" class="d-inline"
-                                  onsubmit="return confirm('Remove this assignment?')">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@a.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bx bx-trash me-1"></i>Remove
-                                </button>
-                            </form>
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <form asp-controller="TeacherAssignment" asp-action="ToggleActive" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <button type="submit"
+                                            class="btn-action @(a.IsActive ? "btn-action-deactivate" : "btn-action-activate")"
+                                            data-bs-toggle="tooltip" title="@(a.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="bx @(a.IsActive ? "bx-pause-circle" : "bx-play-circle")"></i>
+                                        <span>@(a.IsActive ? "Off" : "On")</span>
+                                    </button>
+                                </form>
+                                <form asp-controller="TeacherAssignment" asp-action="Remove" method="post" class="d-inline"
+                                      onsubmit="return confirm('Remove this assignment?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <button type="submit" class="btn-action btn-action-delete"
+                                            data-bs-toggle="tooltip" title="Remove Assignment">
+                                        <i class="bx bx-trash"></i><span>Remove</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }

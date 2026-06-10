@@ -118,15 +118,19 @@
                                 <span class="badge bg-label-danger">Inactive</span>
                             }
                         </td>
-                        <td class="text-end pe-3">
-                            <a asp-action="Details" asp-route-id="@s.ProfileId"
-                               class="btn btn-sm btn-outline-info me-1">
-                                <i class="bx bx-show me-1"></i>View Details
-                            </a>
-                            <a asp-action="ResetPassword" asp-route-id="@s.ProfileId"
-                               class="btn btn-sm btn-outline-secondary">
-                                <i class="bx bx-lock-open me-1"></i>Reset Password
-                            </a>
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <a asp-action="Details" asp-route-id="@s.ProfileId"
+                                   class="btn-action btn-action-view"
+                                   data-bs-toggle="tooltip" title="View Details">
+                                    <i class="bx bx-show"></i><span>View</span>
+                                </a>
+                                <a asp-action="ResetPassword" asp-route-id="@s.ProfileId"
+                                   class="btn-action btn-action-lock"
+                                   data-bs-toggle="tooltip" title="Reset Password">
+                                    <i class="bx bx-lock"></i><span>Reset</span>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }

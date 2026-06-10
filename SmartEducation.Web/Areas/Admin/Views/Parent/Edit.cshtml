@@ -1,15 +1,24 @@
 @model SmartEducation.Web.Areas.Admin.Models.ParentEditViewModel
+@using SmartEducation.Application.DTOs
 @{
     ViewData["Title"] = "Edit Parent";
     Layout = "~/Views/Shared/Layouts/_AdminLayout.cshtml";
+    var children = ViewBag.Children as List<StudentDetailDto> ?? new List<StudentDetailDto>();
 }
-<div class="row mb-4"><div class="col-12">
-    <a asp-action="Index" class="text-muted text-decoration-none small"><i class="bx bx-arrow-back me-1"></i>Parents</a>
-    <h4 class="fw-bold mt-1">Edit Parent</h4>
-</div></div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <a asp-action="Index" class="text-muted text-decoration-none small"><i class="bx bx-arrow-back me-1"></i>Parents</a>
+        <h4 class="fw-bold mt-1">Edit Parent</h4>
+    </div>
+</div>
+
+<!-- Profile form -->
 <form asp-action="Edit" method="post">
     @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="ProfileId" /><input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="ProfileId" />
+    <input type="hidden" asp-for="UserId" />
+
     <div class="row g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -23,13 +32,16 @@
                         <div class="col-md-3"><label asp-for="Username" class="form-label fw-semibold">Username *</label><input asp-for="Username" class="form-control" /><span asp-validation-for="Username" class="text-danger small"></span></div>
                         <div class="col-md-3"><label asp-for="Email" class="form-label fw-semibold">Email *</label><input asp-for="Email" type="email" class="form-control" /><span asp-validation-for="Email" class="text-danger small"></span></div>
                         <div class="col-md-3"><label asp-for="PhoneNumber" class="form-label fw-semibold">Phone</label><input asp-for="PhoneNumber" class="form-control" /></div>
-                        <div class="col-md-2"><label asp-for="Gender" class="form-label fw-semibold">Gender</label>
-                            <select asp-for="Gender" class="form-select"><option value="">—</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                        <div class="col-md-2">
+                            <label asp-for="Gender" class="form-label fw-semibold">Gender</label>
+                            <select asp-for="Gender" class="form-select"><option value="">—</option><option value="Male">Male</option><option value="Female">Female</option></select>
+                        </div>
                         <div class="col-md-3"><label asp-for="DateOfBirth" class="form-label fw-semibold">Date of Birth</label><input asp-for="DateOfBirth" type="date" class="form-control" /></div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
@@ -43,10 +55,216 @@
                 </div>
             </div>
         </div>
+
         <div class="col-12 d-flex gap-2 justify-content-end">
             <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
             <button type="submit" class="btn btn-primary px-4"><i class="bx bx-save me-1"></i>Save Changes</button>
         </div>
     </div>
 </form>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+
+<!-- ── Linked Children (separate card, outside the save form) ── -->
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info bg-opacity-10 border-0 py-3 d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-info mb-0">
+                    <i class="bx bx-group me-2"></i>Linked Children
+                    <span class="badge bg-label-info ms-1">@children.Count</span>
+                </h6>
+                <button type="button" class="btn btn-outline-info btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#linkStudentModal" onclick="openLinkModal()">
+                    <i class="bx bx-link-alt me-1"></i>Link Student
+                </button>
+            </div>
+
+            @if (!children.Any())
+            {
+                <div class="card-body text-center text-muted py-4">
+                    <i class="bx bx-child fs-2 d-block mb-2 opacity-50"></i>
+                    <p class="mb-1 fw-semibold">No linked children</p>
+                    <small>Click "Link Student" to connect a student profile to this parent.</small>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Student</th>
+                                <th>Student No.</th>
+                                <th>Class</th>
+                                <th>Status</th>
+                                <th class="text-end pe-3" style="width:80px">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int ci = 1; }
+                            @foreach (var child in children)
+                            {
+                                <tr>
+                                    <td class="text-muted small">@ci++</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="bg-primary bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center fw-bold text-primary flex-shrink-0"
+                                                 style="width:32px;height:32px;font-size:.78rem">
+                                                @(child.FirstName.Length > 0 ? child.FirstName[0].ToString() : "?")@(child.LastName.Length > 0 ? child.LastName[0].ToString() : "")
+                                            </div>
+                                            <span class="fw-semibold">@child.FullName</span>
+                                        </div>
+                                    </td>
+                                    <td><code>@(string.IsNullOrEmpty(child.StudentNumber) ? "—" : child.StudentNumber)</code></td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(child.ClassRoomName) || child.ClassRoomName == "Unassigned")
+                                        {
+                                            <span class="badge bg-label-warning">Unassigned</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-label-success">@child.ClassRoomName</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (child.IsActive) { <span class="badge bg-label-success">Active</span> }
+                                        else { <span class="badge bg-label-danger">Inactive</span> }
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="tooltip" title="Unlink Student"
+                                                onclick="unlinkStudent('@child.ProfileId','@child.FullName')">
+                                            <i class="bx bx-unlink"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Link Student Modal -->
+<div class="modal fade" id="linkStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Link a Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-transparent"><i class="bx bx-search text-muted"></i></span>
+                    <input type="text" id="studentSearchInput" class="form-control border-start-0"
+                           placeholder="Search by name, student number, or national ID…" autocomplete="off" />
+                </div>
+                <div id="studentSearchResults" style="max-height:300px;overflow-y:auto">
+                    <p class="text-muted text-center mb-0 py-3 small">Type at least 2 characters to search.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+    const PARENT_PROFILE_ID = '@Model.ProfileId';
+    const CSRF = $('[name="__RequestVerificationToken"]:last').val();
+
+    const URLS = {
+        search:  '@Url.Action("SearchStudents","Parent")',
+        link:    '@Url.Action("LinkStudent","Parent")',
+        unlink:  '@Url.Action("UnlinkStudent","Parent")',
+    };
+
+    $('[data-bs-toggle="tooltip"]').each(function () { new bootstrap.Tooltip(this); });
+
+    function openLinkModal() {
+        $('#studentSearchInput').val('');
+        $('#studentSearchResults').html('<p class="text-muted text-center mb-0 py-3 small">Type at least 2 characters to search.</p>');
+    }
+
+    let searchTimer;
+    $('#studentSearchInput').on('input', function () {
+        clearTimeout(searchTimer);
+        const q = this.value.trim();
+        if (q.length < 2) {
+            $('#studentSearchResults').html('<p class="text-muted text-center mb-0 py-3 small">Type at least 2 characters to search.</p>');
+            return;
+        }
+        searchTimer = setTimeout(() => searchStudents(q), 300);
+    });
+
+    async function searchStudents(q) {
+        try {
+            const results = await $.getJSON(URLS.search + '?q=' + encodeURIComponent(q));
+            const $res = $('#studentSearchResults').empty();
+            if (!results || results.length === 0) {
+                $res.html('<p class="text-muted text-center mb-0 py-3 small">No students found.</p>');
+                return;
+            }
+            let html = '<div class="list-group">';
+            results.forEach(s => {
+                const ini = s.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+                html += `<button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2"
+                             onclick="linkStudent('${s.profileId}','${esc(s.name)}','${esc(s.studentNumber)}','${esc(s.className)}')">
+                  <div class="rounded-circle bg-primary bg-opacity-15 d-flex align-items-center justify-content-center fw-bold text-primary flex-shrink-0"
+                       style="width:34px;height:34px;font-size:.78rem">${ini}</div>
+                  <div>
+                    <div class="fw-semibold">${esc(s.name)}</div>
+                    <small class="text-muted">#${esc(s.studentNumber)} · ${esc(s.className)}</small>
+                  </div>
+                </button>`;
+            });
+            html += '</div>';
+            $res.html(html);
+        } catch (e) {}
+    }
+
+    async function linkStudent(profileId, name) {
+        try {
+            await $.ajax({
+                url: URLS.link,
+                method: 'POST',
+                contentType: 'application/json',
+                headers: { 'RequestVerificationToken': CSRF },
+                data: JSON.stringify({ parentProfileId: PARENT_PROFILE_ID, studentProfileId: profileId })
+            });
+            bootstrap.Modal.getInstance(document.getElementById('linkStudentModal'))?.hide();
+            location.reload();
+        } catch (e) {
+            alert('Failed to link student.');
+        }
+    }
+
+    async function unlinkStudent(profileId, name) {
+        if (!confirm('Unlink ' + name + ' from this parent?')) return;
+        try {
+            await $.ajax({
+                url: URLS.unlink,
+                method: 'POST',
+                contentType: 'application/json',
+                headers: { 'RequestVerificationToken': CSRF },
+                data: JSON.stringify({ parentProfileId: PARENT_PROFILE_ID, studentProfileId: profileId })
+            });
+            location.reload();
+        } catch (e) {
+            alert('Failed to unlink student.');
+        }
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+</script>
+}

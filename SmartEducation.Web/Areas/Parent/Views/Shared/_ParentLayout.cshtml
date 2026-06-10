@@ -3,30 +3,38 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Parent Portal</title>
+    <title>@ViewData["Title"] — Parent Portal</title>
     <link rel="icon" type="image/x-icon" href="~/assets/img/favicon/favicon.ico" />
-    <link rel="stylesheet" href="~/assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="~/assets/vendor/fonts/iconify-icons.css" />
     <link rel="stylesheet" href="~/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="~/assets/vendor/css/theme-default.css" />
     <link rel="stylesheet" href="~/assets/css/demo.css" />
+    <link rel="stylesheet" href="~/css/action-buttons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Public Sans', sans-serif; }</style>
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
 
-            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-                <div class="app-brand demo">
-                    <a asp-area="Parent" asp-controller="Dashboard" asp-action="Index" class="app-brand-link">
-                        <span class="app-brand-logo demo">
-                            <i class="bx bx-user text-info fs-2"></i>
-                        </span>
-                        <span class="app-brand-text demo menu-text fw-bolder ms-2">Parent Portal</span>
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme"
+                   style="display:flex;flex-direction:column;height:100vh;overflow-y:auto">
+                <div class="app-brand demo" style="padding:1.25rem 1.5rem .75rem;flex-shrink:0">
+                    <a asp-area="Parent" asp-controller="Dashboard" asp-action="Index"
+                       class="app-brand-link text-decoration-none d-flex align-items-center gap-2">
+                        <div class="bg-info bg-opacity-15 rounded-3 p-2">
+                            <i class="bx bx-user text-info" style="font-size:1.5rem"></i>
+                        </div>
+                        <span class="fw-bold fs-5 text-dark">Parent Portal</span>
                     </a>
                 </div>
                 <div class="menu-inner-shadow"></div>
-                <ul class="menu-inner py-1">
 
-                    <li class="menu-item">
+                <ul class="menu-inner py-1 flex-grow-1" id="sidebarMenu">
+
+                    <li class="menu-item" data-match="/Parent/Dashboard">
                         <a asp-area="Parent" asp-controller="Dashboard" asp-action="Index" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
                             <div>Dashboard</div>
@@ -66,26 +74,51 @@
                     </li>
 
                     <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Communication</span>
+                    </li>
+
+                    <li class="menu-item" data-match="/Parent/Message">
+                        <a asp-area="Parent" asp-controller="Message" asp-action="Index" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-chat"></i>
+                            <div>Messages</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
                         <span class="menu-header-text">Account</span>
                     </li>
 
-                    <li class="menu-item">
-                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="menu-link btn btn-link w-100 text-start border-0 p-0" style="background:none;">
-                                <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
-                                <div class="text-danger">Logout</div>
-                            </button>
-                        </form>
-                    </li>
-
                 </ul>
+
+                <!-- Logout -->
+                <div style="border-top:1px solid rgba(0,0,0,.06);padding:1rem 1.25rem 1.5rem;flex-shrink:0">
+                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                style="width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;
+                                       padding:.6rem 1rem;border-radius:.5rem;background:rgba(255,62,29,.06);
+                                       color:#ff3e1d;border:1px solid rgba(255,62,29,.15);font-weight:600;
+                                       cursor:pointer;transition:background .2s;font-family:inherit">
+                            <i class="bx bx-power-off"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
             </aside>
 
             <div class="layout-page">
                 <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme">
-                    <div class="navbar-nav-right d-flex align-items-center ms-auto">
-                        <span class="fw-semibold text-muted">Parent Portal</span>
+                    <div class="layout-menu-toggle navbar-nav align-items-center nav-item d-xl-none me-3">
+                        <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                            <i class="bx bx-menu bx-md"></i>
+                        </a>
+                    </div>
+                    <div class="navbar-nav-right d-flex align-items-center ms-auto gap-3">
+                        <span class="fw-semibold text-muted small">Parent Portal</span>
+                        <div class="bg-info bg-opacity-15 rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:34px;height:34px">
+                            <i class="bx bx-user text-info"></i>
+                        </div>
                     </div>
                 </nav>
 
@@ -95,6 +128,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -102,6 +136,59 @@
     <script src="~/assets/vendor/js/bootstrap.js"></script>
     <script src="~/assets/vendor/js/menu.js"></script>
     <script src="~/assets/js/main.js"></script>
-    @await RenderSectionAsync("Scripts", false)
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script>
+    (function () {
+        // Active sidebar link
+        var path = window.location.pathname;
+        document.querySelectorAll('#sidebarMenu .menu-item[data-match]').forEach(function (li) {
+            var match = li.getAttribute('data-match');
+            if (path.toLowerCase().startsWith(match.toLowerCase())) li.classList.add('active');
+        });
+
+        // Bootstrap tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el, { boundary: document.body });
+        });
+
+        // SweetAlert2 confirm intercept
+        function swalConfirm(msg, cb) {
+            Swal.fire({
+                title: 'Confirm', text: msg, icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd', cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes', cancelButtonText: 'Cancel'
+            }).then(function (r) { if (r.isConfirmed) cb(); });
+        }
+        document.querySelectorAll('form[onsubmit]').forEach(function (form) {
+            var attr = form.getAttribute('onsubmit') || '';
+            var match = attr.match(/confirm\('([^']+)'\)/);
+            if (!match) return;
+            var msg = match[1];
+            form.removeAttribute('onsubmit');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); var f = this;
+                swalConfirm(msg, function () { f.submit(); });
+            });
+        });
+
+        // TempData toast
+        document.querySelectorAll('.alert-success').forEach(function (el) {
+            var txt = el.textContent.trim().replace(/×/g, '').trim();
+            if (!txt) return;
+            el.style.display = 'none';
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: txt,
+                showConfirmButton: false, timer: 4000, timerProgressBar: true });
+        });
+        document.querySelectorAll('.alert-danger').forEach(function (el) {
+            var txt = el.textContent.trim().replace(/×/g, '').trim();
+            if (!txt || el.closest('form')) return;
+            el.style.display = 'none';
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: txt,
+                showConfirmButton: false, timer: 5000, timerProgressBar: true });
+        });
+    })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

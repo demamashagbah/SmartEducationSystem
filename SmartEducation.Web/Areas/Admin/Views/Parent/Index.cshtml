@@ -86,25 +86,36 @@
                             @if (p.IsActive) { <span class="badge bg-label-success">Active</span> }
                             else { <span class="badge bg-label-danger">Inactive</span> }
                         </td>
-                        <td class="text-end pe-3">
-                            <a asp-action="Details" asp-route-id="@p.ProfileId" class="btn btn-sm btn-outline-info me-1">
-                                <i class="bx bx-show me-1"></i>View Details
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@p.ProfileId" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="bx bx-edit me-1"></i>Edit
-                            </a>
-                            <a asp-action="ResetPassword" asp-route-id="@p.ProfileId" class="btn btn-sm btn-outline-secondary me-1">
-                                <i class="bx bx-lock-open me-1"></i>Reset Password
-                            </a>
-                            <form asp-action="ToggleActive" method="post" class="d-inline"
-                                  onsubmit="return confirm('@(p.IsActive ? "Deactivate" : "Activate") @p.FullName?')">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@p.ProfileId" />
-                                <button type="submit" class="btn btn-sm @(p.IsActive ? "btn-outline-warning" : "btn-outline-success")">
-                                    <i class="bx @(p.IsActive ? "bx-pause-circle" : "bx-play-circle") me-1"></i>
-                                    @(p.IsActive ? "Deactivate" : "Activate")
-                                </button>
-                            </form>
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <a asp-action="Details" asp-route-id="@p.ProfileId"
+                                   class="btn-action btn-action-view"
+                                   data-bs-toggle="tooltip" title="View Details">
+                                    <i class="bx bx-show"></i><span>View</span>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@p.ProfileId"
+                                   class="btn-action btn-action-edit"
+                                   data-bs-toggle="tooltip" title="Edit Parent">
+                                    <i class="bx bx-edit-alt"></i><span>Edit</span>
+                                </a>
+                                <a asp-action="ResetPassword" asp-route-id="@p.ProfileId"
+                                   class="btn-action btn-action-lock"
+                                   data-bs-toggle="tooltip" title="Reset Password">
+                                    <i class="bx bx-lock"></i><span>Reset</span>
+                                </a>
+                                <form asp-action="ToggleActive" method="post" class="d-inline"
+                                      onsubmit="return confirm('@(p.IsActive ? "Deactivate" : "Activate") @p.FullName?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@p.ProfileId" />
+                                    <button type="submit"
+                                            class="btn-action @(p.IsActive ? "btn-action-deactivate" : "btn-action-activate")"
+                                            data-bs-toggle="tooltip"
+                                            title="@(p.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="bx @(p.IsActive ? "bx-pause-circle" : "bx-play-circle")"></i>
+                                        <span>@(p.IsActive ? "Deactivate" : "Activate")</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }
